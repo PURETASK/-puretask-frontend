@@ -3,13 +3,22 @@
 import React, { useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { Card, CardContent } from '@/components/ui/Card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
-import { Loading } from '@/components/ui/Loading';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { SkeletonList } from '@/components/ui/Skeleton';
+import { ErrorDisplay } from '@/components/error/ErrorDisplay';
+import { EmptyFavorites } from '@/components/ui/EmptyState';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { Heart, Star, MapPin, Calendar, Trash2 } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { favoritesService } from '@/services/favorites.service';
+import { clientEnhancedService } from '@/services/clientEnhanced.service';
+import { useToast } from '@/contexts/ToastContext';
+import { useRouter } from 'next/navigation';
+import { Sparkles, TrendingUp, Clock } from 'lucide-react';
 
 export default function FavoritesPage() {
   return (
@@ -20,49 +29,60 @@ export default function FavoritesPage() {
 }
 
 function FavoritesContent() {
-  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const { showToast } = useToast();
+  const queryClient = useQueryClient();
 
-  // Mock data - would come from API
-  const favorites = [
-    {
-      id: '1',
-      cleanerId: 'cleaner-1',
-      name: 'Jane Doe',
-      rating: 4.9,
-      reviews: 127,
-      pricePerHour: 35,
-      experience: 5,
-      avatar: null,
-      specialties: ['Deep Cleaning', 'Eco-Friendly'],
-      location: 'Manhattan, NY',
-      lastBooked: '2025-12-15',
-      totalBookings: 8,
+  const { data: favoritesData, isLoading } = useQuery({
+    queryKey: ['favorites'],
+    queryFn: () => favoritesService.getFavorites(),
+  });
+
+  // Get recommendations
+  const { data: recommendationsData } = useQuery({
+    queryKey: ['favorites', 'recommendations'],
+    queryFn: async () => {
+      try {
+        return await clientEnhancedService.getFavoriteRecommendations();
+      } catch {
+        return { recommendations: [] };
+      }
     },
-    {
-      id: '2',
-      cleanerId: 'cleaner-2',
-      name: 'John Smith',
-      rating: 4.8,
-      reviews: 95,
-      pricePerHour: 32,
-      experience: 3,
-      avatar: null,
-      specialties: ['Standard Cleaning', 'Move In/Out'],
-      location: 'Brooklyn, NY',
-      lastBooked: '2025-11-28',
-      totalBookings: 5,
+  });
+
+  // Get insights
+  const { data: insightsData } = useQuery({
+    queryKey: ['favorites', 'insights'],
+    queryFn: async () => {
+      try {
+        return await clientEnhancedService.getFavoriteInsights();
+      } catch {
+        return { insights: {} };
+      }
     },
-  ];
+  });
+
+  const { mutate: removeFavorite } = useMutation({
+    mutationFn: (favoriteId: string) => favoritesService.removeFavorite(favoriteId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['favorites'] });
+      showToast('Removed from favorites', 'success');
+    },
+    onError: (error: any) => {
+      showToast(error.response?.data?.error?.message || 'Failed to remove favorite', 'error');
+    },
+  });
+
+  const favorites = favoritesData?.favorites || [];
 
   const handleRemoveFavorite = (id: string) => {
     if (confirm('Remove this cleaner from your favorites?')) {
-      console.log('Remove favorite:', id);
-      // Would call API here
+      removeFavorite(id);
     }
   };
 
   const handleBookNow = (cleanerId: string) => {
-    window.location.href = `/booking?cleaner=${cleanerId}`;
+    router.push(`/booking?cleaner=${cleanerId}`);
   };
 
   return (
@@ -79,6 +99,81 @@ function FavoritesContent() {
               Quick access to your trusted cleaning professionals
             </p>
           </div>
+
+          {/* Insights */}
+          {insightsData?.insights && Object.keys(insightsData.insights).length > 0 && (
+            <Card className="mb-6 border-blue-200 bg-blue-50">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-3">
+                  <Sparkles className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-blue-900 mb-2">Your Favorite Insights</h3>
+                    <div className="space-y-1 text-sm text-blue-700">
+                      {insightsData.insights.most_booked && (
+                        <p>• Your most booked cleaner: <strong>{insightsData.insights.most_booked.name}</strong> ({insightsData.insights.most_booked.count} times)</p>
+                      )}
+                      {insightsData.insights.total_bookings && (
+                        <p>• Total bookings with favorites: <strong>{insightsData.insights.total_bookings}</strong></p>
+                      )}
+                      {insightsData.insights.average_rating && (
+                        <p>• Average rating given: <strong>{insightsData.insights.average_rating.toFixed(1)}</strong> ⭐</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Recommendations */}
+          {recommendationsData?.recommendations && recommendationsData.recommendations.length > 0 && (
+            <Card className="mb-6 border-purple-200">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-purple-600" />
+                  <h2 className="text-xl font-semibold text-gray-900">Recommended for You</h2>
+                </div>
+                <p className="text-sm text-gray-600 mt-1">
+                  Cleaners similar to your favorites or top-rated in your area
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {recommendationsData.recommendations.slice(0, 4).map((rec: any) => (
+                    <Card key={rec.id} className="border border-purple-100 hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <Avatar
+                            src={rec.avatar_url}
+                            fallback={rec.name[0]}
+                            size="md"
+                          />
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-900">{rec.name}</h4>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Star className="h-3 w-3 text-yellow-500 fill-current" />
+                              <span className="text-sm text-gray-600">{rec.rating.toFixed(1)}</span>
+                              <Badge variant="primary" className="text-xs">
+                                {rec.reason}
+                              </Badge>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="mt-2"
+                              onClick={() => router.push(`/cleaner/${rec.id}`)}
+                            >
+                              View Profile
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Stats */}
           <div className="grid md:grid-cols-3 gap-4 mb-8">
@@ -104,7 +199,7 @@ function FavoritesContent() {
                   <div>
                     <p className="text-sm text-gray-600">Total Bookings</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      {favorites.reduce((sum, f) => sum + f.totalBookings, 0)}
+                      {insightsData?.insights?.total_bookings || '-'}
                     </p>
                   </div>
                 </div>
@@ -119,9 +214,12 @@ function FavoritesContent() {
                   <div>
                     <p className="text-sm text-gray-600">Avg Rating</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      {(
-                        favorites.reduce((sum, f) => sum + f.rating, 0) / favorites.length
-                      ).toFixed(1)}
+                      {favorites.length > 0
+                        ? (
+                            favorites.reduce((sum, f) => sum + f.cleaner.rating, 0) /
+                            favorites.length
+                          ).toFixed(1)
+                        : '0.0'}
                     </p>
                   </div>
                 </div>
@@ -154,104 +252,84 @@ function FavoritesContent() {
             </Card>
           ) : (
             <div className="space-y-4">
-              {favorites.map((favorite) => (
-                <Card key={favorite.id} className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-6">
-                      {/* Avatar */}
-                      <Avatar
-                        src={favorite.avatar}
-                        fallback={favorite.name[0]}
-                        size="lg"
-                        className="flex-shrink-0"
-                      />
+              {favorites.map((favorite) => {
+                const cleaner = favorite.cleaner;
+                return (
+                  <Card key={favorite.id} className="hover:shadow-lg transition-shadow">
+                    <CardContent className="p-6">
+                      <div className="flex items-start gap-6">
+                        {/* Avatar */}
+                        <Avatar
+                          src={cleaner.avatar_url}
+                          fallback={cleaner.name[0]}
+                          size="lg"
+                          className="flex-shrink-0"
+                        />
 
-                      {/* Info */}
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h3 className="text-xl font-semibold text-gray-900 mb-1">
-                              {favorite.name}
-                            </h3>
-                            <div className="flex items-center gap-4 text-sm text-gray-600">
-                              <div className="flex items-center gap-1">
-                                <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                                <span className="font-medium">{favorite.rating}</span>
-                                <span>({favorite.reviews} reviews)</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <MapPin className="h-4 w-4" />
-                                <span>{favorite.location}</span>
+                        {/* Info */}
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <h3 className="text-xl font-semibold text-gray-900 mb-1">
+                                {cleaner.name}
+                              </h3>
+                              <div className="flex items-center gap-4 text-sm text-gray-600">
+                                <div className="flex items-center gap-1">
+                                  <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                                  <span className="font-medium">{cleaner.rating.toFixed(1)}</span>
+                                  <span>({cleaner.reviews_count || 0} reviews)</span>
+                                </div>
+                                {cleaner.last_booking_date && (
+                                  <div className="flex items-center gap-1 text-gray-500">
+                                    <Clock className="h-3 w-3" />
+                                    <span>Last booked {new Date(cleaner.last_booking_date).toLocaleDateString()}</span>
+                                  </div>
+                                )}
+                                {cleaner.total_bookings > 0 && (
+                                  <Badge variant="success" className="text-xs">
+                                    {cleaner.total_bookings} bookings
+                                  </Badge>
+                                )}
                               </div>
                             </div>
+                            <div className="text-right">
+                              <p className="text-2xl font-bold text-gray-900">
+                                ${cleaner.price_per_hour}
+                              </p>
+                              <p className="text-sm text-gray-600">per hour</p>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <p className="text-2xl font-bold text-gray-900">
-                              ${favorite.pricePerHour}
-                            </p>
-                            <p className="text-sm text-gray-600">per hour</p>
+
+                          {/* Actions */}
+                          <div className="flex items-center gap-3">
+                            <Button
+                              variant="primary"
+                              onClick={() => handleBookNow(cleaner.id)}
+                            >
+                              <Calendar className="h-4 w-4 mr-2" />
+                              Book Now
+                            </Button>
+                            <Button
+                              variant="outline"
+                              onClick={() => router.push(`/cleaner/${cleaner.id}`)}
+                            >
+                              View Profile
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              onClick={() => handleRemoveFavorite(favorite.id)}
+                              className="text-red-600 hover:text-red-700 ml-auto"
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              Remove
+                            </Button>
                           </div>
-                        </div>
-
-                        {/* Specialties */}
-                        <div className="flex flex-wrap gap-2 mb-4">
-                          {favorite.specialties.map((specialty, index) => (
-                            <Badge key={index} variant="default">
-                              {specialty}
-                            </Badge>
-                          ))}
-                          <Badge variant="primary">{favorite.experience}+ years exp</Badge>
-                        </div>
-
-                        {/* Booking Info */}
-                        <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-gray-600">
-                              Last booked:{' '}
-                              <span className="font-medium text-gray-900">
-                                {new Date(favorite.lastBooked).toLocaleDateString()}
-                              </span>
-                            </span>
-                            <span className="text-gray-600">
-                              Total bookings:{' '}
-                              <span className="font-medium text-gray-900">
-                                {favorite.totalBookings}
-                              </span>
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex items-center gap-3">
-                          <Button
-                            variant="primary"
-                            onClick={() => handleBookNow(favorite.cleanerId)}
-                          >
-                            <Calendar className="h-4 w-4 mr-2" />
-                            Book Again
-                          </Button>
-                          <Button
-                            variant="outline"
-                            onClick={() =>
-                              (window.location.href = `/cleaners/${favorite.cleanerId}`)
-                            }
-                          >
-                            View Profile
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            onClick={() => handleRemoveFavorite(favorite.id)}
-                            className="text-red-600 hover:text-red-700 ml-auto"
-                          >
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            Remove
-                          </Button>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           )}
         </div>

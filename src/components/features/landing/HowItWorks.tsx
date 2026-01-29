@@ -6,19 +6,19 @@ export function HowItWorks() {
       number: '1',
       title: 'Search',
       description: 'Enter your ZIP code and browse verified cleaners in your area',
-      icon: '????',
+      icon: '🔍',
     },
     {
       number: '2',
       title: 'Book',
       description: 'Choose a cleaner, pick a time, and book in just a few clicks',
-      icon: '????',
+      icon: '📅',
     },
     {
       number: '3',
       title: 'Relax',
       description: 'Your cleaner arrives on time and transforms your space',
-      icon: '???',
+      icon: '✨',
     },
   ];
   return (

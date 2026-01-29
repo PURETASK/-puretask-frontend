@@ -8,7 +8,10 @@ import { Card } from '@/components/ui/Card';
 import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
-import { Loading } from '@/components/ui/Loading';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { SkeletonList } from '@/components/ui/Skeleton';
+import { ErrorDisplay } from '@/components/error/ErrorDisplay';
+import { EmptyMessages } from '@/components/ui/EmptyState';
 import { useConversations } from '@/hooks/useMessages';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { Search } from 'lucide-react';
@@ -109,9 +112,10 @@ function MessagesPageContent() {
               {selectedConversation ? (
                 <ChatWindow
                   conversationId={selectedConversation.id}
-                  recipientId={selectedConversation.other_user.id}
-                  recipientName={selectedConversation.other_user.name}
-                  recipientAvatar={selectedConversation.other_user.avatar}
+                  recipientId={selectedConversation.other_user?.id}
+                  recipientName={selectedConversation.other_user?.name || 'User'}
+                  recipientAvatar={selectedConversation.other_user?.avatar}
+                  jobId={selectedConversation.job_id}
                 />
               ) : (
                 <Card className="h-[700px] flex items-center justify-center">

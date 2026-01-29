@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { API_CONFIG } from '@/lib/config';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
@@ -22,9 +23,20 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      await login(formData);
-      // Redirect based on user role (will be handled by AuthContext)
-      router.push('/dashboard');
+      const userData = await login(formData);
+      
+      // Redirect based on user role
+      const role = userData?.role;
+      
+      if (role === 'admin') {
+        router.push('/admin');
+      } else if (role === 'cleaner') {
+        router.push('/cleaner/dashboard');
+      } else if (role === 'client') {
+        router.push('/client/dashboard');
+      } else {
+        router.push('/dashboard'); // fallback
+      }
     } catch (error) {
       // Error is already shown via toast
       console.error('Login error:', error);
@@ -38,6 +50,10 @@ export default function LoginPage() {
       ...prev,
       [e.target.name]: e.target.value,
     }));
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href = `${API_CONFIG.baseURL}/auth/oauth/google/start`;
   };
 
   return (
@@ -58,6 +74,8 @@ export default function LoginPage() {
             <Input
               label="Email Address"
               type="email"
+              inputMode="email"
+              autoComplete="email"
               name="email"
               placeholder="you@example.com"
               value={formData.email}
@@ -69,6 +87,7 @@ export default function LoginPage() {
             <Input
               label="Password"
               type="password"
+              autoComplete="current-password"
               name="password"
               placeholder="••••••••"
               value={formData.password}
@@ -119,7 +138,7 @@ export default function LoginPage() {
             className="w-full"
             size="lg"
             disabled={isLoading}
-            onClick={() => alert('Google OAuth coming soon!')}
+            onClick={handleGoogleLogin}
           >
             <span className="mr-2">🔐</span>
             Continue with Google

@@ -28,9 +28,9 @@ export function Button({
   };
   
   const sizes = {
-    sm: 'h-9 px-3 text-sm',
-    md: 'h-10 px-4 text-base',
-    lg: 'h-12 px-6 text-lg',
+    sm: 'h-11 px-3 text-sm min-h-[44px]', // Minimum touch target
+    md: 'h-12 px-4 text-base min-h-[44px]', // Minimum touch target
+    lg: 'h-14 px-6 text-lg min-h-[48px]', // Optimal touch target
   };
 
   return (

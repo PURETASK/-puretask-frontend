@@ -8,13 +8,14 @@ const createJestConfig = nextJest({
 });
 
 const customJestConfig = {
-  setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/src/tests/utils/setup.ts'],
   testEnvironment: 'jsdom',
-  testMatch: ['**/__tests__/**/*.test.(ts|tsx)'],
+  testMatch: ['**/tests/**/*.test.(ts|tsx)', '**/__tests__/**/*.test.(ts|tsx)'],
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     '!src/**/*.d.ts',
     '!src/**/*.stories.tsx',
+    '!src/tests/**',
     '!src/__tests__/**',
     '!src/test-helpers/**',
   ],

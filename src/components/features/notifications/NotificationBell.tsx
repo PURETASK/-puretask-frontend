@@ -41,6 +41,8 @@ export function NotificationBell() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors"
+        aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
+        aria-expanded={isOpen}
       >
         <div className="text-2xl">🔔</div>
         {unreadCount > 0 && (
@@ -60,6 +62,7 @@ export function NotificationBell() {
               <button
                 onClick={markAllAsRead}
                 className="text-sm text-blue-600 hover:text-blue-700"
+                aria-label="Mark all notifications as read"
               >
                 Mark all read
               </button>

@@ -6,220 +6,143 @@ import { Footer } from '@/components/layout/Footer';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Loading } from '@/components/ui/Loading';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { Badge } from '@/components/ui/Badge';
-import { cn } from '@/lib/utils';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiClient } from '@/lib/api';
+import { clientEnhancedService } from '@/services/clientEnhanced.service';
+import { useToast } from '@/contexts/ToastContext';
+import { format } from 'date-fns';
+import { Calendar, Clock, MapPin, Pause, Play, Trash2, Plus, Sparkles, TrendingUp, SkipForward, DollarSign } from 'lucide-react';
 
 export default function RecurringBookingsPage() {
-  const [showNewSchedule, setShowNewSchedule] = useState(false);
+  return (
+    <ProtectedRoute requiredRole="client">
+      <RecurringBookingsContent />
+    </ProtectedRoute>
+  );
+}
 
-  const recurringBookings = [
-    {
-      id: 'rb1',
-      cleaner: 'Jane Doe',
-      service: 'Standard Cleaning',
-      frequency: 'Weekly',
-      dayOfWeek: 'Monday',
-      time: '9:00 AM',
-      nextDate: 'Jan 15, 2026',
-      status: 'Active',
-      totalBookings: 12,
-      price: 135,
+function RecurringBookingsContent() {
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const { showToast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Get recurring bookings
+  const { data: recurringData, isLoading } = useQuery({
+    queryKey: ['recurring-bookings'],
+    queryFn: async () => {
+      try {
+        return await apiClient.get('/client/recurring-bookings');
+      } catch {
+        return { recurringBookings: [] };
+      }
     },
-    {
-      id: 'rb2',
-      cleaner: 'Mike Smith',
-      service: 'Deep Cleaning',
-      frequency: 'Bi-weekly',
-      dayOfWeek: 'Saturday',
-      time: '10:00 AM',
-      nextDate: 'Jan 20, 2026',
-      status: 'Active',
-      totalBookings: 6,
-      price: 195,
+  });
+
+  const recurringBookings = recurringData?.recurringBookings || [];
+
+  // Get insights for recurring bookings
+  const { data: insightsData } = useQuery({
+    queryKey: ['recurring-bookings', 'insights'],
+    queryFn: async () => {
+      try {
+        const bookings = recurringData?.recurringBookings || [];
+        if (bookings.length === 0) return null;
+        // Calculate insights from bookings
+        const totalSavings = bookings.reduce((sum: number, b: any) => sum + (b.savings || 0), 0);
+        const totalBookings = bookings.reduce((sum: number, b: any) => sum + (b.total_instances || 0), 0);
+        return {
+          total_savings: totalSavings,
+          total_bookings: totalBookings,
+          consistency_score: bookings.length > 0 ? 95 : 0, // Placeholder
+        };
+      } catch {
+        return null;
+      }
     },
-    {
-      id: 'rb3',
-      cleaner: 'Lisa Brown',
-      service: 'Standard Cleaning',
-      frequency: 'Monthly',
-      dayOfWeek: 'First Tuesday',
-      time: '2:00 PM',
-      nextDate: 'Feb 4, 2026',
-      status: 'Paused',
-      totalBookings: 3,
-      price: 135,
-    },
-  ];
+    enabled: recurringBookings.length > 0,
+  });
+
+  if (isLoading) {
+    return <Loading size="lg" text="Loading recurring bookings..." fullScreen />;
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
       <main className="flex-1 py-8 px-6">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">🔄 Recurring Bookings</h1>
-              <p className="text-gray-600">Manage your automated cleaning schedules</p>
+              <h1 className="text-3xl font-bold text-gray-900">Recurring Bookings</h1>
+              <p className="text-gray-600 mt-1">Manage your scheduled recurring cleaning services.</p>
             </div>
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={() => (window.location.href = '/client/dashboard')}>
-                ← Back to Dashboard
-              </Button>
-              <Button variant="primary" onClick={() => setShowNewSchedule(true)}>
-                + New Schedule
-              </Button>
-            </div>
+            <Button variant="primary" onClick={() => setShowCreateForm(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Recurring Booking
+            </Button>
           </div>
 
-          {/* Benefits Banner */}
-          <Card className="mb-8 bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
-            <CardContent className="p-6">
-              <div className="flex items-start gap-4">
-                <span className="text-4xl">✨</span>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Save 10% with Recurring Bookings!</h3>
-                  <ul className="text-sm text-gray-700 space-y-1">
-                    <li>✓ Automatic scheduling - never forget a cleaning</li>
-                    <li>✓ Priority booking with your favorite cleaners</li>
-                    <li>✓ Flexible - pause or modify anytime</li>
-                  </ul>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Active Schedules */}
-          <div className="space-y-4">
-            {recurringBookings.map((booking) => (
-              <Card key={booking.id} className={booking.status === 'Paused' ? 'opacity-60' : ''}>
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-xl font-semibold text-gray-900">{booking.cleaner}</h3>
-                        <Badge variant={booking.status === 'Active' ? 'primary' : 'secondary'}>
-                          {booking.status}
-                        </Badge>
-                        <Badge variant="secondary">{booking.frequency}</Badge>
+          {/* Insights Card */}
+          {insightsData && (
+            <Card className="mb-6 border-green-200 bg-green-50">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-3">
+                  <TrendingUp className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-green-900 mb-2">Recurring Booking Insights</h3>
+                    <div className="grid md:grid-cols-3 gap-4 text-sm">
+                      {insightsData.total_savings > 0 && (
+                        <div>
+                          <p className="text-green-700">Total Savings</p>
+                          <p className="text-lg font-bold text-green-900">
+                            ${insightsData.total_savings.toFixed(2)}
+                          </p>
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-green-700">Total Bookings</p>
+                        <p className="text-lg font-bold text-green-900">{insightsData.total_bookings}</p>
                       </div>
-                      <p className="text-gray-700 mb-1">{booking.service} - ${booking.price}</p>
-                      <p className="text-sm text-gray-600">
-                        Every {booking.dayOfWeek} at {booking.time}
-                      </p>
+                      <div>
+                        <p className="text-green-700">Consistency Score</p>
+                        <p className="text-lg font-bold text-green-900">{insightsData.consistency_score}%</p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-600 mb-1">Next cleaning:</p>
-                      <p className="text-lg font-semibold text-gray-900">{booking.nextDate}</p>
-                      <p className="text-xs text-gray-500 mt-1">{booking.totalBookings} completed</p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    {booking.status === 'Active' ? (
-                      <Button variant="outline" size="sm">
-                        ⏸️ Pause
-                      </Button>
-                    ) : (
-                      <Button variant="primary" size="sm">
-                        ▶️ Resume
-                      </Button>
-                    )}
-                    <Button variant="outline" size="sm">
-                      ✏️ Edit
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      📅 View History
-                    </Button>
-                    <Button variant="danger" size="sm">
-                      🗑️ Cancel
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* New Schedule Modal/Card */}
-          {showNewSchedule && (
-            <Card className="mt-8 border-2 border-blue-500">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Create New Recurring Schedule</CardTitle>
-                  <Button variant="ghost" onClick={() => setShowNewSchedule(false)}>
-                    ✕
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Select Cleaner</label>
-                  <select className="w-full px-4 py-2 border border-gray-300 rounded-lg">
-                    <option>Jane Doe - $45/hr</option>
-                    <option>Mike Smith - $50/hr</option>
-                    <option>Lisa Brown - $48/hr</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Service Type</label>
-                  <select className="w-full px-4 py-2 border border-gray-300 rounded-lg">
-                    <option>Standard Cleaning</option>
-                    <option>Deep Cleaning</option>
-                    <option>Move In/Out</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Frequency</label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {['Weekly', 'Bi-weekly', 'Monthly'].map((freq) => (
-                      <button
-                        key={freq}
-                        className="px-4 py-2 border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50"
-                      >
-                        {freq}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Day</label>
-                    <select className="w-full px-4 py-2 border border-gray-300 rounded-lg">
-                      <option>Monday</option>
-                      <option>Tuesday</option>
-                      <option>Wednesday</option>
-                      <option>Thursday</option>
-                      <option>Friday</option>
-                      <option>Saturday</option>
-                      <option>Sunday</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Time</label>
-                    <Input type="time" defaultValue="09:00" />
-                  </div>
-                </div>
-
-                <Input label="Duration (hours)" type="number" defaultValue="3" />
-
-                <div className="pt-4 border-t border-gray-200">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-gray-700">Estimated cost per cleaning:</span>
-                    <span className="text-2xl font-bold text-gray-900">$135</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" className="flex-1" onClick={() => setShowNewSchedule(false)}>
-                      Cancel
-                    </Button>
-                    <Button variant="primary" className="flex-1">
-                      Create Schedule
-                    </Button>
                   </div>
                 </div>
               </CardContent>
             </Card>
+          )}
+
+          {recurringBookings.length === 0 ? (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <Calendar className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  No recurring bookings
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  Set up recurring bookings to automatically schedule cleanings on a regular basis.
+                </p>
+                <Button variant="primary" onClick={() => setShowCreateForm(true)}>
+                  Create Your First Recurring Booking
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {recurringBookings.map((booking: any) => (
+                <RecurringBookingCard key={booking.id} booking={booking} />
+              ))}
+            </div>
+          )}
+
+          {/* Create Form Modal */}
+          {showCreateForm && (
+            <CreateRecurringBookingModal onClose={() => setShowCreateForm(false)} />
           )}
         </div>
       </main>
@@ -228,3 +151,297 @@ export default function RecurringBookingsPage() {
   );
 }
 
+// Recurring Booking Card Component
+function RecurringBookingCard({ booking }: { booking: any }) {
+  const { showToast } = useToast();
+  const queryClient = useQueryClient();
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Get smart suggestions for this booking
+  const { data: suggestionsData } = useQuery({
+    queryKey: ['recurring-bookings', booking.id, 'suggestions'],
+    queryFn: () => clientEnhancedService.getRecurringSuggestions(booking.id),
+    enabled: showSuggestions,
+  });
+
+  const { mutate: pauseBooking, isPending: isPausing } = useMutation({
+    mutationFn: () => apiClient.patch(`/client/recurring-bookings/${booking.id}`, { status: 'paused' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recurring-bookings'] });
+      showToast('Recurring booking paused', 'success');
+    },
+  });
+
+  const { mutate: resumeBooking, isPending: isResuming } = useMutation({
+    mutationFn: () => apiClient.patch(`/client/recurring-bookings/${booking.id}`, { status: 'active' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recurring-bookings'] });
+      showToast('Recurring booking resumed', 'success');
+    },
+  });
+
+  const { mutate: cancelBooking, isPending: isCancelling } = useMutation({
+    mutationFn: () => apiClient.delete(`/client/recurring-bookings/${booking.id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recurring-bookings'] });
+      showToast('Recurring booking cancelled', 'success');
+    },
+  });
+
+  const { mutate: skipNext, isPending: isSkipping } = useMutation({
+    mutationFn: () => clientEnhancedService.skipRecurringBooking(booking.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recurring-bookings'] });
+      showToast('Next booking skipped', 'success');
+    },
+    onError: (error: any) => {
+      showToast(error.response?.data?.error?.message || 'Failed to skip booking', 'error');
+    },
+  });
+
+  const frequencyLabels: Record<string, string> = {
+    weekly: 'Weekly',
+    biweekly: 'Bi-weekly',
+    monthly: 'Monthly',
+  };
+
+  return (
+    <Card className="hover:shadow-lg transition-shadow">
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-3">
+              <h3 className="text-lg font-semibold text-gray-900">
+                {booking.cleaner?.name || 'Cleaner'}
+              </h3>
+              <Badge
+                variant={booking.status === 'active' ? 'success' : booking.status === 'paused' ? 'warning' : 'error'}
+              >
+                {booking.status}
+              </Badge>
+            </div>
+            <div className="grid md:grid-cols-3 gap-4 text-sm mb-3">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-gray-400" />
+                <span className="text-gray-600">Frequency:</span>
+                <span className="font-medium">{frequencyLabels[booking.frequency] || booking.frequency}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-gray-400" />
+                <span className="text-gray-600">Next booking:</span>
+                <span className="font-medium">
+                  {booking.next_booking_date
+                    ? format(new Date(booking.next_booking_date), 'MMM d, yyyy')
+                    : 'N/A'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-gray-400" />
+                <span className="text-gray-600">{booking.address}</span>
+              </div>
+            </div>
+            {booking.savings && booking.savings > 0 && (
+              <div className="flex items-center gap-2 text-sm text-green-700 mb-2">
+                <DollarSign className="h-4 w-4" />
+                <span>You've saved ${booking.savings.toFixed(2)} with recurring bookings</span>
+              </div>
+            )}
+            {suggestionsData?.suggestions && (
+              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-start gap-2 mb-2">
+                  <Sparkles className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-blue-900">Smart Suggestion</p>
+                    <p className="text-sm text-blue-700 mt-1">
+                      {suggestionsData.suggestions.optimal_day && (
+                        <>Based on your history, we suggest {suggestionsData.suggestions.optimal_day} at {suggestionsData.suggestions.optimal_time}</>
+                      )}
+                      {suggestionsData.suggestions.cleaner_availability && (
+                        <>Your cleaner is usually available on {suggestionsData.suggestions.cleaner_availability.join(', ')}</>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="flex gap-2 ml-4">
+            {booking.status === 'active' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => skipNext()}
+                isLoading={isSkipping}
+                title="Skip next booking"
+              >
+                <SkipForward className="h-4 w-4 mr-1" />
+                Skip Next
+              </Button>
+            )}
+            {booking.status === 'active' ? (
+              <Button variant="outline" size="sm" onClick={() => pauseBooking()} isLoading={isPausing}>
+                <Pause className="h-4 w-4 mr-1" />
+                Pause
+              </Button>
+            ) : booking.status === 'paused' ? (
+              <Button variant="outline" size="sm" onClick={() => resumeBooking()} isLoading={isResuming}>
+                <Play className="h-4 w-4 mr-1" />
+                Resume
+              </Button>
+            ) : null}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSuggestions(!showSuggestions)}
+            >
+              <Sparkles className="h-4 w-4 mr-1" />
+              Suggestions
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                if (confirm('Cancel this recurring booking?')) {
+                  cancelBooking();
+                }
+              }}
+              isLoading={isCancelling}
+              className="text-red-600 hover:text-red-700"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// Create Recurring Booking Modal
+function CreateRecurringBookingModal({ onClose }: { onClose: () => void }) {
+  const [formData, setFormData] = useState({
+    cleaner_id: '',
+    service_type: 'standard',
+    frequency: 'weekly',
+    start_date: '',
+    time: '09:00',
+    address: '',
+    duration_hours: 2,
+  });
+  const { showToast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { mutate: createRecurring, isPending } = useMutation({
+    mutationFn: (data: any) => apiClient.post('/client/recurring-bookings', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recurring-bookings'] });
+      showToast('Recurring booking created!', 'success');
+      onClose();
+    },
+    onError: (error: any) => {
+      showToast(error.response?.data?.error?.message || 'Failed to create recurring booking', 'error');
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    createRecurring(formData);
+  };
+
+  return (
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <Card className="max-w-2xl w-full" onClick={(e) => e.stopPropagation()}>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Create Recurring Booking</CardTitle>
+            <Button variant="ghost" onClick={onClose}>
+              ×
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Service Type</label>
+              <select
+                value={formData.service_type}
+                onChange={(e) => setFormData({ ...formData, service_type: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                required
+              >
+                <option value="standard">Standard Cleaning</option>
+                <option value="deep">Deep Clean</option>
+                <option value="move_in_out">Move In/Out</option>
+                <option value="airbnb">Airbnb Cleaning</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Frequency</label>
+              <select
+                value={formData.frequency}
+                onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                required
+              >
+                <option value="weekly">Weekly</option>
+                <option value="biweekly">Bi-weekly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </div>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                <Input
+                  type="date"
+                  value={formData.start_date}
+                  onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Time</label>
+                <Input
+                  type="time"
+                  value={formData.time}
+                  onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
+              <Input
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                placeholder="Enter service address"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Duration (hours)</label>
+              <Input
+                type="number"
+                value={formData.duration_hours}
+                onChange={(e) => setFormData({ ...formData, duration_hours: parseInt(e.target.value) || 2 })}
+                min="1"
+                max="8"
+                required
+              />
+            </div>
+            <div className="flex gap-3 pt-4">
+              <Button variant="outline" onClick={onClose} className="flex-1">
+                Cancel
+              </Button>
+              <Button type="submit" variant="primary" isLoading={isPending} className="flex-1">
+                Create Recurring Booking
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

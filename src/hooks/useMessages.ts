@@ -22,8 +22,14 @@ export function useConversation(userId: string) {
 export function useMessages(conversationId?: string) {
   return useQuery({
     queryKey: ['messages', conversationId],
-    queryFn: () => messageService.getMessages(conversationId),
+    queryFn: () => {
+      if (!conversationId) return Promise.resolve({ messages: [] });
+      // Check if it's a job ID (UUID format) or conversation ID
+      // For now, assume job-based messaging
+      return messageService.getJobMessages(conversationId);
+    },
     enabled: !!conversationId,
+    refetchInterval: 5000, // Poll every 5 seconds for new messages
   });
 }
 
@@ -32,14 +38,26 @@ export function useSendMessage() {
   const { showToast } = useToast();
 
   return useMutation({
-    mutationFn: ({ recipientId, content }: { recipientId: string; content: string }) =>
-      messageService.sendMessage(recipientId, content),
+    mutationFn: ({
+      recipientId,
+      content,
+      jobId,
+    }: {
+      recipientId: string;
+      content: string;
+      jobId?: string;
+    }) => {
+      if (jobId) {
+        return messageService.sendJobMessage(jobId, content, recipientId);
+      }
+      return messageService.sendMessage({ recipient_id: recipientId, content, jobId });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['messages'] });
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
     },
     onError: (error: any) => {
-      showToast(error.message || 'Failed to send message', 'error');
+      showToast(error.response?.data?.error?.message || 'Failed to send message', 'error');
     },
   });
 }

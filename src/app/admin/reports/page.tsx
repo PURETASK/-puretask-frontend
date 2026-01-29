@@ -6,9 +6,42 @@ import { Footer } from '@/components/layout/Footer';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { adminEnhancedService } from '@/services/adminEnhanced.service';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/contexts/ToastContext';
+import { Sparkles, Download, Calendar } from 'lucide-react';
 
 export default function AdminReportsPage() {
   const [reportType, setReportType] = useState('financial');
+  const [reportConfig, setReportConfig] = useState({
+    name: '',
+    metrics: [] as string[],
+    dateRange: { start: '', end: '' },
+    filters: {} as any,
+  });
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+
+  // Build custom report mutation
+  const { mutate: buildReport, isPending: isBuilding } = useMutation({
+    mutationFn: (config: any) => adminEnhancedService.buildReport(config),
+    onSuccess: (data) => {
+      showToast('Report generated successfully!', 'success');
+      queryClient.invalidateQueries({ queryKey: ['admin', 'reports'] });
+    },
+    onError: (error: any) => {
+      showToast(error.response?.data?.error?.message || 'Failed to generate report', 'error');
+    },
+  });
+
+  // Schedule report mutation
+  const { mutate: scheduleReport } = useMutation({
+    mutationFn: ({ reportId, frequency, recipients }: { reportId: string; frequency: string; recipients: string[] }) =>
+      adminEnhancedService.scheduleReport(reportId, frequency, recipients),
+    onSuccess: () => {
+      showToast('Report scheduled successfully!', 'success');
+    },
+  });
 
   const recentReports = [
     { name: 'Monthly Financial Report', type: 'Financial', date: 'Jan 1, 2026', size: '2.4 MB' },
@@ -92,9 +125,51 @@ export default function AdminReportsPage() {
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-gray-200">
-                    <Button variant="primary" className="w-full" size="lg">
-                      🚀 Generate Report
+                  <div className="pt-4 border-t border-gray-200 space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Report Name</label>
+                      <Input
+                        value={reportConfig.name}
+                        onChange={(e) => setReportConfig({ ...reportConfig, name: e.target.value })}
+                        placeholder="My Custom Report"
+                      />
+                    </div>
+                    <Button
+                      variant="primary"
+                      className="w-full"
+                      size="lg"
+                      onClick={() => {
+                        if (!reportConfig.name) {
+                          showToast('Please enter a report name', 'error');
+                          return;
+                        }
+                        buildReport({
+                          ...reportConfig,
+                          type: reportType,
+                        });
+                      }}
+                      isLoading={isBuilding}
+                    >
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Generate Custom Report
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => {
+                        const frequency = prompt('Schedule frequency (daily/weekly/monthly):');
+                        const recipients = prompt('Recipients (comma-separated emails):');
+                        if (frequency && recipients) {
+                          scheduleReport({
+                            reportId: 'latest',
+                            frequency,
+                            recipients: recipients.split(',').map((e) => e.trim()),
+                          });
+                        }
+                      }}
+                    >
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Schedule Report
                     </Button>
                   </div>
                 </CardContent>

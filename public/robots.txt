@@ -1,0 +1,11 @@
+# PureTask Robots.txt
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /_next/
+
+# Sitemap
+Sitemap: https://puretask.com/sitemap.xml

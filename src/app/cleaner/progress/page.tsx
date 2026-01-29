@@ -7,8 +7,17 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Progress } from '@/components/ui/Progress';
 import { Button } from '@/components/ui/Button';
+import { useQuery } from '@tanstack/react-query';
+import { cleanerEnhancedService } from '@/services/cleanerEnhanced.service';
+import { Sparkles, Target, TrendingUp } from 'lucide-react';
 
 export default function ProgressPage() {
+  // Get goals
+  const { data: goalsData } = useQuery({
+    queryKey: ['cleaner', 'goals'],
+    queryFn: () => cleanerEnhancedService.getGoals(),
+  });
+
   const profile = {
     level: 7,
     xp: 2450,
@@ -109,6 +118,32 @@ export default function ProgressPage() {
       <Header />
       <main className="flex-1 py-8 px-6">
         <div className="max-w-7xl mx-auto">
+          {/* Goals Overview */}
+          {goalsData?.goals && goalsData.goals.length > 0 && (
+            <Card className="mb-6 border-green-200 bg-green-50">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-3">
+                  <Target className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-green-900 mb-2">Active Goals</h3>
+                    <div className="space-y-3">
+                      {goalsData.goals.map((goal: any) => (
+                        <div key={goal.id} className="bg-white p-3 rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium text-gray-900">{goal.type}</span>
+                            <span className="text-sm text-gray-600">
+                              {goal.current}/{goal.target}
+                            </span>
+                          </div>
+                          <Progress value={(goal.current / goal.target) * 100} className="h-2" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
           <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">🏆 Progress & Achievements</h1>

@@ -5,11 +5,20 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { adminEnhancedService } from '@/services/adminEnhanced.service';
+import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
+import { Sparkles, TrendingUp } from 'lucide-react';
 
 export default function AdminAnalyticsPage() {
   const [timeframe, setTimeframe] = useState('month');
   const [activeTab, setActiveTab] = useState('platform');
+
+  // Get advanced analytics insights
+  const { data: insightsData } = useQuery({
+    queryKey: ['admin', 'analytics', 'insights', timeframe],
+    queryFn: () => adminEnhancedService.getAnalyticsInsights(),
+  });
 
   const platformMetrics = {
     totalUsers: 1247,
@@ -78,6 +87,38 @@ export default function AdminAnalyticsPage() {
               </button>
             ))}
           </div>
+
+          {/* Analytics Insights */}
+          {insightsData?.insights && (
+            <Card className="mb-6 border-blue-200 bg-blue-50">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-3">
+                  <Sparkles className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-blue-900 mb-2">Key Insights</h3>
+                    <div className="space-y-2 text-sm text-blue-700">
+                      {insightsData.insights.growth_trend && (
+                        <p>• {insightsData.insights.growth_trend}</p>
+                      )}
+                      {insightsData.insights.top_performing_service && (
+                        <p>• Top performing service: <strong>{insightsData.insights.top_performing_service}</strong></p>
+                      )}
+                      {insightsData.insights.recommendations && insightsData.insights.recommendations.length > 0 && (
+                        <div>
+                          <p className="font-medium mb-1">Recommendations:</p>
+                          <ul className="list-disc list-inside space-y-1">
+                            {insightsData.insights.recommendations.map((rec: string, idx: number) => (
+                              <li key={idx}>{rec}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* PLATFORM TAB */}
           {activeTab === 'platform' && (

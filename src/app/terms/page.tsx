@@ -95,6 +95,31 @@ export default function TermsPage() {
 
               <section className="mb-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                  4A. Federal Holidays
+                </h2>
+                <p className="text-gray-700 leading-relaxed mb-4">
+                  PureTask recognizes U.S. federal holidays for scheduling and payout timing. Cleaners
+                  are independent contractors and are never required to accept jobs on federal holidays.
+                  Cleaners control their availability and pricing (where applicable), and all pricing is
+                  shown to Clients before booking.
+                </p>
+                <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
+                  <li>Cleaner availability may be limited on federal holidays</li>
+                  <li>PureTask does not guarantee cleaner availability on federal holidays</li>
+                  <li>Standard verification rules still apply, including check-in/out and photos</li>
+                  <li>
+                    Support hours may be limited on certain federal holidays; disputes are reviewed the
+                    next business day
+                  </li>
+                  <li>
+                    If a federal holiday affects bank processing, payouts are initiated the prior business
+                    day; instant payouts may be available (fees apply)
+                  </li>
+                </ul>
+              </section>
+
+              <section className="mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">
                   5. Cancellation and Refund Policy
                 </h2>
                 <ul className="list-disc pl-6 text-gray-700 space-y-2">

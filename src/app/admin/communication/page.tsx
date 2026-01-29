@@ -6,10 +6,25 @@ import { Footer } from '@/components/layout/Footer';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { adminEnhancedService } from '@/services/adminEnhanced.service';
+import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
+import { Sparkles, TrendingUp, Mail, MessageSquare, Bell } from 'lucide-react';
 
 export default function AdminCommunicationPage() {
   const [activeTab, setActiveTab] = useState('broadcast');
+
+  // Get communication analytics
+  const { data: analyticsData } = useQuery({
+    queryKey: ['admin', 'communication', 'analytics'],
+    queryFn: () => adminEnhancedService.getCommunicationAnalytics(),
+  });
+
+  // Get templates
+  const { data: templatesData } = useQuery({
+    queryKey: ['admin', 'communication', 'templates'],
+    queryFn: () => adminEnhancedService.getTemplates(),
+  });
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -25,6 +40,46 @@ export default function AdminCommunicationPage() {
               ← Back to Dashboard
             </Button>
           </div>
+
+          {/* Communication Analytics */}
+          {analyticsData && (
+            <Card className="mb-6 border-purple-200 bg-purple-50">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-3">
+                  <TrendingUp className="h-5 w-5 text-purple-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-purple-900 mb-2">Communication Analytics</h3>
+                    <div className="grid md:grid-cols-4 gap-4 text-sm">
+                      {analyticsData.open_rate !== undefined && (
+                        <div>
+                          <p className="text-purple-700">Email Open Rate</p>
+                          <p className="text-lg font-bold text-purple-900">{analyticsData.open_rate}%</p>
+                        </div>
+                      )}
+                      {analyticsData.click_rate !== undefined && (
+                        <div>
+                          <p className="text-purple-700">Click Rate</p>
+                          <p className="text-lg font-bold text-purple-900">{analyticsData.click_rate}%</p>
+                        </div>
+                      )}
+                      {analyticsData.total_sent && (
+                        <div>
+                          <p className="text-purple-700">Total Sent</p>
+                          <p className="text-lg font-bold text-purple-900">{analyticsData.total_sent}</p>
+                        </div>
+                      )}
+                      {analyticsData.response_rate !== undefined && (
+                        <div>
+                          <p className="text-purple-700">Response Rate</p>
+                          <p className="text-lg font-bold text-purple-900">{analyticsData.response_rate}%</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Tabs */}
           <div className="flex gap-2 mb-6 border-b border-gray-200">

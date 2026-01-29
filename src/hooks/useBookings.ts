@@ -28,7 +28,7 @@ export function useCreateBooking() {
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       showToast('Booking created successfully!', 'success');
-      router.push(`/client/bookings/${response.booking.id}`);
+      router.push(`/booking/confirm/${response.booking.id}`);
     },
     onError: (error: any) => {
       showToast(error.message || 'Failed to create booking', 'error');

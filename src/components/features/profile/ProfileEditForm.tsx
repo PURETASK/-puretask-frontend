@@ -122,7 +122,7 @@ export function ProfileEditForm() {
           {/* Full Name */}
           <Input
             label="Full Name"
-            type="text"
+            fieldType="name"
             name="full_name"
             value={formData.full_name}
             onChange={handleChange}
@@ -134,7 +134,7 @@ export function ProfileEditForm() {
           {/* Email */}
           <Input
             label="Email Address"
-            type="email"
+            fieldType="email"
             name="email"
             value={formData.email}
             onChange={handleChange}
@@ -147,7 +147,7 @@ export function ProfileEditForm() {
           {/* Phone */}
           <Input
             label="Phone Number"
-            type="tel"
+            fieldType="phone"
             name="phone"
             value={formData.phone}
             onChange={handleChange}

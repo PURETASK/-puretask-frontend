@@ -19,7 +19,7 @@ export function Avatar({ src, alt = 'User avatar', fallback = 'U', size = 'md' }
   return (
     <div className={cn('relative rounded-full overflow-hidden bg-gray-200', sizes[size])}>
       {src ? (
-        <img src={src} alt={alt} className="h-full w-full object-cover" />
+        <img src={src} alt={alt} className="h-full w-full object-cover" loading="lazy" />
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-blue-600 text-white font-semibold">
           {fallback}

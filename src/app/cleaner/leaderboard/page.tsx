@@ -7,11 +7,26 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
+import { useQuery } from '@tanstack/react-query';
+import { apiClient } from '@/lib/api';
 import { cn } from '@/lib/utils';
+import { TrendingUp, TrendingDown, Sparkles } from 'lucide-react';
 
 export default function LeaderboardPage() {
   const [timeframe, setTimeframe] = useState('month');
   const [category, setCategory] = useState('earnings');
+
+  // Get personal ranking insights
+  const { data: rankingData } = useQuery({
+    queryKey: ['cleaner', 'leaderboard', 'personal', timeframe, category],
+    queryFn: async () => {
+      try {
+        return await apiClient.get(`/cleaner/leaderboard/personal?timeframe=${timeframe}&category=${category}`);
+      } catch {
+        return { rank: null, trend: null, nextRank: null };
+      }
+    },
+  });
 
   const leaderboardData = [
     {
@@ -88,6 +103,55 @@ export default function LeaderboardPage() {
               ← Back to Dashboard
             </Button>
           </div>
+
+          {/* Personal Ranking Insights */}
+          {rankingData && (rankingData.rank !== null || rankingData.trend) && (
+            <Card className="mb-6 border-blue-200 bg-blue-50">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-3">
+                  <Sparkles className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-blue-900 mb-2">Your Ranking</h3>
+                    <div className="grid md:grid-cols-3 gap-4 text-sm">
+                      {rankingData.rank !== null && (
+                        <div>
+                          <p className="text-blue-700">Current Rank</p>
+                          <p className="text-lg font-bold text-blue-900">#{rankingData.rank}</p>
+                        </div>
+                      )}
+                      {rankingData.trend && (
+                        <div>
+                          <p className="text-blue-700">Trend</p>
+                          <div className="flex items-center gap-1">
+                            {rankingData.trend > 0 ? (
+                              <>
+                                <TrendingUp className="h-4 w-4 text-green-600" />
+                                <span className="text-lg font-bold text-green-600">+{rankingData.trend}</span>
+                              </>
+                            ) : rankingData.trend < 0 ? (
+                              <>
+                                <TrendingDown className="h-4 w-4 text-red-600" />
+                                <span className="text-lg font-bold text-red-600">{rankingData.trend}</span>
+                              </>
+                            ) : (
+                              <span className="text-lg font-bold text-blue-900">No change</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      {rankingData.nextRank && (
+                        <div>
+                          <p className="text-blue-700">Next Rank</p>
+                          <p className="text-lg font-bold text-blue-900">#{rankingData.nextRank.rank}</p>
+                          <p className="text-xs text-blue-600">Need {rankingData.nextRank.gap}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Filters */}
           <Card className="mb-6">

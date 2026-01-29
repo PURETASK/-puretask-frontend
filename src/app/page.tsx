@@ -18,21 +18,21 @@ export default function LandingPage() {
             <div className="grid md:grid-cols-3 gap-8 text-center">
               <div className="flex flex-col items-center">
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                  <span className="text-3xl">???????</span>
+                  <span className="text-3xl">🛡️</span>
                 </div>
                 <h3 className="font-semibold text-lg mb-2 text-gray-900">Insured</h3>
                 <p className="text-gray-600">All cleaners carry liability insurance</p>
               </div>
               <div className="flex flex-col items-center">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                  <span className="text-3xl">???</span>
+                  <span className="text-3xl">✓</span>
                 </div>
                 <h3 className="font-semibold text-lg mb-2 text-gray-900">Background Checked</h3>
                 <p className="text-gray-600">Every cleaner is thoroughly vetted</p>
               </div>
               <div className="flex flex-col items-center">
                 <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
-                  <span className="text-3xl">???</span>
+                  <span className="text-3xl">⭐</span>
                 </div>
                 <h3 className="font-semibold text-lg mb-2 text-gray-900">Verified Reviews</h3>
                 <p className="text-gray-600">Real reviews from real clients</p>
@@ -52,26 +52,26 @@ export default function LandingPage() {
                   name: 'Sarah Johnson',
                   rating: 5,
                   text: 'Amazing service! Jane was professional and thorough. My apartment has never looked better!',
-                  avatar: '????',
+                  avatar: '👩',
                 },
                 {
                   name: 'Mike Chen',
                   rating: 5,
                   text: 'Super easy to book and the cleaner arrived on time. Will definitely use again!',
-                  avatar: '????',
+                  avatar: '👨',
                 },
                 {
                   name: 'Emily Davis',
                   rating: 5,
                   text: 'The best cleaning service I\'ve used. Reliable, affordable, and excellent quality.',
-                  avatar: '???????????',
+                  avatar: '👩‍💼',
                 },
               ].map((testimonial, idx) => (
                 <Card key={idx} className="hover:shadow-lg transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex mb-3">
                       {Array.from({ length: testimonial.rating }).map((_, i) => (
-                        <span key={i} className="text-yellow-400 text-xl">???</span>
+                        <span key={i} className="text-yellow-400 text-xl">⭐</span>
                       ))}
                     </div>
                     <p className="text-gray-700 mb-4 italic">"{testimonial.text}"</p>

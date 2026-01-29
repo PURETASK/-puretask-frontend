@@ -16,8 +16,12 @@ import {
   useUpdateUserRole,
   useDeleteUser,
 } from '@/hooks/useAdmin';
-import { Search, Filter, MoreVertical, Mail, Phone, Calendar, Shield } from 'lucide-react';
+import { adminEnhancedService } from '@/services/adminEnhanced.service';
+import { useQuery } from '@tanstack/react-query';
+import { Search, Filter, MoreVertical, Mail, Phone, Calendar, Shield, AlertTriangle, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
+import { MobileTable } from '@/components/mobile/MobileTable';
+import { useMobile } from '@/hooks/useMobile';
 
 export default function AdminUsersPage() {
   return (
@@ -33,6 +37,7 @@ function AdminUsersContent() {
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [page, setPage] = useState(1);
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const { mobile } = useMobile();
 
   const { data: usersData, isLoading } = useAllUsers({
     search,
@@ -46,8 +51,21 @@ function AdminUsersContent() {
   const { mutate: updateRole, isPending: updatingRole } = useUpdateUserRole();
   const { mutate: deleteUser, isPending: deleting } = useDeleteUser();
 
+  // Get risk scoring data
+  const { data: riskData } = useQuery({
+    queryKey: ['admin', 'risk', 'scoring'],
+    queryFn: () => adminEnhancedService.getRiskScoring(),
+  });
+
   const users = usersData?.users || [];
   const total = usersData?.total || 0;
+
+  // Get risk profile for selected user
+  const { data: riskProfile } = useQuery({
+    queryKey: ['admin', 'users', selectedUser?.id, 'risk-profile'],
+    queryFn: () => adminEnhancedService.getRiskProfile(selectedUser?.id),
+    enabled: !!selectedUser?.id,
+  });
 
   const handleStatusChange = (userId: string, status: any) => {
     if (confirm(`Are you sure you want to change this user's status to ${status}?`)) {
@@ -71,361 +89,247 @@ function AdminUsersContent() {
     }
   };
 
+  const getRiskBadge = (riskScore: number) => {
+    if (riskScore >= 70) {
+      return <Badge variant="destructive">High Risk</Badge>;
+    } else if (riskScore >= 40) {
+      return <Badge variant="warning">Medium Risk</Badge>;
+    }
+    return <Badge variant="success">Low Risk</Badge>;
+  };
+
+  const getStatusBadge = (status: string) => {
+    const variants: Record<string, 'success' | 'warning' | 'destructive' | 'default'> = {
+      active: 'success',
+      inactive: 'warning',
+      suspended: 'destructive',
+      pending: 'warning',
+    };
+    return <Badge variant={variants[status] || 'default'}>{status}</Badge>;
+  };
+
+  // Table columns for MobileTable
+  const columns = [
+    {
+      key: 'avatar',
+      header: 'User',
+      render: (user: any) => (
+        <div className="flex items-center gap-3">
+          <Avatar src={user.avatar_url} name={user.full_name || user.email} size="sm" />
+          <div>
+            <p className="font-medium text-gray-900">{user.full_name || 'N/A'}</p>
+            <p className="text-sm text-gray-500">{user.email}</p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'role',
+      header: 'Role',
+      render: (user: any) => (
+        <Badge variant={user.role === 'admin' ? 'primary' : 'default'}>
+          {user.role || 'N/A'}
+        </Badge>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (user: any) => getStatusBadge(user.status || 'active'),
+    },
+    {
+      key: 'phone',
+      header: 'Phone',
+      render: (user: any) => (
+        <div className="flex items-center gap-1">
+          <Phone className="h-4 w-4 text-gray-400" />
+          <span>{user.phone || 'N/A'}</span>
+        </div>
+      ),
+      mobileHidden: true,
+    },
+    {
+      key: 'created',
+      header: 'Created',
+      render: (user: any) => (
+        <div className="flex items-center gap-1">
+          <Calendar className="h-4 w-4 text-gray-400" />
+          <span className="text-sm">
+            {user.created_at ? format(new Date(user.created_at), 'MMM d, yyyy') : 'N/A'}
+          </span>
+        </div>
+      ),
+      mobileHidden: true,
+    },
+    {
+      key: 'risk',
+      header: 'Risk',
+      render: (user: any) => {
+        const riskScore = riskData?.users?.find((u: any) => u.id === user.id)?.riskScore || 0;
+        return getRiskBadge(riskScore);
+      },
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      render: (user: any) => (
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setSelectedUser(user)}
+            className="min-h-[44px] min-w-[44px]"
+          >
+            View
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
-      <main className="flex-1 py-8 px-6">
+      <main className="flex-1 py-8 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">User Management</h1>
               <p className="text-gray-600 mt-1">
                 Manage all users, roles, and permissions
               </p>
             </div>
-            <Button variant="outline" onClick={() => (window.location.href = '/admin/dashboard')}>
+            <Button variant="outline" onClick={() => (window.location.href = '/admin/dashboard')} className="min-h-[44px]">
               ← Back to Dashboard
             </Button>
           </div>
 
-          {/* Stats */}
-          <div className="grid md:grid-cols-4 gap-4 mb-6">
-            <Card>
-              <CardContent className="p-6">
-                <p className="text-sm text-gray-600">Total Users</p>
-                <p className="text-2xl font-bold text-gray-900">{total}</p>
+          {/* Risk Summary */}
+          {riskData && (
+            <Card className="mb-6 border-amber-200 bg-amber-50">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <AlertTriangle className="h-5 w-5 text-amber-600" />
+                  <h3 className="font-semibold text-amber-900">Risk Summary</h3>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div>
+                    <p className="text-sm text-amber-700">High Risk</p>
+                    <p className="text-2xl font-bold text-amber-900">
+                      {riskData.summary?.highRisk || 0}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-amber-700">Medium Risk</p>
+                    <p className="text-2xl font-bold text-amber-900">
+                      {riskData.summary?.mediumRisk || 0}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-amber-700">Low Risk</p>
+                    <p className="text-2xl font-bold text-amber-900">
+                      {riskData.summary?.lowRisk || 0}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-amber-700">Avg Score</p>
+                    <p className="text-2xl font-bold text-amber-900">
+                      {riskData.summary?.avgScore?.toFixed(1) || '0.0'}
+                    </p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="p-6">
-                <p className="text-sm text-gray-600">Active Users</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {users.filter((u: any) => u.status === 'active').length}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6">
-                <p className="text-sm text-gray-600">Cleaners</p>
-                <p className="text-2xl font-bold text-blue-600">
-                  {users.filter((u: any) => u.role === 'cleaner').length}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6">
-                <p className="text-sm text-gray-600">Clients</p>
-                <p className="text-2xl font-bold text-purple-600">
-                  {users.filter((u: any) => u.role === 'client').length}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+          )}
 
           {/* Filters */}
           <Card className="mb-6">
-            <CardContent className="p-4">
-              <div className="grid md:grid-cols-4 gap-4">
-                <div className="md:col-span-2">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      placeholder="Search by name or email..."
-                      className="pl-10"
-                    />
-                  </div>
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1">
+                  <Input
+                    fieldType="search"
+                    placeholder="Search users..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="min-h-[44px]"
+                  />
                 </div>
-                <select
-                  value={roleFilter}
-                  onChange={(e) => setRoleFilter(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">All Roles</option>
-                  <option value="client">Client</option>
-                  <option value="cleaner">Cleaner</option>
-                  <option value="admin">Admin</option>
-                </select>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">All Status</option>
-                  <option value="active">Active</option>
-                  <option value="suspended">Suspended</option>
-                  <option value="banned">Banned</option>
-                </select>
+                <div className="w-full sm:w-48">
+                  <select
+                    value={roleFilter}
+                    onChange={(e) => setRoleFilter(e.target.value)}
+                    className="w-full h-11 px-3 py-2 border border-gray-300 rounded-lg text-base min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">All Roles</option>
+                    <option value="client">Client</option>
+                    <option value="cleaner">Cleaner</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+                <div className="w-full sm:w-48">
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="w-full h-11 px-3 py-2 border border-gray-300 rounded-lg text-base min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">All Statuses</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="suspended">Suspended</option>
+                    <option value="pending">Pending</option>
+                  </select>
+                </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Users Table */}
-          <Card>
-            <CardContent className="p-0">
-              {isLoading ? (
-                <div className="p-12 flex items-center justify-center">
-                  <Loading />
-                </div>
-              ) : users.length === 0 ? (
-                <div className="p-12 text-center text-gray-500">
-                  <p>No users found</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50 border-b">
-                      <tr>
-                        <th className="text-left py-4 px-6 text-sm font-semibold text-gray-900">
-                          User
-                        </th>
-                        <th className="text-left py-4 px-6 text-sm font-semibold text-gray-900">
-                          Role
-                        </th>
-                        <th className="text-left py-4 px-6 text-sm font-semibold text-gray-900">
-                          Status
-                        </th>
-                        <th className="text-left py-4 px-6 text-sm font-semibold text-gray-900">
-                          Joined
-                        </th>
-                        <th className="text-left py-4 px-6 text-sm font-semibold text-gray-900">
-                          Last Login
-                        </th>
-                        <th className="text-right py-4 px-6 text-sm font-semibold text-gray-900">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                      {users.map((user: any) => (
-                        <tr key={user.id} className="hover:bg-gray-50">
-                          <td className="py-4 px-6">
-                            <div className="flex items-center gap-3">
-                              <Avatar
-                                src={user.profile_picture_url}
-                                fallback={user.full_name?.[0] || user.email[0]}
-                                size="sm"
-                              />
-                              <div>
-                                <p className="font-medium text-gray-900">
-                                  {user.full_name || 'No name'}
-                                </p>
-                                <p className="text-sm text-gray-600">{user.email}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-4 px-6">
-                            <Badge
-                              variant={
-                                user.role === 'admin'
-                                  ? 'destructive'
-                                  : user.role === 'cleaner'
-                                  ? 'primary'
-                                  : 'default'
-                              }
-                            >
-                              {user.role}
-                            </Badge>
-                          </td>
-                          <td className="py-4 px-6">
-                            <Badge
-                              variant={
-                                user.status === 'active'
-                                  ? 'success'
-                                  : user.status === 'suspended'
-                                  ? 'warning'
-                                  : 'destructive'
-                              }
-                            >
-                              {user.status}
-                            </Badge>
-                          </td>
-                          <td className="py-4 px-6 text-sm text-gray-600">
-                            {format(new Date(user.created_at), 'MMM d, yyyy')}
-                          </td>
-                          <td className="py-4 px-6 text-sm text-gray-600">
-                            {user.last_login_at
-                              ? format(new Date(user.last_login_at), 'MMM d, yyyy')
-                              : 'Never'}
-                          </td>
-                          <td className="py-4 px-6">
-                            <div className="flex items-center justify-end gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setSelectedUser(user)}
-                              >
-                                View
-                              </Button>
-                              <div className="relative group">
-                                <Button variant="ghost" size="sm">
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                                <div className="hidden group-hover:block absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
-                                  <button
-                                    onClick={() =>
-                                      handleStatusChange(
-                                        user.id,
-                                        user.status === 'active' ? 'suspended' : 'active'
-                                      )
-                                    }
-                                    className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
-                                  >
-                                    {user.status === 'active' ? 'Suspend' : 'Activate'}
-                                  </button>
-                                  <button
-                                    onClick={() =>
-                                      handleRoleChange(
-                                        user.id,
-                                        user.role === 'client' ? 'cleaner' : 'client'
-                                      )
-                                    }
-                                    className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
-                                  >
-                                    Change Role
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteUser(user.id)}
-                                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                                  >
-                                    Delete User
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+          {isLoading ? (
+            <Loading />
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Users ({total})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <MobileTable
+                  data={users}
+                  columns={columns}
+                  keyExtractor={(user) => user.id}
+                  emptyMessage="No users found"
+                />
+              </CardContent>
+            </Card>
+          )}
 
-              {/* Pagination */}
-              {total > 20 && (
-                <div className="border-t p-4 flex items-center justify-between">
-                  <p className="text-sm text-gray-600">
-                    Showing {(page - 1) * 20 + 1} to {Math.min(page * 20, total)} of {total}
-                  </p>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setPage(page - 1)}
-                      disabled={page === 1}
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setPage(page + 1)}
-                      disabled={page * 20 >= total}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {/* Pagination */}
+          {total > 20 && (
+            <div className="mt-6 flex justify-center gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="min-h-[44px]"
+              >
+                Previous
+              </Button>
+              <span className="flex items-center px-4 min-h-[44px]">
+                Page {page} of {Math.ceil(total / 20)}
+              </span>
+              <Button
+                variant="outline"
+                onClick={() => setPage((p) => p + 1)}
+                disabled={page >= Math.ceil(total / 20)}
+                className="min-h-[44px]"
+              >
+                Next
+              </Button>
+            </div>
+          )}
         </div>
       </main>
-
-      {/* User Detail Modal */}
-      {selectedUser && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-          onClick={() => setSelectedUser(null)}
-        >
-          <Card
-            className="max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>User Details</CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => setSelectedUser(null)}>
-                  ✕
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center gap-4">
-                <Avatar
-                  src={selectedUser.profile_picture_url}
-                  fallback={selectedUser.full_name?.[0] || selectedUser.email[0]}
-                  size="lg"
-                />
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900">
-                    {selectedUser.full_name || 'No name'}
-                  </h3>
-                  <p className="text-gray-600">{selectedUser.email}</p>
-                  <div className="flex gap-2 mt-2">
-                    <Badge variant="primary">{selectedUser.role}</Badge>
-                    <Badge
-                      variant={
-                        selectedUser.status === 'active'
-                          ? 'success'
-                          : selectedUser.status === 'suspended'
-                          ? 'warning'
-                          : 'destructive'
-                      }
-                    >
-                      {selectedUser.status}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Email</p>
-                  <p className="font-medium text-gray-900">{selectedUser.email}</p>
-                </div>
-                {selectedUser.phone_number && (
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Phone</p>
-                    <p className="font-medium text-gray-900">{selectedUser.phone_number}</p>
-                  </div>
-                )}
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Joined</p>
-                  <p className="font-medium text-gray-900">
-                    {format(new Date(selectedUser.created_at), 'MMM d, yyyy')}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Last Login</p>
-                  <p className="font-medium text-gray-900">
-                    {selectedUser.last_login_at
-                      ? format(new Date(selectedUser.last_login_at), 'MMM d, yyyy')
-                      : 'Never'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <Button
-                  variant="primary"
-                  onClick={() =>
-                    (window.location.href = `/admin/users/${selectedUser.id}/bookings`)
-                  }
-                >
-                  View Bookings
-                </Button>
-                <Button variant="outline" onClick={() => setSelectedUser(null)}>
-                  Close
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
       <Footer />
     </div>
   );

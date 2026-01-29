@@ -7,10 +7,25 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Progress } from '@/components/ui/Progress';
+import { useQuery } from '@tanstack/react-query';
+import { apiClient } from '@/lib/api';
 import { cn } from '@/lib/utils';
+import { Sparkles, TrendingUp, Target } from 'lucide-react';
 
 export default function CertificationsPage() {
   const [activeTab, setActiveTab] = useState('available');
+
+  // Get certification recommendations
+  const { data: recommendationsData } = useQuery({
+    queryKey: ['cleaner', 'certifications', 'recommendations'],
+    queryFn: async () => {
+      try {
+        return await apiClient.get('/cleaner/certifications/recommendations');
+      } catch {
+        return { recommendations: [] };
+      }
+    },
+  });
 
   const earnedCertifications = [
     {
@@ -87,6 +102,30 @@ export default function CertificationsPage() {
               ← Back to Progress
             </Button>
           </div>
+
+          {/* Recommendations */}
+          {recommendationsData?.recommendations && recommendationsData.recommendations.length > 0 && (
+            <Card className="mb-6 border-purple-200 bg-purple-50">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-3">
+                  <Sparkles className="h-5 w-5 text-purple-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-purple-900 mb-2">Recommended for You</h3>
+                    <div className="space-y-2 text-sm text-purple-700">
+                      {recommendationsData.recommendations.map((rec: any, idx: number) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <Target className="h-4 w-4" />
+                          <span>
+                            <strong>{rec.name}</strong> - {rec.reason}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Tabs */}
           <div className="flex gap-2 mb-6">

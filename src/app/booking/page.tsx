@@ -5,15 +5,21 @@ import { useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import { useCleaner } from '@/hooks/useCleaners';
 import { useCreateBooking, usePriceEstimate } from '@/hooks/useBookings';
+import { useDraftBooking, useSaveDraftBooking } from '@/hooks/useClientEnhanced';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Loading } from '@/components/ui/Loading';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { SkeletonList } from '@/components/ui/Skeleton';
+import { ErrorDisplay } from '@/components/error/ErrorDisplay';
 import { DateTimePicker } from '@/components/features/booking/DateTimePicker';
 import { ServiceSelection } from '@/components/features/booking/ServiceSelection';
 import { formatCurrency } from '@/lib/utils';
+import { holidayService, Holiday } from '@/services/holiday.service';
+import { useToast } from '@/contexts/ToastContext';
+import { Save } from 'lucide-react';
 
 export default function BookingPage() {
   const router = useRouter();
@@ -23,6 +29,9 @@ export default function BookingPage() {
   const { data: cleanerData, isLoading: loadingCleaner } = useCleaner(cleanerId || '');
   const { mutate: createBooking, isPending: isCreating } = useCreateBooking();
   const { mutate: estimatePrice, data: priceEstimate, isPending: estimating } = usePriceEstimate();
+  const { data: draftData } = useDraftBooking();
+  const { mutate: saveDraft, isPending: isSavingDraft } = useSaveDraftBooking();
+  const { showToast } = useToast();
 
   const [step, setStep] = useState(1);
   const [bookingData, setBookingData] = useState({
@@ -38,8 +47,30 @@ export default function BookingPage() {
     special_instructions: '',
     add_ons: [] as string[],
   });
+  const [selectedHoliday, setSelectedHoliday] = useState<Holiday | null>(null);
+  const [holidayLoading, setHolidayLoading] = useState(false);
+  const [priceBreakdown, setPriceBreakdown] = useState<any>(null);
 
-  // Auto-estimate price when service details change
+  // Load draft on mount
+  useEffect(() => {
+    if (draftData?.draft) {
+      setBookingData({ ...bookingData, ...draftData.draft });
+      showToast('Draft booking loaded', 'info');
+    }
+  }, [draftData]);
+
+  // Auto-save draft when booking data changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (bookingData.address || bookingData.scheduled_date) {
+        saveDraft(bookingData);
+      }
+    }, 2000); // Debounce 2 seconds
+
+    return () => clearTimeout(timer);
+  }, [bookingData]);
+
+  // Auto-estimate price when service details change (real-time)
   useEffect(() => {
     if (cleanerId && bookingData.service_type && bookingData.duration_hours) {
       estimatePrice({
@@ -50,6 +81,51 @@ export default function BookingPage() {
       });
     }
   }, [cleanerId, bookingData.service_type, bookingData.duration_hours, bookingData.add_ons]);
+
+  // Calculate detailed price breakdown
+  useEffect(() => {
+    if (priceEstimate && cleaner) {
+      const baseRate = cleaner.price_per_hour || 0;
+      const baseCost = baseRate * bookingData.duration_hours;
+      const addOnCost = bookingData.add_ons.length * 10; // $10 per add-on
+      const holidayMultiplier = selectedHoliday ? 1.15 : 1.0;
+      const subtotal = (baseCost + addOnCost) * holidayMultiplier;
+      const platformFee = subtotal * 0.1; // 10% platform fee
+      const total = subtotal + platformFee;
+
+      setPriceBreakdown({
+        baseRate,
+        baseCost,
+        addOnCost,
+        holidayMultiplier,
+        holidayRate: selectedHoliday ? subtotal - (baseCost + addOnCost) : 0,
+        subtotal,
+        platformFee,
+        total,
+      });
+    }
+  }, [priceEstimate, cleaner, bookingData, selectedHoliday]);
+
+  useEffect(() => {
+    const fetchHoliday = async () => {
+      if (!bookingData.scheduled_date) {
+        setSelectedHoliday(null);
+        return;
+      }
+
+      setHolidayLoading(true);
+      try {
+        const response = await holidayService.getHolidayByDate(bookingData.scheduled_date);
+        setSelectedHoliday(response.holiday ?? null);
+      } catch {
+        setSelectedHoliday(null);
+      } finally {
+        setHolidayLoading(false);
+      }
+    };
+
+    fetchHoliday();
+  }, [bookingData.scheduled_date]);
 
   const handleSubmit = () => {
     if (!cleanerId) return;
@@ -74,7 +150,16 @@ export default function BookingPage() {
   };
 
   if (loadingCleaner) {
-    return <Loading size="lg" text="Loading booking details..." fullScreen />;
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Header />
+        <main className="flex-1 py-8 px-6">
+          <div className="max-w-7xl mx-auto">
+            <SkeletonList items={6} />
+          </div>
+        </main>
+      </div>
+    );
   }
 
   if (!cleanerId || !cleanerData) {
@@ -165,12 +250,32 @@ export default function BookingPage() {
                       }
                     />
                   )}
+                  {step === 2 && !holidayLoading && selectedHoliday && (
+                    <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                      <div className="font-semibold">Federal Holiday</div>
+                      <div>
+                        Cleaner availability may be limited today. Some cleaners may charge higher holiday
+                        rates. All pricing is shown upfront.
+                      </div>
+                      {selectedHoliday.support_limited && (
+                        <div className="mt-2">
+                          Holiday support hours may be limited. Disputes are reviewed the next business day.
+                        </div>
+                      )}
+                      <div className="mt-2">
+                        PureTask does not guarantee cleaner availability on federal holidays.
+                      </div>
+                    </div>
+                  )}
 
                   {/* Step 3: Address */}
                   {step === 3 && (
                     <div className="space-y-4">
                       <Input
                         label="Street Address"
+                        type="text"
+                        inputMode="text"
+                        autoComplete="street-address"
                         value={bookingData.address}
                         onChange={(e) =>
                           setBookingData({ ...bookingData, address: e.target.value })
@@ -180,6 +285,9 @@ export default function BookingPage() {
                       />
                       <Input
                         label="Apt, Suite, etc. (Optional)"
+                        type="text"
+                        inputMode="text"
+                        autoComplete="address-line2"
                         value={bookingData.address_line_2}
                         onChange={(e) =>
                           setBookingData({ ...bookingData, address_line_2: e.target.value })
@@ -189,6 +297,9 @@ export default function BookingPage() {
                       <div className="grid grid-cols-2 gap-4">
                         <Input
                           label="City"
+                          type="text"
+                          inputMode="text"
+                          autoComplete="address-level2"
                           value={bookingData.city}
                           onChange={(e) =>
                             setBookingData({ ...bookingData, city: e.target.value })
@@ -197,6 +308,9 @@ export default function BookingPage() {
                         />
                         <Input
                           label="State"
+                          type="text"
+                          inputMode="text"
+                          autoComplete="address-level1"
                           value={bookingData.state}
                           onChange={(e) =>
                             setBookingData({ ...bookingData, state: e.target.value })
@@ -207,6 +321,10 @@ export default function BookingPage() {
                       </div>
                       <Input
                         label="ZIP Code"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        autoComplete="postal-code"
                         value={bookingData.zip_code}
                         onChange={(e) =>
                           setBookingData({ ...bookingData, zip_code: e.target.value })
@@ -228,7 +346,8 @@ export default function BookingPage() {
                           }
                           placeholder="Gate code, parking instructions, pet info, etc."
                           rows={4}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 min-h-[44px] text-base"
+                          autoComplete="off"
                         />
                       </div>
                     </div>
@@ -237,6 +356,21 @@ export default function BookingPage() {
                   {/* Step 4: Review */}
                   {step === 4 && (
                     <div className="space-y-6">
+                      {!holidayLoading && selectedHoliday && (
+                        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                          <div className="font-semibold">Holiday booking notice</div>
+                          <div>
+                            You’re booking on a federal holiday. Availability may be limited and rates may
+                            be higher. All pricing is shown upfront.
+                          </div>
+                          {selectedHoliday.support_limited && (
+                            <div className="mt-2">
+                              Holiday support hours may be limited. Disputes are reviewed the next business
+                              day.
+                            </div>
+                          )}
+                        </div>
+                      )}
                       <div>
                         <h3 className="font-semibold text-gray-900 mb-3">Booking Summary</h3>
                         <div className="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
@@ -274,11 +408,25 @@ export default function BookingPage() {
 
                   {/* Navigation Buttons */}
                   <div className="flex justify-between mt-8">
-                    {step > 1 && (
-                      <Button variant="outline" onClick={() => setStep(step - 1)}>
-                        Back
+                    <div className="flex gap-2">
+                      {step > 1 && (
+                        <Button variant="outline" onClick={() => setStep(step - 1)}>
+                          Back
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          saveDraft(bookingData);
+                          showToast('Draft saved', 'success');
+                        }}
+                        isLoading={isSavingDraft}
+                        className="flex items-center gap-2"
+                      >
+                        <Save className="h-4 w-4" />
+                        Save Draft
                       </Button>
-                    )}
+                    </div>
                     {step < 4 ? (
                       <Button
                         variant="primary"
@@ -322,35 +470,87 @@ export default function BookingPage() {
                     </div>
                   </div>
 
-                  {/* Price Breakdown */}
+                  {/* Enhanced Real-Time Price Breakdown */}
                   <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Base Rate</span>
-                      <span className="font-medium">
-                        {formatCurrency(cleaner.price_per_hour)}/hr
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Duration</span>
-                      <span className="font-medium">{bookingData.duration_hours} hours</span>
-                    </div>
-                    {priceEstimate && (
+                    {priceBreakdown ? (
                       <>
                         <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Base Rate</span>
+                          <span className="font-medium">
+                            {formatCurrency(priceBreakdown.baseRate)}/hr
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Duration</span>
+                          <span className="font-medium">{bookingData.duration_hours} hours</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Base Cost</span>
+                          <span className="font-medium">
+                            {formatCurrency(priceBreakdown.baseCost)}
+                          </span>
+                        </div>
+                        {bookingData.add_ons.length > 0 && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Add-ons ({bookingData.add_ons.length})</span>
+                            <span className="font-medium">
+                              {formatCurrency(priceBreakdown.addOnCost)}
+                            </span>
+                          </div>
+                        )}
+                        {selectedHoliday && priceBreakdown.holidayRate > 0 && (
+                          <div className="flex justify-between text-sm text-amber-600">
+                            <span>Holiday Rate ({((priceBreakdown.holidayMultiplier - 1) * 100).toFixed(0)}%)</span>
+                            <span className="font-medium">
+                              +{formatCurrency(priceBreakdown.holidayRate)}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex justify-between text-sm pt-2 border-t">
                           <span className="text-gray-600">Subtotal</span>
                           <span className="font-medium">
-                            {formatCurrency(priceEstimate.price)}
+                            {formatCurrency(priceBreakdown.subtotal)}
                           </span>
+                        </div>
+                        <div className="flex justify-between text-xs text-gray-500">
+                          <span>Platform Fee (10%)</span>
+                          <span>{formatCurrency(priceBreakdown.platformFee)}</span>
                         </div>
                         <div className="pt-2 border-t">
                           <div className="flex justify-between">
                             <span className="font-semibold text-gray-900">Total</span>
                             <span className="text-xl font-bold text-blue-600">
-                              {formatCurrency(priceEstimate.price)}
+                              {formatCurrency(priceBreakdown.total)}
                             </span>
                           </div>
                         </div>
                       </>
+                    ) : (
+                      <>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Base Rate</span>
+                          <span className="font-medium">
+                            {formatCurrency(cleaner.price_per_hour)}/hr
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Duration</span>
+                          <span className="font-medium">{bookingData.duration_hours} hours</span>
+                        </div>
+                        {priceEstimate && (
+                          <div className="pt-2 border-t">
+                            <div className="flex justify-between">
+                              <span className="font-semibold text-gray-900">Total</span>
+                              <span className="text-xl font-bold text-blue-600">
+                                {formatCurrency(priceEstimate.price)}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {estimating && (
+                      <div className="text-xs text-gray-500 text-center">Calculating...</div>
                     )}
                   </div>
 

@@ -9,7 +9,9 @@ import { Input } from '@/components/ui/Input';
 import { Loading } from '@/components/ui/Loading';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useSystemSettings, useUpdateSetting } from '@/hooks/useAdmin';
-import { Settings, DollarSign, Mail, Shield, Bell, Globe } from 'lucide-react';
+import { adminEnhancedService } from '@/services/adminEnhanced.service';
+import { useQuery } from '@tanstack/react-query';
+import { Settings, DollarSign, Mail, Shield, Bell, Globe, Sparkles, FileText } from 'lucide-react';
 
 export default function AdminSettingsPage() {
   return (
@@ -23,6 +25,18 @@ function AdminSettingsContent() {
   const [activeTab, setActiveTab] = useState('general');
   const { data: settingsData, isLoading } = useSystemSettings();
   const { mutate: updateSetting, isPending: updating } = useUpdateSetting();
+
+  // Get feature flags
+  const { data: featureFlagsData } = useQuery({
+    queryKey: ['admin', 'settings', 'feature-flags'],
+    queryFn: () => adminEnhancedService.getFeatureFlags(),
+  });
+
+  // Get audit log
+  const { data: auditLogData } = useQuery({
+    queryKey: ['admin', 'settings', 'audit-log'],
+    queryFn: () => adminEnhancedService.getAuditLog(50),
+  });
 
   const [formData, setFormData] = useState({
     platform_name: 'PureTask',
@@ -97,7 +111,62 @@ function AdminSettingsContent() {
             </div>
 
             {/* Settings Content */}
-            <div className="lg:col-span-3">
+            <div className="lg:col-span-3 space-y-6">
+              {/* Feature Flags */}
+              {featureFlagsData && activeTab === 'general' && (
+                <Card className="border-blue-200">
+                  <CardHeader>
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-5 w-5 text-blue-600" />
+                      <CardTitle>Feature Flags</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {Object.entries(featureFlagsData.flags || {}).map(([key, value]: [string, any]) => (
+                        <label key={key} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                          <div>
+                            <span className="font-medium text-gray-900">{key.replace(/_/g, ' ')}</span>
+                            <p className="text-sm text-gray-600">{value.description || ''}</p>
+                          </div>
+                          <input
+                            type="checkbox"
+                            checked={value.enabled}
+                            onChange={(e) => updateSetting({ key: `feature_${key}`, value: e.target.checked.toString() })}
+                            className="rounded"
+                          />
+                        </label>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Audit Log */}
+              {auditLogData && activeTab === 'security' && (
+                <Card className="border-gray-200">
+                  <CardHeader>
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-5 w-5 text-gray-600" />
+                      <CardTitle>Recent Audit Log</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 max-h-96 overflow-y-auto">
+                      {auditLogData.logs?.slice(0, 20).map((log: any, idx: number) => (
+                        <div key={idx} className="p-3 border border-gray-200 rounded-lg text-sm">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-medium text-gray-900">{log.action}</span>
+                            <span className="text-gray-500">{new Date(log.timestamp).toLocaleString()}</span>
+                          </div>
+                          <p className="text-gray-600">User: {log.user_id} | IP: {log.ip_address}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* General Settings */}
               {activeTab === 'general' && (
                 <Card>

@@ -7,9 +7,13 @@ import { StatsOverview } from '@/components/features/dashboard/StatsOverview';
 import { ActivityFeed } from '@/components/features/dashboard/ActivityFeed';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { LineChart, BarChart, DonutChart } from '@/components/ui/Charts';
-import { Loading } from '@/components/ui/Loading';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { SkeletonList } from '@/components/ui/Skeleton';
+import { ErrorDisplay } from '@/components/error/ErrorDisplay';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useAdminStats, useDailyStats, useRevenueAnalytics } from '@/hooks/useAdmin';
+import { useQuery } from '@tanstack/react-query';
+import { adminEnhancedService } from '@/services/adminEnhanced.service';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import {
@@ -19,6 +23,9 @@ import {
   TrendingUp,
   AlertCircle,
   CheckCircle,
+  Activity,
+  Bell,
+  Server,
 } from 'lucide-react';
 
 export default function AdminDashboardPage() {
@@ -36,38 +43,72 @@ function AdminDashboardContent() {
   const { data: dailyStatsData } = useDailyStats(30);
   const { data: revenueData } = useRevenueAnalytics(revenuePeriod);
 
+  // Real-time metrics
+  const { data: realtimeData } = useQuery({
+    queryKey: ['admin', 'dashboard', 'realtime'],
+    queryFn: () => adminEnhancedService.getRealtimeMetrics(),
+    refetchInterval: 30000, // Poll every 30 seconds
+  });
+
+  // Alerts
+  const { data: alertsData } = useQuery({
+    queryKey: ['admin', 'dashboard', 'alerts'],
+    queryFn: () => adminEnhancedService.getAlerts(),
+    refetchInterval: 60000, // Poll every minute
+  });
+
+  // System health
+  const { data: healthData } = useQuery({
+    queryKey: ['admin', 'system', 'health'],
+    queryFn: () => adminEnhancedService.getSystemHealth(),
+    refetchInterval: 60000,
+  });
+
   if (loadingStats) {
-    return <Loading size="lg" text="Loading admin dashboard..." fullScreen />;
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Header />
+        <main className="flex-1 py-8 px-6">
+          <div className="max-w-7xl mx-auto">
+            <SkeletonList items={6} />
+          </div>
+        </main>
+      </div>
+    );
   }
 
   const stats = statsData?.stats || {};
 
-  // Transform stats for StatsOverview component
+  // Transform stats for StatsOverview component with real-time data
   const overviewStats = [
     {
       label: 'Total Users',
-      value: stats.total_users || 0,
+      value: realtimeData?.metrics?.new_users_today
+        ? `${stats.total_users || 0} (+${realtimeData.metrics.new_users_today} today)`
+        : stats.total_users || 0,
       icon: '👥',
       color: 'text-blue-600',
       trend: '+12%',
     },
     {
-      label: 'Active Bookings',
-      value: stats.active_bookings || 0,
+      label: 'Active Jobs',
+      value: realtimeData?.metrics?.active_jobs || stats.active_bookings || 0,
       icon: '📅',
       color: 'text-green-600',
       trend: '+8%',
     },
     {
-      label: 'Total Revenue',
-      value: `$${(stats.total_revenue || 0).toLocaleString()}`,
+      label: 'Revenue Today',
+      value: realtimeData?.metrics?.revenue_today
+        ? `$${realtimeData.metrics.revenue_today.toLocaleString()}`
+        : `$${(stats.total_revenue || 0).toLocaleString()}`,
       icon: '💰',
       color: 'text-purple-600',
       trend: '+23%',
     },
     {
-      label: 'Pending Issues',
-      value: stats.reported_issues || 0,
+      label: 'Open Disputes',
+      value: realtimeData?.metrics?.open_disputes || stats.reported_issues || 0,
       icon: '⚠️',
       color: 'text-red-600',
       trend: '-5%',
@@ -171,6 +212,12 @@ function AdminDashboardContent() {
                 Manage Users
               </Button>
               <Button
+                variant="outline"
+                onClick={() => (window.location.href = '/admin/tools')}
+              >
+                🧪 Legacy Tools
+              </Button>
+              <Button
                 variant="primary"
                 onClick={() => (window.location.href = '/admin/bookings')}
               >
@@ -179,6 +226,77 @@ function AdminDashboardContent() {
               </Button>
             </div>
           </div>
+
+          {/* Real-Time Alerts */}
+          {alertsData && (alertsData.alerts.critical.length > 0 || alertsData.alerts.warning.length > 0) && (
+            <div className="mb-6 space-y-3">
+              {alertsData.alerts.critical.slice(0, 3).map((alert: any, idx: number) => (
+                <Card key={idx} className="border-red-200 bg-red-50">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-red-900">{alert.message}</h3>
+                        <p className="text-sm text-red-700 mt-1">
+                          {new Date(alert.created_at).toLocaleString()}
+                        </p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          if (alert.type === 'dispute') window.location.href = `/admin/disputes?id=${alert.id}`;
+                          else if (alert.type === 'stuck_job') window.location.href = `/admin/bookings?id=${alert.id}`;
+                        }}
+                      >
+                        Review
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {/* System Health */}
+          {healthData && (
+            <Card className="mb-6 border-blue-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Server className="h-5 w-5" />
+                  System Health
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-4 gap-4">
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">Database</p>
+                    <Badge variant={healthData.health.database.status === 'healthy' ? 'success' : 'danger'}>
+                      {healthData.health.database.status}
+                    </Badge>
+                  </div>
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">Jobs</p>
+                    <Badge variant={healthData.health.jobs.status === 'healthy' ? 'success' : 'warning'}>
+                      {healthData.health.jobs.stuck} stuck
+                    </Badge>
+                  </div>
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">Payouts</p>
+                    <Badge variant={healthData.health.payouts.status === 'healthy' ? 'success' : 'warning'}>
+                      {healthData.health.payouts.failed} failed
+                    </Badge>
+                  </div>
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">Disputes</p>
+                    <Badge variant={healthData.health.disputes.status === 'healthy' ? 'success' : 'warning'}>
+                      {healthData.health.disputes.pending} pending
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Stats Overview */}
           <StatsOverview stats={overviewStats} />

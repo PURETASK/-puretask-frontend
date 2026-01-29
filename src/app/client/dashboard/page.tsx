@@ -7,11 +7,18 @@ import { StatsOverview } from '@/components/features/dashboard/StatsOverview';
 import { BookingCard } from '@/components/features/dashboard/BookingCard';
 import { ActivityFeed } from '@/components/features/dashboard/ActivityFeed';
 import { Button } from '@/components/ui/Button';
-import { Loading } from '@/components/ui/Loading';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { SkeletonList } from '@/components/ui/Skeleton';
+import { ErrorDisplay } from '@/components/error/ErrorDisplay';
+import { EmptyBookings } from '@/components/ui/EmptyState';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useBookings } from '@/hooks/useBookings';
+import { useDashboardInsights, useRecommendations } from '@/hooks/useClientEnhanced';
 import { LineChart } from '@/components/ui/Charts';
 import { format } from 'date-fns';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Calendar, TrendingUp, Clock, Sparkles } from 'lucide-react';
 
 export default function ClientDashboardPage() {
   return (
@@ -23,10 +30,23 @@ export default function ClientDashboardPage() {
 
 function ClientDashboardContent() {
   const { data: bookingsData, isLoading } = useBookings();
+  const { data: insightsData, isLoading: insightsLoading } = useDashboardInsights();
+  const { data: recommendationsData, isLoading: recommendationsLoading } = useRecommendations();
   const bookings = bookingsData?.bookings || [];
+  const insights = insightsData?.insights;
+  const recommendations = recommendationsData?.recommendations;
 
   if (isLoading) {
-    return <Loading size="lg" text="Loading dashboard..." fullScreen />;
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Header />
+        <main className="flex-1 py-8 px-6">
+          <div className="max-w-7xl mx-auto">
+            <SkeletonList items={6} />
+          </div>
+        </main>
+      </div>
+    );
   }
 
   // Calculate stats from real data
@@ -89,6 +109,121 @@ function ClientDashboardContent() {
           {/* Stats Overview */}
           <StatsOverview stats={stats} />
 
+          {/* Personalized Insights */}
+          {insights && (
+            <div className="mt-6 grid md:grid-cols-2 gap-4">
+              {insights.bookingPatterns.length > 0 && (
+                <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Calendar className="h-5 w-5 text-blue-600" />
+                      <h3 className="font-semibold text-blue-900">Your Booking Pattern</h3>
+                    </div>
+                    <p className="text-sm text-blue-800">
+                      You usually book on{' '}
+                      {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][
+                        insights.bookingPatterns[0]?.dayOfWeek || 0
+                      ]}{' '}
+                      around {insights.bookingPatterns[0]?.hour || 0}:00
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {insights.favoriteCleaner && (
+                <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Sparkles className="h-5 w-5 text-purple-600" />
+                      <h3 className="font-semibold text-purple-900">Favorite Cleaner</h3>
+                    </div>
+                    <p className="text-sm text-purple-800">
+                      {insights.favoriteCleaner.name} is available! You've booked them{' '}
+                      {insights.favoriteCleaner.booking_count} times.
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-2"
+                      onClick={() => (window.location.href = `/booking?cleaner=${insights.favoriteCleaner.cleaner_id}`)}
+                    >
+                      Book Again
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
+              {insights.creditExpiration && (
+                <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="h-5 w-5 text-amber-600" />
+                      <h3 className="font-semibold text-amber-900">Credit Expiring Soon</h3>
+                    </div>
+                    <p className="text-sm text-amber-800">
+                      You have credits expiring on {format(new Date(insights.creditExpiration), 'MMM d, yyyy')}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {insights.lastBooking && (
+                <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <TrendingUp className="h-5 w-5 text-green-600" />
+                      <h3 className="font-semibold text-green-900">Last Booking</h3>
+                    </div>
+                    <p className="text-sm text-green-800">
+                      Your last booking was on{' '}
+                      {format(new Date(insights.lastBooking.scheduled_start_at), 'MMM d, yyyy')}
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-2"
+                      onClick={() => (window.location.href = '/booking')}
+                    >
+                      Book Again
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
+
+          {/* Cleaner Recommendations */}
+          {recommendations && (recommendations.similarToFavorites.length > 0 || recommendations.topRated.length > 0) && (
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle>Recommended Cleaners</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {recommendations.similarToFavorites.slice(0, 2).map((cleaner: any) => (
+                    <div
+                      key={cleaner.id}
+                      className="p-4 border rounded-lg hover:border-blue-500 cursor-pointer"
+                      onClick={() => (window.location.href = `/cleaner/${cleaner.id}`)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                          {cleaner.name[0]}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-semibold">{cleaner.name}</p>
+                          <p className="text-sm text-gray-600">
+                            ⭐ {cleaner.rating} • {formatCurrency(cleaner.price_per_hour)}/hr
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Main Content Grid */}
           <div className="grid lg:grid-cols-3 gap-6 mt-8">
             {/* Upcoming Bookings */}
@@ -120,21 +255,7 @@ function ClientDashboardContent() {
                     ))}
                   </div>
                 ) : (
-                  <div className="bg-white rounded-lg border-2 border-dashed border-gray-300 p-8 text-center">
-                    <div className="text-5xl mb-3">📅</div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      No Upcoming Bookings
-                    </h3>
-                    <p className="text-gray-600 mb-4">
-                      Ready to book your next cleaning service?
-                    </p>
-                    <Button
-                      variant="primary"
-                      onClick={() => (window.location.href = '/search')}
-                    >
-                      Book Now
-                    </Button>
-                  </div>
+                  <EmptyBookings />
                 )}
               </div>
 

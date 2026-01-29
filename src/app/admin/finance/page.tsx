@@ -10,6 +10,8 @@ import { Badge } from '@/components/ui/Badge';
 import { Loading } from '@/components/ui/Loading';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useAllTransactions, useProcessRefund, useFinancialReport } from '@/hooks/useAdmin';
+import { adminEnhancedService } from '@/services/adminEnhanced.service';
+import { useQuery } from '@tanstack/react-query';
 import { LineChart, BarChart } from '@/components/ui/Charts';
 import {
   DollarSign,
@@ -18,9 +20,11 @@ import {
   Download,
   RefreshCw,
   Search,
+  Sparkles,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
+import { MobileTable } from '@/components/mobile/MobileTable';
 
 export default function AdminFinancePage() {
   return (
@@ -47,6 +51,12 @@ function AdminFinanceContent() {
 
   const { data: reportData } = useFinancialReport(startDate, endDate);
   const { mutate: processRefund, isPending: processing } = useProcessRefund();
+
+  // Get financial forecast
+  const { data: forecastData } = useQuery({
+    queryKey: ['admin', 'finance', 'forecast'],
+    queryFn: () => adminEnhancedService.getForecast(3),
+  });
 
   const transactions = transactionsData?.transactions || [];
   const total = transactionsData?.total || 0;
@@ -122,6 +132,35 @@ function AdminFinanceContent() {
               </Button>
             </div>
           </div>
+
+          {/* Financial Forecast */}
+          {forecastData?.forecast && (
+            <Card className="mb-6 border-blue-200 bg-blue-50">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-3">
+                  <Sparkles className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-blue-900 mb-2">3-Month Revenue Forecast</h3>
+                    <div className="grid md:grid-cols-3 gap-4 text-sm">
+                      {forecastData.forecast.months?.map((month: any, idx: number) => (
+                        <div key={idx}>
+                          <p className="text-blue-700">{month.month}</p>
+                          <p className="text-lg font-bold text-blue-900">
+                            {formatCurrency(month.projected_revenue)}
+                          </p>
+                          {month.growth && (
+                            <p className="text-xs text-blue-600">
+                              {month.growth > 0 ? '+' : ''}{month.growth}% vs current
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Stats */}
           <div className="grid md:grid-cols-4 gap-4 mb-6">
@@ -233,81 +272,84 @@ function AdminFinanceContent() {
                   <p>No transactions found</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50 border-b">
-                      <tr>
-                        <th className="text-left py-4 px-6 text-sm font-semibold text-gray-900">
-                          Transaction ID
-                        </th>
-                        <th className="text-left py-4 px-6 text-sm font-semibold text-gray-900">
-                          Booking
-                        </th>
-                        <th className="text-left py-4 px-6 text-sm font-semibold text-gray-900">
-                          Amount
-                        </th>
-                        <th className="text-left py-4 px-6 text-sm font-semibold text-gray-900">
-                          Method
-                        </th>
-                        <th className="text-left py-4 px-6 text-sm font-semibold text-gray-900">
-                          Status
-                        </th>
-                        <th className="text-left py-4 px-6 text-sm font-semibold text-gray-900">
-                          Date
-                        </th>
-                        <th className="text-right py-4 px-6 text-sm font-semibold text-gray-900">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                      {transactions.map((transaction: any) => (
-                        <tr key={transaction.id} className="hover:bg-gray-50">
-                          <td className="py-4 px-6 font-mono text-sm">
-                            {transaction.id.slice(0, 8)}
-                          </td>
-                          <td className="py-4 px-6 text-sm">
-                            <span className="font-medium">
-                              #{transaction.booking_id.slice(0, 8)}
-                            </span>
-                          </td>
-                          <td className="py-4 px-6">
-                            <span className="font-semibold text-gray-900">
-                              {formatCurrency(transaction.amount)}
-                            </span>
-                          </td>
-                          <td className="py-4 px-6 text-sm capitalize">
-                            {transaction.payment_method || 'card'}
-                          </td>
-                          <td className="py-4 px-6">{getStatusBadge(transaction.status)}</td>
-                          <td className="py-4 px-6 text-sm text-gray-600">
-                            {format(new Date(transaction.created_at), 'MMM d, yyyy')}
-                          </td>
-                          <td className="py-4 px-6">
-                            <div className="flex items-center justify-end gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setSelectedTransaction(transaction)}
-                              >
-                                View
-                              </Button>
-                              {transaction.status === 'completed' && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleRefund(transaction.id)}
-                                >
-                                  Refund
-                                </Button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <MobileTable
+                  data={transactions}
+                  columns={[
+                    {
+                      key: 'id',
+                      header: 'Transaction ID',
+                      render: (t: any) => (
+                        <span className="font-mono text-sm">{t.id.slice(0, 8)}</span>
+                      ),
+                      mobileHidden: true,
+                    },
+                    {
+                      key: 'booking_id',
+                      header: 'Booking',
+                      render: (t: any) => (
+                        <span className="font-medium">#{t.booking_id?.slice(0, 8) || 'N/A'}</span>
+                      ),
+                    },
+                    {
+                      key: 'amount',
+                      header: 'Amount',
+                      render: (t: any) => (
+                        <span className="font-semibold text-gray-900">
+                          {formatCurrency(t.amount)}
+                        </span>
+                      ),
+                    },
+                    {
+                      key: 'payment_method',
+                      header: 'Method',
+                      render: (t: any) => (
+                        <span className="capitalize">{t.payment_method || 'card'}</span>
+                      ),
+                      mobileHidden: true,
+                    },
+                    {
+                      key: 'status',
+                      header: 'Status',
+                      render: (t: any) => getStatusBadge(t.status),
+                    },
+                    {
+                      key: 'created_at',
+                      header: 'Date',
+                      render: (t: any) => (
+                        <span className="text-sm text-gray-600">
+                          {format(new Date(t.created_at), 'MMM d, yyyy')}
+                        </span>
+                      ),
+                      mobileHidden: true,
+                    },
+                    {
+                      key: 'actions',
+                      header: 'Actions',
+                      render: (t: any) => (
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedTransaction(t)}
+                          >
+                            View
+                          </Button>
+                          {t.status === 'completed' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRefund(t.id)}
+                            >
+                              Refund
+                            </Button>
+                          )}
+                        </div>
+                      ),
+                    },
+                  ]}
+                  keyExtractor={(t: any) => t.id}
+                  emptyMessage="No transactions found"
+                />
               )}
 
               {/* Pagination */}

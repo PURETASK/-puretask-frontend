@@ -40,7 +40,7 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      await register({
+      const userData = await register({
         email: formData.email,
         password: formData.password,
         full_name: formData.full_name,
@@ -48,8 +48,16 @@ export default function RegisterPage() {
         role: userType,
       });
       
-      // Redirect to dashboard
-      router.push('/dashboard');
+      // Redirect based on user role
+      if (userData?.role === 'admin') {
+        router.push('/admin');
+      } else if (userData?.role === 'cleaner') {
+        router.push('/cleaner/dashboard');
+      } else if (userData?.role === 'client') {
+        router.push('/client/dashboard');
+      } else {
+        router.push('/dashboard'); // fallback
+      }
     } catch (error) {
       // Error is already shown via toast
       console.error('Registration error:', error);
@@ -137,6 +145,8 @@ export default function RegisterPage() {
             <Input
               label="Full Name"
               type="text"
+              inputMode="text"
+              autoComplete="name"
               name="full_name"
               placeholder="John Doe"
               value={formData.full_name}
@@ -148,6 +158,8 @@ export default function RegisterPage() {
             <Input
               label="Email Address"
               type="email"
+              inputMode="email"
+              autoComplete="email"
               name="email"
               placeholder="you@example.com"
               value={formData.email}
@@ -159,6 +171,8 @@ export default function RegisterPage() {
             <Input
               label="Phone Number"
               type="tel"
+              inputMode="tel"
+              autoComplete="tel"
               name="phone"
               placeholder="(555) 123-4567"
               value={formData.phone}
@@ -170,6 +184,7 @@ export default function RegisterPage() {
             <Input
               label="Password"
               type="password"
+              autoComplete="new-password"
               name="password"
               placeholder="••••••••"
               value={formData.password}
@@ -181,6 +196,7 @@ export default function RegisterPage() {
             <Input
               label="Confirm Password"
               type="password"
+              autoComplete="new-password"
               name="confirmPassword"
               placeholder="••••••••"
               value={formData.confirmPassword}

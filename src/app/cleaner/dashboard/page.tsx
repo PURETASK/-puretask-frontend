@@ -7,11 +7,17 @@ import { StatsOverview } from '@/components/features/dashboard/StatsOverview';
 import { BookingCard } from '@/components/features/dashboard/BookingCard';
 import { ActivityFeed } from '@/components/features/dashboard/ActivityFeed';
 import { Button } from '@/components/ui/Button';
-import { Loading } from '@/components/ui/Loading';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { SkeletonList } from '@/components/ui/Skeleton';
+import { ErrorDisplay } from '@/components/error/ErrorDisplay';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useBookings } from '@/hooks/useBookings';
-import { BarChart, DonutChart } from '@/components/ui/Charts';
+import { useQuery } from '@tanstack/react-query';
+import { cleanerEnhancedService } from '@/services/cleanerEnhanced.service';
+import { BarChart, DonutChart, LineChart } from '@/components/ui/Charts';
 import { format } from 'date-fns';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { TrendingUp, Target, Award } from 'lucide-react';
 
 export default function CleanerDashboardPage() {
   return (
@@ -23,10 +29,29 @@ export default function CleanerDashboardPage() {
 
 function CleanerDashboardContent() {
   const { data: bookingsData, isLoading } = useBookings();
+  const { data: analyticsData, isLoading: analyticsLoading } = useQuery({
+    queryKey: ['cleaner', 'dashboard', 'analytics', 'month'],
+    queryFn: () => cleanerEnhancedService.getDashboardAnalytics('month'),
+  });
+  const { data: goalsData } = useQuery({
+    queryKey: ['cleaner', 'goals'],
+    queryFn: () => cleanerEnhancedService.getGoals(),
+  });
   const bookings = bookingsData?.bookings || [];
+  const analytics = analyticsData?.analytics;
+  const goals = goalsData?.goals;
 
   if (isLoading) {
-    return <Loading size="lg" text="Loading dashboard..." fullScreen />;
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Header />
+        <main className="flex-1 py-8 px-6">
+          <div className="max-w-7xl mx-auto">
+            <SkeletonList items={6} />
+          </div>
+        </main>
+      </div>
+    );
   }
 
   // Calculate stats
@@ -112,6 +137,116 @@ function CleanerDashboardContent() {
 
           {/* Stats Overview */}
           <StatsOverview stats={stats} />
+
+          {/* Performance Analytics & Goals */}
+          {analytics && (
+            <div className="grid md:grid-cols-2 gap-6 mt-6">
+              {/* Earnings Trend */}
+              {analytics.earningsTrend && analytics.earningsTrend.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5" />
+                      Earnings Trend
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <LineChart
+                      data={analytics.earningsTrend.map((item: any) => ({
+                        label: format(new Date(item.date), 'MMM d'),
+                        value: parseFloat(item.earnings || 0),
+                      }))}
+                      title=""
+                      height={200}
+                    />
+                    <div className="mt-4 pt-4 border-t">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Platform Average</span>
+                        <span className="font-semibold">
+                          ${parseFloat(analytics.platformAverage?.avg_earnings || 0).toFixed(0)}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Goals */}
+              {goals && Object.keys(goals).length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Target className="h-5 w-5" />
+                      Your Goals
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {Object.entries(goals).map(([type, goal]: [string, any]) => (
+                      <div key={type} className="p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-medium capitalize">{type}</span>
+                          <span className="text-sm text-gray-600">
+                            Target: ${goal.target || 0} / {goal.period}
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-blue-600 h-2 rounded-full"
+                            style={{ width: '60%' }} // Would calculate actual progress
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">60% complete</p>
+                      </div>
+                    ))}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => (window.location.href = '/cleaner/goals')}
+                    >
+                      Set New Goal
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Quick Insights */}
+              <Card className="md:col-span-2">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Award className="h-5 w-5" />
+                    Performance Insights
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    {analytics.jobsTrend && analytics.jobsTrend.length > 0 && (
+                      <div className="text-center p-4 bg-blue-50 rounded-lg">
+                        <p className="text-2xl font-bold text-blue-600">
+                          {analytics.jobsTrend.reduce((sum: number, item: any) => sum + parseInt(item.count || 0), 0)}
+                        </p>
+                        <p className="text-sm text-gray-600 mt-1">Jobs This Month</p>
+                      </div>
+                    )}
+                    {analytics.ratingTrend && analytics.ratingTrend.length > 0 && (
+                      <div className="text-center p-4 bg-green-50 rounded-lg">
+                        <p className="text-2xl font-bold text-green-600">
+                          {parseFloat(analytics.ratingTrend[analytics.ratingTrend.length - 1]?.avg_rating || 0).toFixed(1)}
+                        </p>
+                        <p className="text-sm text-gray-600 mt-1">Current Rating</p>
+                      </div>
+                    )}
+                    <div className="text-center p-4 bg-purple-50 rounded-lg">
+                      <p className="text-2xl font-bold text-purple-600">
+                        {analytics.platformAverage?.avg_earnings > totalEarnings ? 'Below' : 'Above'}
+                      </p>
+                      <p className="text-sm text-gray-600 mt-1">Platform Average</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* Main Content Grid */}
           <div className="grid lg:grid-cols-3 gap-6 mt-8">

@@ -33,17 +33,19 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
-    // If 401 and not already retried, try to refresh token
+    // If 401 (Unauthorized), clear auth and redirect to login
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      // Clear auth data and redirect to login
+      // Clear auth data
       localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
       localStorage.removeItem(STORAGE_KEYS.USER_DATA);
       
-      // Redirect to login page
-      if (typeof window !== 'undefined') {
-        window.location.href = '/auth/login';
+      // Only redirect if we're not already on the login page
+      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth/login')) {
+        // Store the current path to redirect back after login
+        const returnTo = window.location.pathname + window.location.search;
+        window.location.href = `/auth/login?returnTo=${encodeURIComponent(returnTo)}`;
       }
     }
 

@@ -6,10 +6,32 @@ import { Footer } from '@/components/layout/Footer';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { adminEnhancedService } from '@/services/adminEnhanced.service';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
+import { Sparkles, Shield, AlertTriangle } from 'lucide-react';
+import { useToast } from '@/contexts/ToastContext';
 
 export default function AdminRiskPage() {
   const [activeTab, setActiveTab] = useState('alerts');
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+
+  // Get risk scoring
+  const { data: riskScoringData } = useQuery({
+    queryKey: ['admin', 'risk', 'scoring'],
+    queryFn: () => adminEnhancedService.getRiskScoring(),
+  });
+
+  // Risk mitigation mutation
+  const { mutate: mitigateRisk } = useMutation({
+    mutationFn: ({ userId, action, reason }: { userId: string; action: string; reason?: string }) =>
+      adminEnhancedService.mitigateRisk(userId, action, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'risk'] });
+      showToast('Risk mitigation action applied', 'success');
+    },
+  });
 
   const alerts = [
     {
@@ -57,6 +79,46 @@ export default function AdminRiskPage() {
             </Button>
           </div>
 
+          {/* Risk Scoring Overview */}
+          {riskScoringData && (
+            <Card className="mb-6 border-red-200 bg-red-50">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-3">
+                  <Shield className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-red-900 mb-2">Risk Scoring Summary</h3>
+                    <div className="grid md:grid-cols-4 gap-4 text-sm">
+                      {riskScoringData.high_risk_users !== undefined && (
+                        <div>
+                          <p className="text-red-700">High Risk Users</p>
+                          <p className="text-lg font-bold text-red-900">{riskScoringData.high_risk_users}</p>
+                        </div>
+                      )}
+                      {riskScoringData.medium_risk_users !== undefined && (
+                        <div>
+                          <p className="text-red-700">Medium Risk</p>
+                          <p className="text-lg font-bold text-red-900">{riskScoringData.medium_risk_users}</p>
+                        </div>
+                      )}
+                      {riskScoringData.auto_flagged !== undefined && (
+                        <div>
+                          <p className="text-red-700">Auto-Flagged</p>
+                          <p className="text-lg font-bold text-red-900">{riskScoringData.auto_flagged}</p>
+                        </div>
+                      )}
+                      {riskScoringData.pending_reviews !== undefined && (
+                        <div>
+                          <p className="text-red-700">Pending Reviews</p>
+                          <p className="text-lg font-bold text-red-900">{riskScoringData.pending_reviews}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Tabs */}
           <div className="flex gap-2 mb-6 border-b border-gray-200">
             {['alerts', 'disputes', 'reports', 'bans'].map((tab) => (
@@ -95,7 +157,23 @@ export default function AdminRiskPage() {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <Button variant="primary" size="sm">
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={() => {
+                            if (confirm('Apply automated risk mitigation?')) {
+                              mitigateRisk({
+                                userId: alert.user,
+                                action: 'suspend',
+                                reason: alert.issue,
+                              });
+                            }
+                          }}
+                        >
+                          <Shield className="h-4 w-4 mr-1" />
+                          Mitigate Risk
+                        </Button>
+                        <Button variant="outline" size="sm">
                           Review Account
                         </Button>
                         <Button variant="outline" size="sm">

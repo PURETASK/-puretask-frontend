@@ -10,8 +10,8 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (credentials: LoginCredentials) => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
+  login: (credentials: LoginCredentials) => Promise<User>;
+  register: (data: RegisterData) => Promise<User>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -31,15 +31,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const savedUser = localStorage.getItem(STORAGE_KEYS.USER_DATA);
 
         if (token && savedUser) {
-          setUser(JSON.parse(savedUser));
-          // Optionally verify token with backend
-          await refreshUser();
+          // Set user immediately for faster UI
+          try {
+            const parsedUser = JSON.parse(savedUser);
+            setUser(parsedUser);
+          } catch (parseError) {
+            console.error('Failed to parse saved user:', parseError);
+            localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+          }
+
+          // Verify token with backend (silently - don't show errors)
+          try {
+            await refreshUser();
+          } catch (error) {
+            // Token expired or invalid - clear storage but don't redirect yet
+            // Let the user stay on current page, they'll be redirected on next API call
+            console.log('Token validation failed, clearing auth data');
+            localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+            localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+            setUser(null);
+          }
         }
       } catch (error) {
         console.error('Failed to load user:', error);
         // Clear invalid data
         localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
         localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
@@ -48,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loadUser();
   }, []);
 
-  const login = async (credentials: LoginCredentials) => {
+  const login = async (credentials: LoginCredentials): Promise<User> => {
     try {
       const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
       
@@ -58,6 +76,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       setUser(response.user);
       showToast('Successfully logged in!', 'success');
+      
+      return response.user;
     } catch (error: any) {
       const errorMsg = error.response?.data?.error?.message || 'Login failed';
       showToast(errorMsg, 'error');
@@ -65,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const register = async (data: RegisterData) => {
+  const register = async (data: RegisterData): Promise<User> => {
     try {
       const response = await apiClient.post<AuthResponse>('/auth/register', data);
       
@@ -75,6 +95,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       setUser(response.user);
       showToast('Account created successfully!', 'success');
+      
+      return response.user;
     } catch (error: any) {
       const errorMsg = error.response?.data?.error?.message || 'Registration failed';
       showToast(errorMsg, 'error');
@@ -97,9 +119,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     showToast('Successfully logged out', 'info');
     
-    // Redirect to home
+    // Redirect to login page (not home)
     if (typeof window !== 'undefined') {
-      window.location.href = '/';
+      window.location.href = '/auth/login';
     }
   };
 
@@ -111,8 +133,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(response.user));
       setUser(response.user);
     } catch (error) {
-      // If refresh fails, clear auth
-      logout();
+      // If refresh fails, clear auth but don't redirect (let api interceptor handle it)
+      localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+      setUser(null);
+      throw error; // Re-throw so caller knows it failed
     }
   };
 

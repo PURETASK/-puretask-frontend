@@ -28,11 +28,11 @@ export function HeroSection() {
         <div className="mt-8 flex items-center justify-center gap-2 text-blue-100">
           <div className="flex">
             {[1, 2, 3, 4, 5].map((star) => (
-              <span key={star} className="text-yellow-400">???</span>
+              <span key={star} className="text-yellow-400">⭐</span>
             ))}
           </div>
           <span className="font-semibold">Rated 4.9/5</span>
-          <span>???</span>
+          <span>✓</span>
           <span>1,000+ bookings completed</span>
         </div>
       </div>
