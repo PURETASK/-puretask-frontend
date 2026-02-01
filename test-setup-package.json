@@ -1,0 +1,13 @@
+{
+  "name": "puretask-testing-setup",
+  "version": "1.0.0",
+  "description": "Test suite installation script for PureTask",
+  "scripts": {
+    "setup-backend": "cd ../puretask-backend && npm install --save-dev jest ts-jest @types/jest supertest @types/supertest @faker-js/faker nock @types/nock jest-mock-extended",
+    "setup-frontend": "npm install --save-dev @testing-library/react @testing-library/jest-dom @testing-library/user-event @testing-library/react-hooks msw jest-axe",
+    "setup-e2e": "npm install --save-dev @playwright/test",
+    "setup-all": "npm run setup-backend && npm run setup-frontend && npm run setup-e2e",
+    "init-playwright": "npx playwright install"
+  }
+}
+

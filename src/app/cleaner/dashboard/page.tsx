@@ -1,0 +1,318 @@
+'use client';
+
+import React from 'react';
+import { Header } from '@/components/layout/Header';
+import { Footer } from '@/components/layout/Footer';
+import { StatsOverview } from '@/components/features/dashboard/StatsOverview';
+import { BookingCard } from '@/components/features/dashboard/BookingCard';
+import { ActivityFeed } from '@/components/features/dashboard/ActivityFeed';
+import { Button } from '@/components/ui/Button';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { SkeletonList } from '@/components/ui/Skeleton';
+import { ErrorDisplay } from '@/components/error/ErrorDisplay';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { useBookings } from '@/hooks/useBookings';
+import { useQuery } from '@tanstack/react-query';
+import { cleanerEnhancedService } from '@/services/cleanerEnhanced.service';
+import { BarChart, DonutChart, LineChart } from '@/components/ui/Charts';
+import { format } from 'date-fns';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { TrendingUp, Target, Award } from 'lucide-react';
+
+export default function CleanerDashboardPage() {
+  return (
+    <ProtectedRoute requiredRole="cleaner">
+      <CleanerDashboardContent />
+    </ProtectedRoute>
+  );
+}
+
+function CleanerDashboardContent() {
+  const { data: bookingsData, isLoading } = useBookings();
+  const { data: analyticsData, isLoading: analyticsLoading } = useQuery({
+    queryKey: ['cleaner', 'dashboard', 'analytics', 'month'],
+    queryFn: () => cleanerEnhancedService.getDashboardAnalytics('month'),
+  });
+  const { data: goalsData } = useQuery({
+    queryKey: ['cleaner', 'goals'],
+    queryFn: () => cleanerEnhancedService.getGoals(),
+  });
+  const bookings = bookingsData?.bookings || [];
+  const analytics = analyticsData?.analytics;
+  const goals = goalsData?.goals;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Header />
+        <main className="flex-1 py-8 px-6">
+          <div className="max-w-7xl mx-auto">
+            <SkeletonList items={6} />
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Calculate stats
+  const upcomingBookings = bookings.filter(
+    (b: any) => b.status === 'scheduled' || b.status === 'confirmed'
+  );
+  const completedBookings = bookings.filter((b: any) => b.status === 'completed');
+  const totalEarnings = completedBookings.reduce(
+    (sum: number, b: any) => sum + (b.total_price || 0),
+    0
+  );
+  const avgRating = 4.8; // This would come from API
+
+  const stats = [
+    { label: 'Total Bookings', value: bookings.length, icon: '📅', color: 'text-blue-600' },
+    { label: 'Upcoming', value: upcomingBookings.length, icon: '⏰', color: 'text-green-600' },
+    {
+      label: 'Total Earnings',
+      value: `$${totalEarnings.toFixed(0)}`,
+      icon: '💰',
+      color: 'text-purple-600',
+    },
+    { label: 'Avg Rating', value: avgRating.toFixed(1), icon: '⭐', color: 'text-yellow-600' },
+  ];
+
+  // Service type distribution
+  const serviceTypes = bookings.reduce((acc: any, b: any) => {
+    acc[b.service_type] = (acc[b.service_type] || 0) + 1;
+    return acc;
+  }, {});
+
+  const serviceChartData = Object.entries(serviceTypes).map(([type, count]) => ({
+    label: type.replace('_', ' '),
+    value: count as number,
+  }));
+
+  // Earnings by month
+  const monthlyEarnings = completedBookings
+    .reduce((acc: any[], b: any) => {
+      const month = format(new Date(b.scheduled_start_at), 'MMM');
+      const existing = acc.find((item) => item.label === month);
+      if (existing) {
+        existing.value += b.total_price;
+      } else {
+        acc.push({ label: month, value: b.total_price });
+      }
+      return acc;
+    }, [])
+    .slice(-6);
+
+  // Activity feed
+  const activities = bookings.slice(0, 5).map((b: any) => ({
+    id: b.id,
+    type: b.status === 'completed' ? 'booking_completed' : 'booking_created',
+    title:
+      b.status === 'completed'
+        ? 'Job Completed'
+        : b.status === 'scheduled'
+        ? 'New Booking'
+        : 'Booking Update',
+    description: `${b.service_type} cleaning at ${b.address}`,
+    timestamp: b.created_at,
+    meta: {
+      amount: b.total_price,
+      status: b.status,
+    },
+  }));
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <Header />
+      <main className="flex-1 py-8 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Cleaner Dashboard</h1>
+              <p className="text-gray-600 mt-1">Manage your bookings and track your earnings.</p>
+            </div>
+            <Button variant="primary" onClick={() => (window.location.href = '/cleaner/schedule')}>
+              📅 View Schedule
+            </Button>
+          </div>
+
+          {/* Stats Overview */}
+          <StatsOverview stats={stats} />
+
+          {/* Performance Analytics & Goals */}
+          {analytics && (
+            <div className="grid md:grid-cols-2 gap-6 mt-6">
+              {/* Earnings Trend */}
+              {analytics.earningsTrend && analytics.earningsTrend.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5" />
+                      Earnings Trend
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <LineChart
+                      data={analytics.earningsTrend.map((item: any) => ({
+                        label: format(new Date(item.date), 'MMM d'),
+                        value: parseFloat(item.earnings || 0),
+                      }))}
+                      title=""
+                      height={200}
+                    />
+                    <div className="mt-4 pt-4 border-t">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Platform Average</span>
+                        <span className="font-semibold">
+                          ${parseFloat(analytics.platformAverage?.avg_earnings || 0).toFixed(0)}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Goals */}
+              {goals && Object.keys(goals).length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Target className="h-5 w-5" />
+                      Your Goals
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {Object.entries(goals).map(([type, goal]: [string, any]) => (
+                      <div key={type} className="p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-medium capitalize">{type}</span>
+                          <span className="text-sm text-gray-600">
+                            Target: ${goal.target || 0} / {goal.period}
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-blue-600 h-2 rounded-full"
+                            style={{ width: '60%' }} // Would calculate actual progress
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">60% complete</p>
+                      </div>
+                    ))}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => (window.location.href = '/cleaner/goals')}
+                    >
+                      Set New Goal
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Quick Insights */}
+              <Card className="md:col-span-2">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Award className="h-5 w-5" />
+                    Performance Insights
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    {analytics.jobsTrend && analytics.jobsTrend.length > 0 && (
+                      <div className="text-center p-4 bg-blue-50 rounded-lg">
+                        <p className="text-2xl font-bold text-blue-600">
+                          {analytics.jobsTrend.reduce((sum: number, item: any) => sum + parseInt(item.count || 0), 0)}
+                        </p>
+                        <p className="text-sm text-gray-600 mt-1">Jobs This Month</p>
+                      </div>
+                    )}
+                    {analytics.ratingTrend && analytics.ratingTrend.length > 0 && (
+                      <div className="text-center p-4 bg-green-50 rounded-lg">
+                        <p className="text-2xl font-bold text-green-600">
+                          {parseFloat(analytics.ratingTrend[analytics.ratingTrend.length - 1]?.avg_rating || 0).toFixed(1)}
+                        </p>
+                        <p className="text-sm text-gray-600 mt-1">Current Rating</p>
+                      </div>
+                    )}
+                    <div className="text-center p-4 bg-purple-50 rounded-lg">
+                      <p className="text-2xl font-bold text-purple-600">
+                        {analytics.platformAverage?.avg_earnings > totalEarnings ? 'Below' : 'Above'}
+                      </p>
+                      <p className="text-sm text-gray-600 mt-1">Platform Average</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Main Content Grid */}
+          <div className="grid lg:grid-cols-3 gap-6 mt-8">
+            {/* Left Column - Bookings & Charts */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Upcoming Bookings */}
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-bold text-gray-900">Today's Schedule</h2>
+                  <Button
+                    variant="ghost"
+                    onClick={() => (window.location.href = '/cleaner/bookings')}
+                  >
+                    View All
+                  </Button>
+                </div>
+                {upcomingBookings.length > 0 ? (
+                  <div className="grid gap-4">
+                    {upcomingBookings.slice(0, 3).map((booking: any) => (
+                      <BookingCard
+                        key={booking.id}
+                        id={booking.id}
+                        cleanerName={booking.client?.full_name || 'Client'}
+                        date={format(new Date(booking.scheduled_start_at), 'MMM d, yyyy')}
+                        time={format(new Date(booking.scheduled_start_at), 'h:mm a')}
+                        service={booking.service_type}
+                        address={booking.address}
+                        status={booking.status}
+                        price={booking.total_price}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-lg border-2 border-dashed border-gray-300 p-8 text-center">
+                    <div className="text-5xl mb-3">✨</div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">All Clear!</h3>
+                    <p className="text-gray-600">No upcoming bookings for today.</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Charts */}
+              <div className="grid md:grid-cols-2 gap-6">
+                {monthlyEarnings.length > 0 && (
+                  <BarChart data={monthlyEarnings} title="Monthly Earnings" height={250} />
+                )}
+                {serviceChartData.length > 0 && (
+                  <DonutChart
+                    data={serviceChartData}
+                    title="Service Types"
+                    size={200}
+                    centerText={bookings.length.toString()}
+                    centerSubtext="Total Jobs"
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* Right Column - Activity Feed */}
+            <div className="lg:col-span-1">
+              <ActivityFeed activities={activities} maxItems={10} />
+            </div>
+          </div>
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+}

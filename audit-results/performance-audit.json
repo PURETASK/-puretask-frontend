@@ -1,0 +1,59 @@
+{
+  "timestamp": "2026-01-23T11:52:39.350Z",
+  "metrics": {
+    "first-contentful-paint": {
+      "target": "< 1.8s",
+      "status": "pending"
+    },
+    "largest-contentful-paint": {
+      "target": "< 2.5s",
+      "status": "pending"
+    },
+    "total-blocking-time": {
+      "target": "< 200ms",
+      "status": "pending"
+    },
+    "cumulative-layout-shift": {
+      "target": "< 0.1",
+      "status": "pending"
+    },
+    "speed-index": {
+      "target": "< 3.4s",
+      "status": "pending"
+    }
+  },
+  "optimizations": [
+    {
+      "name": "Code Splitting",
+      "status": "pending",
+      "description": "Verify code splitting is working"
+    },
+    {
+      "name": "Image Optimization",
+      "status": "pending",
+      "description": "All images use Next.js Image component"
+    },
+    {
+      "name": "Lazy Loading",
+      "status": "pending",
+      "description": "Heavy components are lazy loaded"
+    },
+    {
+      "name": "Bundle Size",
+      "status": "pending",
+      "description": "Bundle size is optimized"
+    },
+    {
+      "name": "Caching",
+      "status": "pending",
+      "description": "Proper caching headers set"
+    }
+  ],
+  "recommendations": [
+    "Run: npm run build && npm run start",
+    "Run: lighthouse http://localhost:3001 --view",
+    "Or use: npx lighthouse http://localhost:3001 --output html --output-path ./audit-results/lighthouse.html",
+    "Check bundle size: npm run build and review .next/analyze",
+    "Review Network tab in DevTools"
+  ]
+}

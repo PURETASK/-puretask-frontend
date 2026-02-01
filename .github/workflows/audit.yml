@@ -1,0 +1,25 @@
+name: Accessibility & Performance Audit
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # Weekly on Sunday
+  workflow_dispatch:
+
+jobs:
+  lighthouse:
+    name: Lighthouse Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npm run build
+      - run: npm run start &
+      - uses: treosh/lighthouse-ci-action@v10
+        with:
+          urls: |
+            http://localhost:3001
+          uploadArtifacts: true
+          temporaryPublicStorage: true
