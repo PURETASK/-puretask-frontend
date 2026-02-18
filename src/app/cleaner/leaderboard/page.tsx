@@ -236,7 +236,7 @@ export default function LeaderboardPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold text-gray-900">{cleaner.name}</h3>
-                        {cleaner.isCurrentUser && <Badge variant="primary">You</Badge>}
+                        {cleaner.isCurrentUser && <Badge variant="info">You</Badge>}
                         <Badge variant="secondary">Level {cleaner.level}</Badge>
                       </div>
                       <div className="flex items-center gap-4 text-sm text-gray-600">

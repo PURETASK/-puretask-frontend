@@ -18,7 +18,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/contexts/ToastContext';
 import { cleanerEnhancedService } from '@/services/cleanerEnhanced.service';
 import { MapPin, Clock, DollarSign, FileText, Navigation } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
 
 export default function CleanerJobDetailsPage() {
   return (

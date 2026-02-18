@@ -10,6 +10,14 @@ import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { Sparkles, TrendingUp } from 'lucide-react';
 
+type AnalyticsInsightsResponse = {
+  insights?: {
+    growth_trend?: string;
+    top_performing_service?: string;
+    recommendations?: string[];
+  };
+};
+
 export default function AdminAnalyticsPage() {
   const [timeframe, setTimeframe] = useState('month');
   const [activeTab, setActiveTab] = useState('platform');
@@ -17,7 +25,7 @@ export default function AdminAnalyticsPage() {
   // Get advanced analytics insights
   const { data: insightsData } = useQuery({
     queryKey: ['admin', 'analytics', 'insights', timeframe],
-    queryFn: () => adminEnhancedService.getAnalyticsInsights(),
+    queryFn: () => adminEnhancedService.getAnalyticsInsights() as Promise<AnalyticsInsightsResponse>,
   });
 
   const platformMetrics = {

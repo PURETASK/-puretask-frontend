@@ -97,7 +97,7 @@ export default function APITestPage() {
               <h3 className="font-semibold text-gray-900 mb-2">Authentication Status</h3>
               {isAuthenticated ? (
                 <div className="flex items-center gap-3">
-                  <Badge variant="primary">Authenticated</Badge>
+                  <Badge variant="success">Authenticated</Badge>
                   <span className="text-gray-700">
                     Logged in as: <strong>{user?.email}</strong> ({user?.role})
                   </span>

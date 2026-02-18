@@ -330,9 +330,3 @@ function JobRequestCard({
     </Card>
   );
 }
-        </div>
-      </main>
-      <Footer />
-    </div>
-  );
-}

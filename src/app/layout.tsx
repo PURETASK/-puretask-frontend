@@ -97,9 +97,13 @@ export default function RootLayout({
   );
 }
 
-// Initialize monitoring on client side
+// Initialize monitoring on client side (never block or crash the app)
 if (typeof window !== 'undefined') {
-  initErrorTracking();
-  initSentry();
-  initPerformanceMonitoring();
+  try {
+    initErrorTracking();
+    initSentry();
+    initPerformanceMonitoring();
+  } catch (_) {
+    // ignore so app always loads
+  }
 }

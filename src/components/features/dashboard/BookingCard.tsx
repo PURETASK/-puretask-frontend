@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -12,8 +13,9 @@ interface BookingCardProps {
   time: string;
   service: string;
   address: string;
-  status: 'upcoming' | 'completed' | 'cancelled';
+  status: string;
   price: number;
+  onViewDetails?: () => void;
 }
 export function BookingCard({
   id,
@@ -25,7 +27,13 @@ export function BookingCard({
   address,
   status,
   price,
+  onViewDetails,
 }: BookingCardProps) {
+  const statusKey = ['scheduled', 'confirmed', 'pending', 'accepted'].includes(status)
+    ? 'upcoming'
+    : status === 'completed'
+    ? 'completed'
+    : 'cancelled';
   const statusColors = {
     upcoming: 'primary',
     completed: 'success',
@@ -42,7 +50,7 @@ export function BookingCard({
               <p className="text-sm text-gray-600">{service}</p>
             </div>
           </div>
-          <Badge variant={statusColors[status] as any}>
+          <Badge variant={statusColors[statusKey] as any}>
             {status.charAt(0).toUpperCase() + status.slice(1)}
           </Badge>
         </div>
@@ -61,7 +69,7 @@ export function BookingCard({
           </div>
         </div>
         <div className="flex gap-2">
-          {status === 'upcoming' && (
+          {statusKey === 'upcoming' && (
             <>
               <Button variant="outline" size="sm" className="flex-1">
                 Reschedule
@@ -71,13 +79,18 @@ export function BookingCard({
               </Button>
             </>
           )}
-          {status === 'completed' && (
+          {statusKey === 'completed' && (
             <Button variant="primary" size="sm" className="flex-1">
               Leave Review
             </Button>
           )}
-          <Button variant="outline" size="sm">
-            Message
+          {onViewDetails && (
+            <Button variant="outline" size="sm" onClick={onViewDetails}>
+              View details
+            </Button>
+          )}
+          <Button variant="outline" size="sm" asChild>
+            <Link href={`/messages?job=${id}`}>Message</Link>
           </Button>
         </div>
       </CardContent>

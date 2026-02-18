@@ -52,13 +52,14 @@ function AdminUsersContent() {
   const { mutate: deleteUser, isPending: deleting } = useDeleteUser();
 
   // Get risk scoring data
+  type RiskScoringData = { users?: Array<{ id: string; riskScore?: number }>; summary?: { highRisk?: number; mediumRisk?: number; lowRisk?: number; avgScore?: number } };
   const { data: riskData } = useQuery({
     queryKey: ['admin', 'risk', 'scoring'],
-    queryFn: () => adminEnhancedService.getRiskScoring(),
+    queryFn: () => adminEnhancedService.getRiskScoring() as Promise<RiskScoringData>,
   });
 
-  const users = usersData?.users || [];
-  const total = usersData?.total || 0;
+  const users = usersData?.data?.users || [];
+  const total = usersData?.data?.total || 0;
 
   // Get risk profile for selected user
   const { data: riskProfile } = useQuery({
@@ -91,7 +92,7 @@ function AdminUsersContent() {
 
   const getRiskBadge = (riskScore: number) => {
     if (riskScore >= 70) {
-      return <Badge variant="destructive">High Risk</Badge>;
+      return <Badge variant="error">High Risk</Badge>;
     } else if (riskScore >= 40) {
       return <Badge variant="warning">Medium Risk</Badge>;
     }
@@ -99,10 +100,10 @@ function AdminUsersContent() {
   };
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, 'success' | 'warning' | 'destructive' | 'default'> = {
+    const variants: Record<string, 'success' | 'warning' | 'error' | 'default'> = {
       active: 'success',
       inactive: 'warning',
-      suspended: 'destructive',
+      suspended: 'error',
       pending: 'warning',
     };
     return <Badge variant={variants[status] || 'default'}>{status}</Badge>;
@@ -115,7 +116,7 @@ function AdminUsersContent() {
       header: 'User',
       render: (user: any) => (
         <div className="flex items-center gap-3">
-          <Avatar src={user.avatar_url} name={user.full_name || user.email} size="sm" />
+          <Avatar src={user.avatar_url} alt={user.full_name || user.email} fallback={(user.full_name || user.email)?.[0]?.toUpperCase() || 'U'} size="sm" />
           <div>
             <p className="font-medium text-gray-900">{user.full_name || 'N/A'}</p>
             <p className="text-sm text-gray-500">{user.email}</p>
@@ -127,7 +128,7 @@ function AdminUsersContent() {
       key: 'role',
       header: 'Role',
       render: (user: any) => (
-        <Badge variant={user.role === 'admin' ? 'primary' : 'default'}>
+        <Badge variant={user.role === 'admin' ? 'info' : 'default'}>
           {user.role || 'N/A'}
         </Badge>
       ),

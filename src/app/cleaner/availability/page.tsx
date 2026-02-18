@@ -12,12 +12,13 @@ import {
   useCleanerAvailability,
   useUpdateAvailability,
   useTimeOff,
-  useCreateTimeOff,
+  useAddTimeOff,
   useDeleteTimeOff,
 } from '@/hooks/useCleanerAvailability';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
 import { cleanerEnhancedService } from '@/services/cleanerEnhanced.service';
+import type { WeeklyAvailability } from '@/services/cleanerAvailability.service';
 import { useToast } from '@/contexts/ToastContext';
 import { format } from 'date-fns';
 import { Plus, Trash2, Calendar, Sparkles, TrendingUp, AlertTriangle } from 'lucide-react';
@@ -84,9 +85,16 @@ function WeeklyScheduleTab() {
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   // Get smart scheduling suggestions
+  type SuggestionsResponse = {
+    suggestions?: {
+      optimal_days?: string[];
+      peak_hours?: { start?: string; end?: string };
+      utilization_rate?: number;
+    };
+  };
   const { data: suggestionsData } = useQuery({
     queryKey: ['cleaner', 'availability', 'suggestions'],
-    queryFn: () => cleanerEnhancedService.getAvailabilitySuggestions(),
+    queryFn: () => cleanerEnhancedService.getAvailabilitySuggestions() as Promise<SuggestionsResponse>,
   });
 
   const [schedule, setSchedule] = useState(() => {
@@ -99,26 +107,25 @@ function WeeklyScheduleTab() {
   });
 
   React.useEffect(() => {
-    if (availabilityData?.availability) {
+    if (availabilityData) {
       // Parse availability data and set schedule
       // This is a simplified version - actual implementation would parse the availability object
     }
   }, [availabilityData]);
 
   const handleSave = () => {
-    // Convert schedule to API format
-    const availability = Object.entries(schedule).map(([day, times]) => ({
-      day,
-      ...times,
-    }));
-    updateAvailability(
-      { availability },
-      {
-        onSuccess: () => {
-          showToast('Schedule updated!', 'success');
-        },
+    // Convert schedule to API format (WeeklyAvailability)
+    const availability: Record<string, Array<{ start: string; end: string }>> = {};
+    Object.entries(schedule).forEach(([day, slot]) => {
+      if (slot.enabled) {
+        availability[day] = [{ start: slot.start, end: slot.end }];
       }
-    );
+    });
+    updateAvailability(availability as WeeklyAvailability, {
+      onSuccess: () => {
+        showToast('Schedule updated!', 'success');
+      },
+    });
   };
 
   if (isLoading) {
@@ -263,13 +270,13 @@ function WeeklyScheduleTab() {
 // Time Off Tab
 function TimeOffTab() {
   const { data: timeOffData, isLoading } = useTimeOff();
-  const { mutate: createTimeOff } = useCreateTimeOff();
+  const { mutate: createTimeOff } = useAddTimeOff();
   const { mutate: deleteTimeOff } = useDeleteTimeOff();
   const [showAddForm, setShowAddForm] = useState(false);
   const [conflictCheck, setConflictCheck] = useState<{ hasConflict: boolean; conflicts: any[] } | null>(null);
   const { showToast } = useToast();
 
-  const timeOffs = timeOffData?.timeOffs || [];
+  const timeOffs = timeOffData || [];
 
   return (
     <>
@@ -335,9 +342,10 @@ function TimeOffTab() {
             cleanerEnhancedService
               .detectConflicts(data.start_date, data.end_date)
               .then((result) => {
-                if (result.conflicts && result.conflicts.length > 0) {
-                  setConflictCheck({ hasConflict: true, conflicts: result.conflicts });
-                  if (confirm(`Warning: ${result.conflicts.length} job(s) conflict with this time off. Continue anyway?`)) {
+                const r = result as { conflicts?: unknown[] };
+                if (r?.conflicts && r.conflicts.length > 0) {
+                  setConflictCheck({ hasConflict: true, conflicts: r.conflicts });
+                  if (confirm(`Warning: ${r.conflicts!.length} job(s) conflict with this time off. Continue anyway?`)) {
                     createTimeOff(data, {
                       onSuccess: () => {
                         setShowAddForm(false);
@@ -501,9 +509,18 @@ function AddTimeOffModal({
 
 // Preferences Tab
 function PreferencesTab() {
-  const { data: preferencesData } = useQuery({
+  type PreferencesResponse = {
+    preferences?: {
+      max_jobs_per_day?: number;
+      min_job_duration?: number;
+      max_job_duration?: number;
+      buffer_time_minutes?: number;
+      accept_same_day?: boolean;
+    };
+  };
+  const { data: preferencesData } = useQuery<PreferencesResponse>({
     queryKey: ['cleaner', 'preferences'],
-    queryFn: () => apiClient.get('/cleaner/preferences'),
+    queryFn: () => apiClient.get('/cleaner/preferences') as Promise<PreferencesResponse>,
   });
 
   const [preferences, setPreferences] = useState({

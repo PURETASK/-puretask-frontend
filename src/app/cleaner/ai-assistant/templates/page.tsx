@@ -155,7 +155,7 @@ export default function TemplateLibraryPage() {
                       <div>
                         <div className="flex items-center gap-3 mb-2">
                           <h3 className="text-lg font-semibold text-gray-900">📋 {template.name}</h3>
-                          {template.isDefault && <Badge variant="primary">Default</Badge>}
+                          {template.isDefault && <Badge variant="info">Default</Badge>}
                         </div>
                         <p className="text-sm text-gray-600">Category: {template.category}</p>
                       </div>
@@ -177,7 +177,7 @@ export default function TemplateLibraryPage() {
                     <div className="flex items-center gap-6 text-sm text-gray-600">
                       <span>Used: {template.usedCount} times</span>
                       <div className="flex items-center gap-1">
-                        <Rating value={template.rating} readonly size="sm" />
+                        <Rating value={template.rating} readOnly size="sm" />
                         <span>({template.rating}/5)</span>
                       </div>
                     </div>
@@ -205,7 +205,7 @@ export default function TemplateLibraryPage() {
                           <p className="text-sm text-gray-600 mb-2">By: {template.author}</p>
                           <div className="flex items-center gap-4 text-sm text-gray-600">
                             <div className="flex items-center gap-1">
-                              <Rating value={template.rating} readonly size="sm" />
+                              <Rating value={template.rating} readOnly size="sm" />
                               <span>{template.rating} ({template.ratingCount} ratings)</span>
                             </div>
                             <span>Used by: {template.usedByCount.toLocaleString()} cleaners</span>

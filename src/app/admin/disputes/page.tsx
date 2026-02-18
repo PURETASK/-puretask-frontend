@@ -22,6 +22,8 @@ import { Badge } from '@/components/ui/Badge';
 import { MobileTable } from '@/components/mobile/MobileTable';
 import { useMobile } from '@/hooks/useMobile';
 
+type DisputesResponse = { disputes?: unknown[] };
+
 export default function AdminDisputesPage() {
   return (
     <ProtectedRoute requiredRole="admin">
@@ -38,16 +40,16 @@ function AdminDisputesContent() {
   });
 
   // Get disputes with AI insights
-  const { data: disputesData, isLoading } = useQuery({
+  const { data: disputesData, isLoading } = useQuery<DisputesResponse>({
     queryKey: ['admin', 'disputes', filters],
-    queryFn: async () => {
+    queryFn: async (): Promise<DisputesResponse> => {
       try {
         const response = await adminEnhancedService.getDisputesWithInsights(filters);
-        return response;
+        return response as DisputesResponse;
       } catch {
         // Fallback to basic endpoint
         try {
-          const jobs = await apiClient.get('/admin/jobs', {
+          const jobs = await apiClient.get<{ jobs?: unknown[] }>('/admin/jobs', {
             params: { status: 'disputed' },
           });
           return { disputes: jobs.jobs || [] };
@@ -138,7 +140,7 @@ function AdminDisputesContent() {
                             <Badge
                               variant={
                                 dispute.risk_score >= 7
-                                  ? 'danger'
+                                  ? 'error'
                                   : dispute.risk_score >= 4
                                   ? 'warning'
                                   : 'success'
@@ -150,7 +152,7 @@ function AdminDisputesContent() {
                             </Badge>
                           )}
                           {dispute.ai_insights && (
-                            <Badge variant="primary" className="flex items-center gap-1">
+                            <Badge variant="info" className="flex items-center gap-1">
                               <Sparkles className="h-3 w-3" />
                               AI Insights
                             </Badge>

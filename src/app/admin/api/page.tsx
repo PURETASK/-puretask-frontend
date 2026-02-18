@@ -121,7 +121,7 @@ export default function AdminAPIPage() {
                         <div>
                           <div className="flex items-center gap-2 mb-1">
                             <h4 className="font-semibold text-gray-900">{key.name}</h4>
-                            <Badge variant={key.status === 'Active' ? 'primary' : 'secondary'}>{key.status}</Badge>
+                            <Badge variant={key.status === 'Active' ? 'default' : 'secondary'}>{key.status}</Badge>
                           </div>
                           <p className="font-mono text-sm text-gray-600 mb-2">{key.key}</p>
                           <div className="flex gap-4 text-xs text-gray-500">
@@ -174,7 +174,7 @@ export default function AdminAPIPage() {
                     {endpoints.map((endpoint, index) => (
                       <div key={index} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
                         <div className="flex items-center gap-4">
-                          <Badge variant={endpoint.method === 'GET' ? 'primary' : 'secondary'} className="font-mono">
+                          <Badge variant={endpoint.method === 'GET' ? 'default' : 'secondary'} className="font-mono">
                             {endpoint.method}
                           </Badge>
                           <code className="text-sm text-gray-900">{endpoint.path}</code>
@@ -248,7 +248,7 @@ export default function AdminAPIPage() {
                         <div>
                           <div className="flex items-center gap-2 mb-1">
                             <code className="text-sm font-semibold text-gray-900">{webhook.event}</code>
-                            <Badge variant="primary">{webhook.status}</Badge>
+                            <Badge variant="default">{webhook.status}</Badge>
                           </div>
                           <p className="text-sm text-gray-600">{webhook.url}</p>
                         </div>

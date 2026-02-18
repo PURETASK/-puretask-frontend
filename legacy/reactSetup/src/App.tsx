@@ -2,6 +2,10 @@ import React from 'react'
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
 import TestAIAssistant from '../../../src/components/admin/legacy/components/TestAIAssistant'
 
+function TestAIAssistantPage() {
+  return <TestAIAssistant />
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -49,7 +53,7 @@ function App() {
             </div>
           } />
           
-          <Route path="/test/ai" element={<TestAIAssistant />} />
+          <Route path="/test/ai" element={<TestAIAssistantPage />} />
         </Routes>
       </div>
     </BrowserRouter>

@@ -90,7 +90,7 @@ export default function SavedMessagesPage() {
                   </div>
 
                   <div className="flex items-center gap-4">
-                    <Badge variant="primary">Performance: {message.performance}</Badge>
+                    <Badge variant="info">Performance: {message.performance}</Badge>
                   </div>
                 </CardContent>
               </Card>

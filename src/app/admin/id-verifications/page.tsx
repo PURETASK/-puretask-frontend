@@ -10,7 +10,6 @@ import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { Input } from '@/components/ui/Input';
-import { Input } from '@/components/ui/Input';
 import Image from 'next/image';
 
 interface IDVerification {

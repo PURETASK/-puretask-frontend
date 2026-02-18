@@ -489,5 +489,6 @@ function CreditSettingsTab() {
         </Button>
       </CardContent>
     </Card>
+    </div>
   );
 }

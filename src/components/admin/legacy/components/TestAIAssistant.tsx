@@ -40,7 +40,7 @@ interface QuickResponse {
   is_favorite: boolean;
 }
 
-export const TestAIAssistant: React.FC = () => {
+export function TestAIAssistant() {
   // State
   const [aiSettings, setAISettings] = useState<AISettings | null>(null);
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -776,7 +776,7 @@ export const TestAIAssistant: React.FC = () => {
       </div>
     </div>
   );
-};
+}
 
 export default TestAIAssistant;
 

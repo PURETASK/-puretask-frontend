@@ -90,7 +90,7 @@ export function CleanerCard({
               <div className="flex-1 min-w-0">
                 <h3 className="text-xl font-semibold text-gray-900 truncate">{name}</h3>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
-                  <Rating value={rating} readonly size="sm" />
+                  <Rating value={rating} readOnly size="sm" />
                   <span className="text-sm text-gray-600">
                     {rating.toFixed(1)} ({finalReviewCount} reviews)
                   </span>

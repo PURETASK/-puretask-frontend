@@ -142,7 +142,7 @@ export default function MessageHistoryPage() {
                         )}
                         {message.reaction === 'liked' && (
                           <div className="mt-2">
-                            <Badge variant="primary">👍 Client liked response</Badge>
+                            <Badge variant="info">👍 Client liked response</Badge>
                           </div>
                         )}
                       </div>

@@ -6,7 +6,7 @@
 
 import React, { useState } from 'react';
 
-interface QuickResponse {
+export interface QuickResponse {
   id: string;
   category: string;
   triggerKeywords: string[];

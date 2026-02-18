@@ -1,7 +1,13 @@
 'use client';
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
-export function DateTimePicker() {
+
+type DateTimePickerProps = {
+  cleanerId?: string;
+  onSelect?: (date: string, time: string) => void;
+};
+
+export function DateTimePicker({ onSelect }: DateTimePickerProps) {
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
   const dates = [
@@ -27,7 +33,11 @@ export function DateTimePicker() {
           {dates.map((date) => (
             <button
               key={date.value}
-              onClick={() => setSelectedDate(date.value)}
+              onClick={() => {
+                setSelectedDate(date.value);
+                setSelectedTime('');
+                onSelect?.(date.value, '');
+              }}
               className={`p-4 border-2 rounded-lg text-center transition-all ${
                 selectedDate === date.value
                   ? 'border-blue-600 bg-blue-50 text-blue-600'
@@ -49,7 +59,10 @@ export function DateTimePicker() {
             {times.map((time) => (
               <button
                 key={time}
-                onClick={() => setSelectedTime(time)}
+                onClick={() => {
+                setSelectedTime(time);
+                onSelect?.(selectedDate, time);
+              }}
                 className={`p-3 border-2 rounded-lg text-center transition-all ${
                   selectedTime === time
                     ? 'border-blue-600 bg-blue-50 text-blue-600'

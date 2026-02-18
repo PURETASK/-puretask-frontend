@@ -17,8 +17,9 @@ import { useDashboardInsights, useRecommendations } from '@/hooks/useClientEnhan
 import { LineChart } from '@/components/ui/Charts';
 import { format } from 'date-fns';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Calendar, TrendingUp, Clock, Sparkles } from 'lucide-react';
+import { BookingDetailsDrawer } from '@/components/bookings/BookingDetailsDrawer';
+import { Calendar, TrendingUp, Clock, Sparkles, CreditCard, FileText } from 'lucide-react';
+import Link from 'next/link';
 
 export default function ClientDashboardPage() {
   return (
@@ -29,6 +30,8 @@ export default function ClientDashboardPage() {
 }
 
 function ClientDashboardContent() {
+  const [drawerBooking, setDrawerBooking] = React.useState<any>(null);
+  const [drawerOpen, setDrawerOpen] = React.useState(false);
   const { data: bookingsData, isLoading } = useBookings();
   const { data: insightsData, isLoading: insightsLoading } = useDashboardInsights();
   const { data: recommendationsData, isLoading: recommendationsLoading } = useRecommendations();
@@ -96,14 +99,28 @@ function ClientDashboardContent() {
       <Header />
       <main className="flex-1 py-8 px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">My Dashboard</h1>
               <p className="text-gray-600 mt-1">Welcome back! Here's your overview.</p>
             </div>
-            <Button variant="primary" onClick={() => (window.location.href = '/search')}>
-              + Book a Cleaner
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" asChild>
+                <Link href="/client/credits" className="flex items-center gap-2">
+                  <CreditCard className="h-4 w-4" />
+                  Credits
+                </Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link href="/client/billing" className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Billing
+                </Link>
+              </Button>
+              <Button variant="primary" onClick={() => (window.location.href = '/search')}>
+                + Book a Cleaner
+              </Button>
+            </div>
           </div>
 
           {/* Stats Overview */}
@@ -251,6 +268,10 @@ function ClientDashboardContent() {
                         address={booking.address}
                         status={booking.status}
                         price={booking.total_price}
+                        onViewDetails={() => {
+                          setDrawerBooking(booking);
+                          setDrawerOpen(true);
+                        }}
                       />
                     ))}
                   </div>
@@ -273,6 +294,12 @@ function ClientDashboardContent() {
         </div>
       </main>
       <Footer />
+
+      <BookingDetailsDrawer
+        booking={drawerBooking}
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+      />
     </div>
   );
 }

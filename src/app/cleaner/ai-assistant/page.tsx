@@ -88,7 +88,7 @@ export default function AIAssistantDashboardPage() {
                     AI Assistant: {aiEnabled ? 'ON' : 'OFF'}
                   </span>
                 </div>
-                <Toggle checked={aiEnabled} onChange={(e) => setAiEnabled(e.target.checked)} />
+                <Toggle checked={aiEnabled} onChange={(checked) => setAiEnabled(checked)} />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
                 <div>✅ Auto-reply: Enabled</div>
@@ -135,7 +135,7 @@ export default function AIAssistantDashboardPage() {
                   <div key={response.id} className="p-4 border border-gray-200 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-gray-900">{response.time} • {response.client}</span>
-                      <Badge variant={response.status === 'escalated' ? 'warning' : 'primary'}>
+                      <Badge variant={response.status === 'escalated' ? 'warning' : 'info'}>
                         {response.status === 'escalated' ? '⚠️ Escalated' : '✅ Sent'}
                       </Badge>
                     </div>

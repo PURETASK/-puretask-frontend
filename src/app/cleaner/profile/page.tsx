@@ -15,6 +15,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { cleanerEnhancedService } from '@/services/cleanerEnhanced.service';
 import { Sparkles, TrendingUp, Image as ImageIcon, Plus, X } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
+import { FiveStarReviewWatcher } from '@/components/features/reviews/FiveStarReviewWatcher';
 
 export default function CleanerProfilePage() {
   return (
@@ -48,7 +49,9 @@ function CleanerProfileContent() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <>
+      <FiveStarReviewWatcher />
+      <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
       <main className="flex-1 py-8 px-6">
         <div className="max-w-6xl mx-auto">
@@ -138,6 +141,7 @@ function CleanerProfileContent() {
       </main>
       <Footer />
     </div>
+    </>
   );
 }
 

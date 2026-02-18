@@ -7,12 +7,16 @@ import { API_CONFIG } from '@/lib/config';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { LottieSuccess } from '@/components/ui/LottieSuccess';
 import Link from 'next/link';
+
+const SUCCESS_ANIMATION_DURATION_MS = 2500;
 
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -27,16 +31,16 @@ export default function LoginPage() {
       
       // Redirect based on user role
       const role = userData?.role;
+      let path = '/dashboard';
+      if (role === 'admin') path = '/admin';
+      else if (role === 'cleaner') path = '/cleaner/dashboard';
+      else if (role === 'client') path = '/client/dashboard';
       
-      if (role === 'admin') {
-        router.push('/admin');
-      } else if (role === 'cleaner') {
-        router.push('/cleaner/dashboard');
-      } else if (role === 'client') {
-        router.push('/client/dashboard');
-      } else {
-        router.push('/dashboard'); // fallback
-      }
+      setShowSuccessAnimation(true);
+      
+      setTimeout(() => {
+        router.push(path);
+      }, SUCCESS_ANIMATION_DURATION_MS);
     } catch (error) {
       // Error is already shown via toast
       console.error('Login error:', error);
@@ -57,7 +61,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 relative">
+      {showSuccessAnimation && (
+        <div 
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/95 backdrop-blur-sm animate-fade-in"
+          aria-live="polite"
+          aria-label="Sign in successful"
+        >
+          <LottieSuccess width={300} height={300} autoplay loop />
+          <p className="mt-4 text-lg font-medium text-gray-700">Welcome back!</p>
+        </div>
+      )}
       <Card className="w-full max-w-md">
         <CardHeader>
           <div className="flex justify-center mb-4">

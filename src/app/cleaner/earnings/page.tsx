@@ -18,7 +18,6 @@ import { BarChart, LineChart } from '@/components/ui/Charts';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
 import { Download, FileText, TrendingUp, DollarSign } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
 
 export default function CleanerEarningsPage() {
   return (

@@ -159,7 +159,7 @@ export default function CertificationsPage() {
                       <div className="flex-1">
                         <h3 className="text-xl font-bold text-gray-900 mb-1">{cert.name}</h3>
                         <div className="flex items-center gap-2 mb-2">
-                          <Badge variant="primary">{cert.level}</Badge>
+                          <Badge variant="info">{cert.level}</Badge>
                           <span className="text-sm text-gray-600">Earned {cert.earnedDate}</span>
                         </div>
                       </div>

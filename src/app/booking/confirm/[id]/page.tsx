@@ -7,6 +7,7 @@ import { Footer } from '@/components/layout/Footer';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Loading } from '@/components/ui/Loading';
+import { LottieSuccess, LOTTIE_URLS } from '@/components/ui/LottieSuccess';
 import { useBooking } from '@/hooks/useBookings';
 import { useAddToCalendar } from '@/hooks/useClientEnhanced';
 import { format } from 'date-fns';
@@ -50,8 +51,14 @@ export default function BookingConfirmationPage() {
         <div className="max-w-3xl mx-auto">
           {/* Enhanced Success Message with Animation */}
           <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
-              <CheckCircle className="w-10 h-10 text-white" />
+            <div className="flex justify-center mb-4">
+              <LottieSuccess
+                src={LOTTIE_URLS.booking}
+                width={300}
+                height={300}
+                autoplay
+                loop
+              />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Booking Confirmed! 🎉</h1>
             <p className="text-gray-600">Your cleaning service has been scheduled successfully.</p>

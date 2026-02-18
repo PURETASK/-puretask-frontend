@@ -18,6 +18,15 @@ import { formatCurrency } from '@/lib/utils';
 import { MobileTable } from '@/components/mobile/MobileTable';
 import { useMobile } from '@/hooks/useMobile';
 
+type JobInsightsResponse = {
+  insights?: {
+    avgMatchScore?: number;
+    topCleaner?: string;
+    commonIssues?: unknown[];
+    riskLevel?: string;
+  };
+};
+
 export default function AdminBookingsPage() {
   return (
     <ProtectedRoute requiredRole="admin">
@@ -38,7 +47,7 @@ function AdminBookingsContent() {
   // Get job insights
   const { data: insightsData } = useQuery({
     queryKey: ['admin', 'jobs', 'insights'],
-    queryFn: () => adminEnhancedService.getJobInsights(),
+    queryFn: () => adminEnhancedService.getJobInsights() as Promise<JobInsightsResponse>,
   });
 
   // Bulk action mutation
@@ -60,8 +69,8 @@ function AdminBookingsContent() {
 
   const { mutate: updateStatus, isPending: updatingStatus } = useUpdateBookingStatus();
 
-  const bookings = bookingsData?.bookings || [];
-  const total = bookingsData?.total || 0;
+  const bookings = bookingsData?.data?.bookings || [];
+  const total = bookingsData?.data?.total || 0;
 
   const handleStatusChange = (bookingId: string, status: string) => {
     if (confirm(`Are you sure you want to change this booking's status to ${status}?`)) {
@@ -70,12 +79,12 @@ function AdminBookingsContent() {
   };
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, 'success' | 'warning' | 'destructive' | 'default' | 'primary'> = {
-      scheduled: 'primary',
+    const variants: Record<string, 'success' | 'warning' | 'error' | 'default' | 'info'> = {
+      scheduled: 'default',
       confirmed: 'success',
       in_progress: 'warning',
       completed: 'success',
-      cancelled: 'destructive',
+      cancelled: 'error',
       pending: 'warning',
     };
     return <Badge variant={variants[status] || 'default'}>{status}</Badge>;

@@ -153,7 +153,7 @@ function FavoritesContent() {
                             <div className="flex items-center gap-2 mt-1">
                               <Star className="h-3 w-3 text-yellow-500 fill-current" />
                               <span className="text-sm text-gray-600">{rec.rating.toFixed(1)}</span>
-                              <Badge variant="primary" className="text-xs">
+                              <Badge variant="info" className="text-xs">
                                 {rec.reason}
                               </Badge>
                             </div>

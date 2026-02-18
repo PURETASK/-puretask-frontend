@@ -126,7 +126,7 @@ export default function QuickResponsesPage() {
                         <Badge variant="secondary" className="font-mono">
                           {qr.shortcut}
                         </Badge>
-                        <Badge variant="primary" className="capitalize">
+                        <Badge variant="info" className="capitalize">
                           {qr.category}
                         </Badge>
                       </div>

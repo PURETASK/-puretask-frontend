@@ -26,10 +26,12 @@ export function useCleanerAvailability(cleanerId: string, date: string) {
   });
 }
 
+type CleanerReviewsResponse = { reviews?: unknown[]; pagination?: { total_pages?: number } };
+
 export function useCleanerReviews(cleanerId: string, page: number = 1) {
-  return useQuery({
+  return useQuery<CleanerReviewsResponse>({
     queryKey: ['cleaner', cleanerId, 'reviews', page],
-    queryFn: () => cleanerService.getCleanerReviews(cleanerId, { page, per_page: 10 }),
+    queryFn: () => cleanerService.getCleanerReviews(cleanerId, { page, per_page: 10 }) as Promise<CleanerReviewsResponse>,
     enabled: !!cleanerId,
   });
 }

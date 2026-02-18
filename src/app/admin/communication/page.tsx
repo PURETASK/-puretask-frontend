@@ -11,13 +11,20 @@ import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { Sparkles, TrendingUp, Mail, MessageSquare, Bell } from 'lucide-react';
 
+type CommunicationAnalytics = {
+  open_rate?: number;
+  click_rate?: number;
+  total_sent?: number;
+  response_rate?: number;
+};
+
 export default function AdminCommunicationPage() {
   const [activeTab, setActiveTab] = useState('broadcast');
 
   // Get communication analytics
   const { data: analyticsData } = useQuery({
     queryKey: ['admin', 'communication', 'analytics'],
-    queryFn: () => adminEnhancedService.getCommunicationAnalytics(),
+    queryFn: () => adminEnhancedService.getCommunicationAnalytics() as Promise<CommunicationAnalytics>,
   });
 
   // Get templates

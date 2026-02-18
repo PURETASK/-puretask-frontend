@@ -38,6 +38,7 @@ export interface Job {
   scheduled_end_at: string;
   address: string;
   credit_amount: number;
+  service_type?: string;
   client_notes?: string;
   created_at: string;
 }

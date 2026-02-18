@@ -12,6 +12,7 @@ import { SkeletonList } from '@/components/ui/Skeleton';
 import { ErrorDisplay } from '@/components/error/ErrorDisplay';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useAdminStats, useDailyStats, useRevenueAnalytics } from '@/hooks/useAdmin';
+import type { AdminStats } from '@/services/admin.service';
 import { useQuery } from '@tanstack/react-query';
 import { adminEnhancedService } from '@/services/adminEnhanced.service';
 import { Button } from '@/components/ui/Button';
@@ -27,6 +28,29 @@ import {
   Bell,
   Server,
 } from 'lucide-react';
+
+type RealtimeMetricsResponse = {
+  metrics?: {
+    new_users_today?: number;
+    active_jobs?: number;
+    revenue_today?: number;
+    open_disputes?: number;
+  };
+};
+
+type AlertsResponse = {
+  alerts?: { critical?: Array<{ id?: string; message?: string; created_at?: string; type?: string }>; warning?: unknown[] };
+};
+
+type SystemHealthResponse = {
+  status?: string;
+  health?: {
+    database?: { status: string };
+    jobs?: { status: string; stuck?: number };
+    payouts?: { status: string; failed?: number };
+    disputes?: { status: string; pending?: number };
+  };
+};
 
 export default function AdminDashboardPage() {
   return (
@@ -46,21 +70,21 @@ function AdminDashboardContent() {
   // Real-time metrics
   const { data: realtimeData } = useQuery({
     queryKey: ['admin', 'dashboard', 'realtime'],
-    queryFn: () => adminEnhancedService.getRealtimeMetrics(),
+    queryFn: () => adminEnhancedService.getRealtimeMetrics() as Promise<RealtimeMetricsResponse>,
     refetchInterval: 30000, // Poll every 30 seconds
   });
 
   // Alerts
   const { data: alertsData } = useQuery({
     queryKey: ['admin', 'dashboard', 'alerts'],
-    queryFn: () => adminEnhancedService.getAlerts(),
+    queryFn: () => adminEnhancedService.getAlerts() as Promise<AlertsResponse>,
     refetchInterval: 60000, // Poll every minute
   });
 
   // System health
   const { data: healthData } = useQuery({
     queryKey: ['admin', 'system', 'health'],
-    queryFn: () => adminEnhancedService.getSystemHealth(),
+    queryFn: () => adminEnhancedService.getSystemHealth() as Promise<SystemHealthResponse>,
     refetchInterval: 60000,
   });
 
@@ -77,7 +101,7 @@ function AdminDashboardContent() {
     );
   }
 
-  const stats = statsData?.stats || {};
+  const stats: AdminStats = statsData?.data?.stats ?? ({} as AdminStats);
 
   // Transform stats for StatsOverview component with real-time data
   const overviewStats = [
@@ -130,7 +154,7 @@ function AdminDashboardContent() {
 
   // Daily bookings chart data
   const dailyBookingsChart =
-    dailyStatsData?.daily_stats?.slice(-14).map((day: any) => ({
+    dailyStatsData?.data?.daily_stats?.slice(-14).map((day: any) => ({
       label: new Date(day.date).toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
@@ -140,7 +164,7 @@ function AdminDashboardContent() {
 
   // Revenue chart data
   const revenueChart =
-    revenueData?.revenue?.map((item: any) => ({
+    revenueData?.data?.revenue?.map((item: any) => ({
       label: item.label,
       value: item.amount || 0,
     })) || [];
@@ -228,9 +252,9 @@ function AdminDashboardContent() {
           </div>
 
           {/* Real-Time Alerts */}
-          {alertsData && (alertsData.alerts.critical.length > 0 || alertsData.alerts.warning.length > 0) && (
+          {alertsData && ((alertsData.alerts?.critical?.length ?? 0) > 0 || (alertsData.alerts?.warning?.length ?? 0) > 0) && (
             <div className="mb-6 space-y-3">
-              {alertsData.alerts.critical.slice(0, 3).map((alert: any, idx: number) => (
+              {alertsData.alerts?.critical?.slice(0, 3).map((alert: any, idx: number) => (
                 <Card key={idx} className="border-red-200 bg-red-50">
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
@@ -271,26 +295,26 @@ function AdminDashboardContent() {
                 <div className="grid md:grid-cols-4 gap-4">
                   <div className="text-center p-3 bg-gray-50 rounded-lg">
                     <p className="text-xs text-gray-600 mb-1">Database</p>
-                    <Badge variant={healthData.health.database.status === 'healthy' ? 'success' : 'danger'}>
-                      {healthData.health.database.status}
+                    <Badge variant={healthData.health?.database?.status === 'healthy' ? 'success' : 'error'}>
+                      {healthData.health?.database?.status ?? '—'}
                     </Badge>
                   </div>
                   <div className="text-center p-3 bg-gray-50 rounded-lg">
                     <p className="text-xs text-gray-600 mb-1">Jobs</p>
-                    <Badge variant={healthData.health.jobs.status === 'healthy' ? 'success' : 'warning'}>
-                      {healthData.health.jobs.stuck} stuck
+                    <Badge variant={healthData.health?.jobs?.status === 'healthy' ? 'success' : 'warning'}>
+                      {healthData.health?.jobs?.stuck ?? 0} stuck
                     </Badge>
                   </div>
                   <div className="text-center p-3 bg-gray-50 rounded-lg">
                     <p className="text-xs text-gray-600 mb-1">Payouts</p>
-                    <Badge variant={healthData.health.payouts.status === 'healthy' ? 'success' : 'warning'}>
-                      {healthData.health.payouts.failed} failed
+                    <Badge variant={healthData.health?.payouts?.status === 'healthy' ? 'success' : 'warning'}>
+                      {healthData.health?.payouts?.failed ?? 0} failed
                     </Badge>
                   </div>
                   <div className="text-center p-3 bg-gray-50 rounded-lg">
                     <p className="text-xs text-gray-600 mb-1">Disputes</p>
-                    <Badge variant={healthData.health.disputes.status === 'healthy' ? 'success' : 'warning'}>
-                      {healthData.health.disputes.pending} pending
+                    <Badge variant={healthData.health?.disputes?.status === 'healthy' ? 'success' : 'warning'}>
+                      {healthData.health?.disputes?.pending ?? 0} pending
                     </Badge>
                   </div>
                 </div>

@@ -12,6 +12,13 @@ import { cn } from '@/lib/utils';
 import { Sparkles, Shield, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/contexts/ToastContext';
 
+type RiskScoringResponse = {
+  high_risk_users?: number;
+  medium_risk_users?: number;
+  auto_flagged?: number;
+  pending_reviews?: number;
+};
+
 export default function AdminRiskPage() {
   const [activeTab, setActiveTab] = useState('alerts');
   const queryClient = useQueryClient();
@@ -20,7 +27,7 @@ export default function AdminRiskPage() {
   // Get risk scoring
   const { data: riskScoringData } = useQuery({
     queryKey: ['admin', 'risk', 'scoring'],
-    queryFn: () => adminEnhancedService.getRiskScoring(),
+    queryFn: () => adminEnhancedService.getRiskScoring() as Promise<RiskScoringResponse>,
   });
 
   // Risk mitigation mutation
@@ -153,7 +160,7 @@ export default function AdminRiskPage() {
                         <p className="text-sm text-gray-700">User: {alert.user} ({alert.userType})</p>
                         <p className="text-sm text-gray-700">Issue: {alert.details}</p>
                         <div className="mt-2">
-                          <Badge variant="danger">Risk Score: {alert.riskScore}/100 (High)</Badge>
+                          <Badge variant="error">Risk Score: {alert.riskScore}/100 (High)</Badge>
                         </div>
                       </div>
                       <div className="flex gap-2">

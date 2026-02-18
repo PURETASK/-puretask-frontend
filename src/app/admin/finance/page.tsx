@@ -26,6 +26,10 @@ import { format } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
 import { MobileTable } from '@/components/mobile/MobileTable';
 
+type ForecastResponse = {
+  forecast?: { months?: Array<Record<string, unknown>> };
+};
+
 export default function AdminFinancePage() {
   return (
     <ProtectedRoute requiredRole="admin">
@@ -55,11 +59,11 @@ function AdminFinanceContent() {
   // Get financial forecast
   const { data: forecastData } = useQuery({
     queryKey: ['admin', 'finance', 'forecast'],
-    queryFn: () => adminEnhancedService.getForecast(3),
+    queryFn: () => adminEnhancedService.getForecast(3) as Promise<ForecastResponse>,
   });
 
-  const transactions = transactionsData?.transactions || [];
-  const total = transactionsData?.total || 0;
+  const transactions = transactionsData?.data?.transactions || [];
+  const total = transactionsData?.data?.total || 0;
 
   // Calculate stats
   const totalRevenue = transactions
@@ -84,10 +88,10 @@ function AdminFinanceContent() {
   };
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, 'success' | 'warning' | 'destructive' | 'default' | 'primary'> = {
+    const variants: Record<string, 'success' | 'warning' | 'error' | 'default'> = {
       completed: 'success',
       pending: 'warning',
-      failed: 'destructive',
+      failed: 'error',
       refunded: 'default',
     };
     return <Badge variant={variants[status] || 'default'}>{status}</Badge>;
@@ -440,7 +444,7 @@ function AdminFinanceContent() {
               <div className="flex gap-3 pt-4">
                 {selectedTransaction.status === 'completed' && (
                   <Button
-                    variant="destructive"
+                    variant="danger"
                     onClick={() => {
                       handleRefund(selectedTransaction.id);
                       setSelectedTransaction(null);

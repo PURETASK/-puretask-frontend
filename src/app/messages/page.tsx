@@ -98,7 +98,7 @@ function MessagesPageContent() {
                           </p>
                         </div>
                         {conv.unread_count > 0 && (
-                          <Badge variant="primary">{conv.unread_count}</Badge>
+                          <Badge variant="info">{conv.unread_count}</Badge>
                         )}
                       </button>
                     ))}

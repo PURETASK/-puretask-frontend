@@ -11,6 +11,11 @@ import { Avatar } from '@/components/ui/Avatar';
 import { Rating } from '@/components/ui/Rating';
 import { Loading } from '@/components/ui/Loading';
 import { useCleaner, useCleanerReviews } from '@/hooks/useCleaners';
+import { useQuery } from '@tanstack/react-query';
+import { reliabilityService } from '@/services/reliability.service';
+import { ReliabilityScoreCard } from '@/components/reliability/ReliabilityScoreCard';
+import { ReliabilityBreakdownBars } from '@/components/reliability/ReliabilityBreakdownBars';
+import { ReliabilityWhyThisMatch } from '@/components/reliability/ReliabilityWhyThisMatch';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
 import { AvailabilityCalendar } from '@/components/features/cleaner/AvailabilityCalendar';
@@ -24,6 +29,11 @@ export default function CleanerProfilePage() {
   
   const { data: cleanerData, isLoading: loadingCleaner } = useCleaner(cleanerId);
   const { data: reviewsData, isLoading: loadingReviews } = useCleanerReviews(cleanerId, reviewPage);
+  const { data: reliabilityData } = useQuery({
+    queryKey: ['reliability', cleanerId],
+    queryFn: () => reliabilityService.getCleanerReliability(cleanerId),
+    enabled: !!cleanerId,
+  });
 
   if (loadingCleaner) {
     return <Loading size="lg" text="Loading cleaner profile..." fullScreen />;
@@ -79,7 +89,7 @@ export default function CleanerProfilePage() {
                         <div>
                           <h1 className="text-3xl font-bold text-gray-900">{cleaner.name}</h1>
                           <div className="flex items-center gap-2 mt-2">
-                            <Rating value={cleaner.rating} readonly />
+                            <Rating value={cleaner.rating} readOnly />
                             <span className="font-semibold text-gray-900">
                               {cleaner.rating.toFixed(1)}
                             </span>
@@ -102,6 +112,22 @@ export default function CleanerProfilePage() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Reliability (Trust-Fintech) */}
+              {reliabilityData?.reliability && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Reliability score</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <ReliabilityScoreCard score={reliabilityData.reliability} showBreakdown />
+                    <ReliabilityBreakdownBars breakdown={reliabilityData.reliability.breakdown} />
+                    {reliabilityData.reliability.explainers?.length > 0 && (
+                      <ReliabilityWhyThisMatch explainers={reliabilityData.reliability.explainers} />
+                    )}
+                  </CardContent>
+                </Card>
+              )}
 
               {/* About */}
               {cleaner.bio && (
@@ -207,7 +233,7 @@ export default function CleanerProfilePage() {
                                 </div>
                               </div>
                             </div>
-                            <Rating value={review.rating} readonly size="sm" />
+                            <Rating value={review.rating} readOnly size="sm" />
                           </div>
                           {review.comment && (
                             <p className="text-gray-700 mt-2">{review.comment}</p>
@@ -215,7 +241,7 @@ export default function CleanerProfilePage() {
                         </div>
                       ))}
                       {/* Load More Reviews */}
-                      {reviewsData?.pagination && reviewsData.pagination.total_pages > reviewPage && (
+                      {reviewsData?.pagination && (reviewsData.pagination.total_pages ?? 0) > reviewPage && (
                         <div className="text-center pt-4">
                           <Button
                             variant="outline"

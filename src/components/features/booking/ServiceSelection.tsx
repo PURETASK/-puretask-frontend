@@ -1,10 +1,40 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
-export function ServiceSelection() {
-  const [selectedService, setSelectedService] = useState('standard');
-  const [hours, setHours] = useState(3);
-  const [addOns, setAddOns] = useState<string[]>([]);
+
+type ServiceData = {
+  service_type?: 'standard' | 'deep' | 'move_in_out';
+  duration_hours?: number;
+  add_ons?: string[];
+};
+
+type ServiceSelectionProps = {
+  value?: ServiceData;
+  onChange?: (data: Partial<ServiceData>) => void;
+};
+
+export function ServiceSelection({ value, onChange }: ServiceSelectionProps) {
+  const [selectedService, setSelectedService] = useState(value?.service_type === 'move_in_out' ? 'move' : (value?.service_type || 'standard'));
+  const [hours, setHours] = useState(value?.duration_hours ?? 3);
+  const [addOns, setAddOns] = useState<string[]>(value?.add_ons ?? []);
+
+  useEffect(() => {
+    if (value) {
+      setSelectedService(value.service_type === 'move_in_out' ? 'move' : (value.service_type || 'standard'));
+      setHours(value.duration_hours ?? 3);
+      setAddOns(value.add_ons ?? []);
+    }
+  }, [value?.service_type, value?.duration_hours, value?.add_ons]);
+
+  const notifyChange = (updates: Partial<ServiceData>) => {
+    const serviceType = (updates.service_type ?? (selectedService === 'move' ? 'move_in_out' : selectedService)) as 'standard' | 'deep' | 'move_in_out';
+    const newData = {
+      service_type: serviceType,
+      duration_hours: updates.duration_hours ?? hours,
+      add_ons: updates.add_ons ?? addOns,
+    };
+    onChange?.(newData);
+  };
   const services = [
     { id: 'standard', name: 'Standard Cleaning', price: 45, description: 'Regular cleaning and tidying' },
     { id: 'deep', name: 'Deep Cleaning', price: 65, description: 'Thorough top-to-bottom clean' },
@@ -34,7 +64,11 @@ export function ServiceSelection() {
           {services.map((service) => (
             <button
               key={service.id}
-              onClick={() => setSelectedService(service.id)}
+              onClick={() => {
+                setSelectedService(service.id);
+                const st = service.id === 'move' ? 'move_in_out' : service.id;
+                notifyChange({ service_type: st as 'standard' | 'deep' | 'move_in_out' });
+              }}
               className={`w-full p-4 border-2 rounded-lg text-left transition-all ${
                 selectedService === service.id
                   ? 'border-blue-600 bg-blue-50'
@@ -64,7 +98,11 @@ export function ServiceSelection() {
           min="2"
           max="8"
           value={hours}
-          onChange={(e) => setHours(parseInt(e.target.value))}
+          onChange={(e) => {
+            const h = parseInt(e.target.value);
+            setHours(h);
+            notifyChange({ duration_hours: h });
+          }}
           className="w-full"
         />
         <div className="flex justify-between text-sm text-gray-600 mt-1">
@@ -87,11 +125,9 @@ export function ServiceSelection() {
                 type="checkbox"
                 checked={addOns.includes(addOn.id)}
                 onChange={(e) => {
-                  if (e.target.checked) {
-                    setAddOns([...addOns, addOn.id]);
-                  } else {
-                    setAddOns(addOns.filter(id => id !== addOn.id));
-                  }
+                  const next = e.target.checked ? [...addOns, addOn.id] : addOns.filter(id => id !== addOn.id);
+                  setAddOns(next);
+                  notifyChange({ add_ons: next });
                 }}
                 className="rounded"
               />

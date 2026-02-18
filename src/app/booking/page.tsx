@@ -6,6 +6,9 @@ import { useSearchParams } from 'next/navigation';
 import { useCleaner } from '@/hooks/useCleaners';
 import { useCreateBooking, usePriceEstimate } from '@/hooks/useBookings';
 import { useDraftBooking, useSaveDraftBooking } from '@/hooks/useClientEnhanced';
+import { useQuery } from '@tanstack/react-query';
+import { reliabilityService } from '@/services/reliability.service';
+import { ReliabilityScoreCard } from '@/components/reliability/ReliabilityScoreCard';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
@@ -31,7 +34,13 @@ export default function BookingPage() {
   const { mutate: estimatePrice, data: priceEstimate, isPending: estimating } = usePriceEstimate();
   const { data: draftData } = useDraftBooking();
   const { mutate: saveDraft, isPending: isSavingDraft } = useSaveDraftBooking();
+  const { data: reliabilityData } = useQuery({
+    queryKey: ['reliability', cleanerId],
+    queryFn: () => reliabilityService.getCleanerReliability(cleanerId!),
+    enabled: !!cleanerId,
+  });
   const { showToast } = useToast();
+  const cleaner = cleanerData?.cleaner;
 
   const [step, setStep] = useState(1);
   const [bookingData, setBookingData] = useState({
@@ -162,7 +171,7 @@ export default function BookingPage() {
     );
   }
 
-  if (!cleanerId || !cleanerData) {
+  if (!cleanerId || !cleanerData?.cleaner) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Card className="max-w-md">
@@ -176,8 +185,6 @@ export default function BookingPage() {
       </div>
     );
   }
-
-  const cleaner = cleanerData.cleaner;
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -460,15 +467,22 @@ export default function BookingPage() {
                   {/* Cleaner Info */}
                   <div className="flex items-center gap-3 pb-4 border-b">
                     <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-xl">
-                      {cleaner.name[0]}
+                      {cleaner?.name?.[0] ?? '?'}
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-900">{cleaner.name}</p>
+                      <p className="font-semibold text-gray-900">{cleaner?.name ?? 'Cleaner'}</p>
                       <p className="text-sm text-gray-600">
-                        ⭐ {cleaner.rating} ({cleaner.reviews_count} reviews)
+                        ⭐ {cleaner?.rating ?? 0} ({cleaner?.reviews_count ?? 0} reviews)
                       </p>
                     </div>
                   </div>
+
+                  {/* Reliability score */}
+                  {reliabilityData?.reliability && (
+                    <div className="pb-4 border-b">
+                      <ReliabilityScoreCard score={reliabilityData.reliability} compact />
+                    </div>
+                  )}
 
                   {/* Enhanced Real-Time Price Breakdown */}
                   <div className="space-y-2">
@@ -530,7 +544,7 @@ export default function BookingPage() {
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600">Base Rate</span>
                           <span className="font-medium">
-                            {formatCurrency(cleaner.price_per_hour)}/hr
+                            {formatCurrency(cleaner?.price_per_hour ?? 0)}/hr
                           </span>
                         </div>
                         <div className="flex justify-between text-sm">

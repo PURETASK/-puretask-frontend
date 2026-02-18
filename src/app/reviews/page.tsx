@@ -180,7 +180,7 @@ function ReviewCard({
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
-              <Rating value={review.rating} readonly size="sm" />
+              <Rating value={review.rating} readOnly size="sm" />
               <span className="text-sm text-gray-600">
                 {format(new Date(review.created_at), 'MMM d, yyyy')}
               </span>

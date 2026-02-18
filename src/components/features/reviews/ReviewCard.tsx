@@ -23,7 +23,7 @@ export function ReviewCard({ author, rating, date, text, helpful }: ReviewCardPr
                 <p className="font-semibold text-gray-900">{author}</p>
                 <p className="text-sm text-gray-600">{date}</p>
               </div>
-              <Rating value={rating} readonly size="sm" />
+              <Rating value={rating} readOnly size="sm" />
             </div>
             <p className="text-gray-700 mb-4">{text}</p>
             <div className="flex items-center gap-4 text-sm">

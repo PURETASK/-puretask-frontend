@@ -161,7 +161,7 @@ export default function ProgressPage() {
                 <div>
                   <div className="flex items-center gap-3 mb-2">
                     <h2 className="text-2xl font-bold text-gray-900">Level {profile.level}</h2>
-                    <Badge variant="primary">XP: {profile.xp}/{profile.xpToNextLevel}</Badge>
+                    <Badge variant="info">XP: {profile.xp}/{profile.xpToNextLevel}</Badge>
                   </div>
                   <Progress value={(profile.xp / profile.xpToNextLevel) * 100} className="w-64 mb-2" />
                   <p className="text-sm text-gray-600">{profile.xpToNextLevel - profile.xp} XP to Level {profile.level + 1}</p>
@@ -213,7 +213,7 @@ export default function ProgressPage() {
                             <p className="text-sm text-gray-600 mb-2">{achievement.description}</p>
                             {achievement.earned ? (
                               <div className="flex items-center gap-2">
-                                <Badge variant="primary">+{achievement.xp} XP</Badge>
+                                <Badge variant="info">+{achievement.xp} XP</Badge>
                                 <span className="text-xs text-gray-500">{achievement.earnedDate}</span>
                               </div>
                             ) : (

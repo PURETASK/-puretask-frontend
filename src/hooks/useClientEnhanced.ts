@@ -17,10 +17,12 @@ export const useRecommendations = () => {
   });
 };
 
+type DraftBookingResponse = { draft?: Record<string, unknown> };
+
 export const useDraftBooking = () => {
-  return useQuery({
+  return useQuery<DraftBookingResponse>({
     queryKey: ['client', 'draft-booking'],
-    queryFn: () => clientEnhancedService.getDraft(),
+    queryFn: () => clientEnhancedService.getDraft() as Promise<DraftBookingResponse>,
   });
 };
 

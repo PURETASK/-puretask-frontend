@@ -17,6 +17,7 @@ import { cleanerEnhancedService } from '@/services/cleanerEnhanced.service';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, isSameDay } from 'date-fns';
 import { AlertTriangle, TrendingUp, Calendar as CalendarIcon } from 'lucide-react';
 import { useToast } from '@/contexts/ToastContext';
+import { formatCurrency } from '@/lib/utils';
 
 type HolidayStatus = 'unavailable' | 'available' | 'custom';
 
@@ -40,26 +41,30 @@ function CalendarPageContent() {
   const { showToast } = useToast();
 
   // Detect conflicts for current month
-  const { data: conflictsData } = useQuery({
+  type ConflictsResponse = { conflicts?: unknown[] };
+  const { data: conflictsData } = useQuery<ConflictsResponse>({
     queryKey: ['cleaner', 'calendar', 'conflicts', viewYear, viewMonth],
-    queryFn: () => {
+    queryFn: async () => {
       const monthStart = startOfMonth(viewDate);
       const monthEnd = endOfMonth(viewDate);
       return cleanerEnhancedService.detectConflicts(
         format(monthStart, 'yyyy-MM-dd'),
         format(monthEnd, 'yyyy-MM-dd')
-      );
+      ) as Promise<ConflictsResponse>;
     },
     enabled: true,
   });
 
   // Get schedule optimization suggestions
-  const { mutate: optimizeSchedule, data: optimizationData } = useMutation({
-    mutationFn: (date: string) => cleanerEnhancedService.optimizeSchedule(date),
+  type OptimizationResponse = { suggestions?: { recommendation?: string; optimalTimes?: unknown[] } };
+  const { mutate: optimizeSchedule, data: optimizationData } = useMutation<OptimizationResponse, Error, string>({
+    mutationFn: (date: string) => cleanerEnhancedService.optimizeSchedule(date) as Promise<OptimizationResponse>,
     onSuccess: () => {
       showToast('Schedule optimized!', 'success');
     },
   });
+
+  const bookings: Array<{ day: number; time?: string; client?: string }> = []; // TODO: derive from useAssignedJobs or useCleanerSchedule
 
   const calendarHolidays = useMemo(() => {
     const map = new Map<number, Holiday>();
@@ -206,7 +211,7 @@ function CalendarPageContent() {
                       className="mt-2"
                       onClick={() => {
                         // Scroll to conflicts or show details
-                        showToast(`${conflictsData.conflicts.length} conflicts found`, 'warning');
+                        showToast(`${conflictsData.conflicts?.length ?? 0} conflicts found`, 'warning');
                       }}
                     >
                       View Conflicts
@@ -225,9 +230,9 @@ function CalendarPageContent() {
                   <TrendingUp className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
                     <h3 className="font-semibold text-blue-900 mb-2">Schedule Optimization Suggestions</h3>
-                    <p className="text-sm text-blue-800 mb-3">{optimizationData.suggestions.recommendation}</p>
+                    <p className="text-sm text-blue-800 mb-3">{optimizationData.suggestions?.recommendation}</p>
                     <div className="space-y-2">
-                      {optimizationData.suggestions.optimalTimes.slice(0, 3).map((time: any, idx: number) => (
+                      {(optimizationData.suggestions?.optimalTimes ?? []).slice(0, 3).map((time: any, idx: number) => (
                         <div key={idx} className="text-sm text-blue-700">
                           <span className="font-medium">
                             {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][time.dayOfWeek]} at {time.hour}:00

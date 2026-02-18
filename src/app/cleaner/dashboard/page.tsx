@@ -6,6 +6,7 @@ import { Footer } from '@/components/layout/Footer';
 import { StatsOverview } from '@/components/features/dashboard/StatsOverview';
 import { BookingCard } from '@/components/features/dashboard/BookingCard';
 import { ActivityFeed } from '@/components/features/dashboard/ActivityFeed';
+import { FiveStarReviewWatcher } from '@/components/features/reviews/FiveStarReviewWatcher';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { SkeletonList } from '@/components/ui/Skeleton';
@@ -122,6 +123,7 @@ function CleanerDashboardContent() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      <FiveStarReviewWatcher />
       <Header />
       <main className="flex-1 py-8 px-6">
         <div className="max-w-7xl mx-auto">

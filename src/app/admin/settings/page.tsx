@@ -13,6 +13,9 @@ import { adminEnhancedService } from '@/services/adminEnhanced.service';
 import { useQuery } from '@tanstack/react-query';
 import { Settings, DollarSign, Mail, Shield, Bell, Globe, Sparkles, FileText } from 'lucide-react';
 
+type FeatureFlagsResponse = { flags?: Record<string, { description?: string }> };
+type AuditLogResponse = { logs?: unknown[] };
+
 export default function AdminSettingsPage() {
   return (
     <ProtectedRoute requiredRole="admin">
@@ -29,13 +32,13 @@ function AdminSettingsContent() {
   // Get feature flags
   const { data: featureFlagsData } = useQuery({
     queryKey: ['admin', 'settings', 'feature-flags'],
-    queryFn: () => adminEnhancedService.getFeatureFlags(),
+    queryFn: () => adminEnhancedService.getFeatureFlags() as Promise<FeatureFlagsResponse>,
   });
 
   // Get audit log
   const { data: auditLogData } = useQuery({
     queryKey: ['admin', 'settings', 'audit-log'],
-    queryFn: () => adminEnhancedService.getAuditLog(50),
+    queryFn: () => adminEnhancedService.getAuditLog(50) as Promise<AuditLogResponse>,
   });
 
   const [formData, setFormData] = useState({
