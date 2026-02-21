@@ -38,7 +38,10 @@ function CleanerEarningsContent() {
   // Get earnings breakdown
   const { data: breakdownData } = useQuery({
     queryKey: ['cleaner', 'earnings', 'breakdown', selectedPeriod],
-    queryFn: () => cleanerEnhancedService.getEarningsBreakdown(selectedPeriod),
+    queryFn: async () => {
+      const res = await cleanerEnhancedService.getEarningsBreakdown(selectedPeriod);
+      return (res ?? {}) as { breakdown?: { byServiceType?: unknown[]; byClient?: unknown[] } };
+    },
   });
 
   // Get tax report
@@ -49,7 +52,7 @@ function CleanerEarningsContent() {
 
   const handleExportEarnings = async () => {
     try {
-      const response = await cleanerEnhancedService.exportEarnings();
+      const response = await cleanerEnhancedService.exportEarnings() as string | Blob;
       const blob = new Blob([response], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -102,7 +105,7 @@ function CleanerEarningsContent() {
 
   const handleRequestPayout = () => {
     if (earnings.pendingEarnings.credits > 0) {
-      requestPayout();
+      requestPayout(undefined);
       setShowRequestModal(false);
     }
   };

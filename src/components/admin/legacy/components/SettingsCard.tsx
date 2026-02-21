@@ -62,7 +62,7 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
         return (
           <input
             type="number"
-            value={value}
+            value={typeof value === 'number' ? value : typeof value === 'string' ? value : ''}
             onChange={(e) => onChange(parseInt(e.target.value))}
             min={min}
             max={max}
@@ -78,7 +78,7 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
         return (
           <input
             type="text"
-            value={value}
+            value={typeof value === 'string' ? value : String(value ?? '')}
             onChange={(e) => onChange(e.target.value)}
             disabled={!enabled}
             className={`w-full max-w-xs px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
@@ -90,7 +90,7 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
       case 'select':
         return (
           <select
-            value={value}
+            value={typeof value === 'string' || typeof value === 'number' ? String(value) : ''}
             onChange={(e) => onChange(e.target.value)}
             disabled={!enabled}
             className={`px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${

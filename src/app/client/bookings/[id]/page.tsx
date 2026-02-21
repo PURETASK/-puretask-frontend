@@ -71,7 +71,7 @@ function BookingDetailsContent() {
     );
   }
 
-  const booking = data.booking;
+  const booking = data.booking as typeof data.booking & { cleaner?: { name?: string; rating?: number; reviews_count?: number } };
   const canCancel = ['pending', 'accepted', 'scheduled'].includes(booking.status);
 
   const handleCancel = () => {
@@ -179,7 +179,7 @@ function BookingDetailsContent() {
                             </div>
                             {statusEvents.length > 0 && (
                               <p className="text-xs text-gray-500 mt-1">
-                                {format(new Date(statusEvents[0].created_at), 'MMM d, h:mm a')}
+                                {format(new Date((statusEvents[0] as { created_at?: string }).created_at ?? ''), 'MMM d, h:mm a')}
                               </p>
                             )}
                             {isCurrent && (

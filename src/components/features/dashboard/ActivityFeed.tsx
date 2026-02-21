@@ -100,7 +100,7 @@ export function ActivityFeed({
                           <Avatar
                             src={activity.user.avatar}
                             fallback={activity.user.name[0]}
-                            size="xs"
+                            size="sm"
                           />
                           <span className="text-xs text-gray-500">{activity.user.name}</span>
                         </div>

@@ -34,7 +34,8 @@ function RecurringBookingsContent() {
     queryKey: ['recurring-bookings'],
     queryFn: async () => {
       try {
-        return await apiClient.get('/client/recurring-bookings');
+        const res = await apiClient.get('/client/recurring-bookings');
+        return (res ?? {}) as { recurringBookings?: unknown[] };
       } catch {
         return { recurringBookings: [] };
       }
@@ -160,7 +161,10 @@ function RecurringBookingCard({ booking }: { booking: any }) {
   // Get smart suggestions for this booking
   const { data: suggestionsData } = useQuery({
     queryKey: ['recurring-bookings', booking.id, 'suggestions'],
-    queryFn: () => clientEnhancedService.getRecurringSuggestions(booking.id),
+    queryFn: async () => {
+      const res = await clientEnhancedService.getRecurringSuggestions(booking.id);
+      return (res ?? {}) as { suggestions?: { optimal_day?: string; optimal_time?: string; cleaner_availability?: string[] } };
+    },
     enabled: showSuggestions,
   });
 

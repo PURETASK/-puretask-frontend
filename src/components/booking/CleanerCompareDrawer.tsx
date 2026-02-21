@@ -48,7 +48,7 @@ export function CleanerCompareDrawer({
               </div>
               {c.reliability && (
                 <>
-                  <ReliabilityScoreCard score={c.reliability} compact />
+                  <ReliabilityScoreCard score={c.reliability as import('@/types/reliability').ReliabilityScore} compact />
                   <ReliabilityBreakdownBars breakdown={c.reliability.breakdown} />
                   {c.reliability.explainers?.length > 0 && (
                     <ReliabilityWhyThisMatch explainers={c.reliability.explainers} />

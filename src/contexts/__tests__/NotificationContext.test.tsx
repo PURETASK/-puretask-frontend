@@ -1,33 +1,33 @@
 // src/contexts/__tests__/NotificationContext.test.tsx
 // Unit tests for NotificationContext
 
-import { describe, it, expect, beforeEach, vi } from '@jest/globals';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { NotificationProvider, useNotifications } from '../NotificationContext';
 import { AuthProvider } from '../AuthContext';
 import { WebSocketProvider } from '../WebSocketContext';
 import { notificationService } from '@/services/notification.service';
 
-vi.mock('@/services/notification.service');
-vi.mock('../AuthContext', () => ({
+jest.mock('@/services/notification.service');
+jest.mock('../AuthContext', () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   useAuth: () => ({ isAuthenticated: true }),
 }));
-vi.mock('../WebSocketContext', () => ({
+jest.mock('../WebSocketContext', () => ({
   WebSocketProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   useWebSocket: () => ({
     isConnected: true,
-    on: vi.fn(),
-    off: vi.fn(),
+    on: jest.fn(),
+    off: jest.fn(),
   }),
 }));
-vi.mock('../ToastContext', () => ({
-  useToast: () => ({ showToast: vi.fn() }),
+jest.mock('../ToastContext', () => ({
+  useToast: () => ({ showToast: jest.fn() }),
 }));
 
 describe('NotificationContext', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   describe('useNotifications', () => {

@@ -35,7 +35,10 @@ export default function SearchPage() {
   const { data, isLoading, error } = useCleanerSearch(filters);
   const { data: savedSearchesData } = useQuery({
     queryKey: ['client', 'saved-searches'],
-    queryFn: () => clientEnhancedService.getSavedSearches(),
+    queryFn: async () => {
+      const res = await clientEnhancedService.getSavedSearches();
+      return (res ?? {}) as { savedSearches?: unknown[] };
+    },
   });
 
   const { mutate: saveSearch } = useMutation({
@@ -198,19 +201,19 @@ export default function SearchPage() {
                     <div className="flex items-center justify-center gap-2 mt-6">
                       <Button
                         variant="outline"
-                        onClick={() => handlePageChange(data.pagination.current_page - 1)}
-                        disabled={data.pagination.current_page === 1}
+                        onClick={() => handlePageChange(data.pagination.page - 1)}
+                        disabled={data.pagination.page === 1}
                         aria-label="Previous page"
                       >
                         Previous
                       </Button>
                       <span className="text-sm text-gray-600">
-                        Page {data.pagination.current_page} of {data.pagination.total_pages}
+                        Page {data.pagination.page} of {data.pagination.total_pages}
                       </span>
                       <Button
                         variant="outline"
-                        onClick={() => handlePageChange(data.pagination.current_page + 1)}
-                        disabled={data.pagination.current_page === data.pagination.total_pages}
+                        onClick={() => handlePageChange(data.pagination.page + 1)}
+                        disabled={data.pagination.page === data.pagination.total_pages}
                         aria-label="Next page"
                       >
                         Next

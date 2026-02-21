@@ -72,7 +72,7 @@ export const AchievementDisplay: React.FC = () => {
 
       // Check for new unseen achievements
       const unseen = Object.values(data.achievements).flat()
-        .find((a: Achievement) => a.earned && !a.seen);
+        .find((a): a is Achievement => (a as Achievement).earned && !(a as Achievement).seen);
       if (unseen) {
         setNewUnlock(unseen);
         setTimeout(() => {

@@ -7,7 +7,7 @@ export const billingService = {
   }> => {
     try {
       const res = await apiClient.get<{ invoices?: Invoice[]; data?: Invoice[] }>(
-        '/billing/invoices',
+        '/client/invoices',
         { params }
       );
       const invoices = res.invoices ?? res.data ?? [];
@@ -19,7 +19,7 @@ export const billingService = {
 
   getInvoice: async (invoiceId: string): Promise<Invoice | null> => {
     try {
-      const res = await apiClient.get<{ invoice?: Invoice }>(`/billing/invoices/${invoiceId}`);
+      const res = await apiClient.get<{ invoice?: Invoice }>(`/client/invoices/${invoiceId}`);
       return res.invoice ?? null;
     } catch {
       return null;

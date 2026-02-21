@@ -2,6 +2,10 @@
 
 This document lists all REST API endpoints the PureTask frontend expects the backend to implement. Paths are relative to the API base URL (`NEXT_PUBLIC_API_URL` or `NEXT_PUBLIC_API_BASE_URL`).
 
+For Trust-Fintech integration details (auth, response contracts, roles, errors, CORS), see [TRUST_BACKEND_INTEGRATION.md](./TRUST_BACKEND_INTEGRATION.md).
+
+**Stub implementations:** `GET /bookings/me` and `GET /cleaners/:cleanerId/reviews` return empty arrays to avoid 404/500; replace with real implementations later.
+
 ---
 
 ## Auth
@@ -19,7 +23,6 @@ This document lists all REST API endpoints the PureTask frontend expects the bac
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/users/me` | Get current user |
 | PATCH | `/users/me` | Update current user |
 | POST | `/users/me/avatar` | Upload avatar (multipart) |
 | DELETE | `/users/me/avatar` | Remove avatar |
@@ -43,6 +46,7 @@ This document lists all REST API endpoints the PureTask frontend expects the bac
 |--------|------|-------------|
 | GET | `/api/credits/balance` | Credits balance |
 | GET | `/api/credits/ledger` | Ledger (query: from, to, type, status, search, limit) |
+| POST | `/credits/checkout` | Buy credits (body: packageId, successUrl, cancelUrl) |
 
 ---
 
@@ -50,8 +54,8 @@ This document lists all REST API endpoints the PureTask frontend expects the bac
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/billing/invoices` | List invoices |
-| GET | `/billing/invoices/:id` | Get invoice by ID |
+| GET | `/client/invoices` | List invoices (frontend uses this) |
+| GET | `/client/invoices/:id` | Get invoice by ID |
 
 ---
 
@@ -61,6 +65,7 @@ This document lists all REST API endpoints the PureTask frontend expects the bac
 |--------|------|-------------|
 | GET | `/api/billing/invoices` | List invoices |
 | GET | `/api/billing/invoices/:id` | Get invoice by ID |
+| POST | `/client/invoices/:id/pay` | Pay invoice (body: payment_method: credits \| card) |
 
 ---
 
@@ -70,7 +75,7 @@ This document lists all REST API endpoints the PureTask frontend expects the bac
 |--------|------|-------------|
 | POST | `/bookings` | Create booking |
 | GET | `/bookings/:bookingId` | Get booking |
-| GET | `/bookings/me` | My bookings (params: status, page) |
+| GET | `/bookings/me` | My bookings → `{ bookings: [] }` (stub; params: status, page) |
 | POST | `/bookings/:id/cancel` | Cancel booking |
 | POST | `/bookings/:id/complete` | Mark completed |
 | POST | `/bookings/:id/review` | Submit review |
@@ -96,7 +101,7 @@ This document lists all REST API endpoints the PureTask frontend expects the bac
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/client/jobs/:bookingId/live` | Live appointment state |
+| GET | `/client/jobs/:bookingId/live-status` | Live appointment state (frontend uses this) |
 
 ---
 
@@ -116,7 +121,7 @@ This document lists all REST API endpoints the PureTask frontend expects the bac
 | GET | `/cleaners/search` | Search cleaners (params) |
 | GET | `/cleaners/:id` | Get cleaner profile |
 | GET | `/cleaners/:id/availability` | Available slots |
-| GET | `/cleaners/:id/reviews` | Reviews (params: page, per_page) |
+| GET | `/cleaners/:id/reviews` | Reviews → `{ reviews: [], page, per_page, total }` (stub; params: page, per_page) |
 | GET | `/cleaners/featured` | Featured cleaners |
 | GET | `/cleaners/top-rated` | Top-rated cleaners |
 | GET | `/cleaners/:id/reliability` | Reliability score |
@@ -355,6 +360,47 @@ This document lists all REST API endpoints the PureTask frontend expects the bac
 | POST | `/admin/disputes/:id/analyze` | Analyze dispute |
 | GET | `/admin/risk/scoring` | Risk scoring |
 | POST | `/admin/risk/mitigate` | Mitigate risk |
+
+---
+
+## Admin – Gamification
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/admin/gamification/flags` | Gamification feature flags (gamification_enabled, rewards_enabled, cash_rewards_enabled, seasonal_enabled, governor_enabled; optional per-region overrides) |
+| PATCH | `/admin/gamification/flags` | Update gamification flags (body: key-value or JSON patch) |
+| GET | `/admin/gamification/goals` | Goals library (params: level, type, enabled) |
+| GET | `/admin/gamification/goals/:id` | Goal by ID |
+| POST | `/admin/gamification/goals` | Create goal |
+| PATCH | `/admin/gamification/goals/:id` | Update goal (versioning optional) |
+| GET | `/admin/gamification/rewards` | Rewards list |
+| GET | `/admin/gamification/rewards/:id` | Reward by ID (for edit page) |
+| POST | `/admin/gamification/rewards` | Create reward |
+| PATCH | `/admin/gamification/rewards/:id` | Update reward |
+| GET | `/admin/gamification/choices` | Choice reward groups |
+| GET | `/admin/gamification/governor` | Governor state (supply/demand, multipliers, caps per region) |
+| PATCH | `/admin/gamification/governor` | Apply overrides / recommended |
+| GET | `/admin/gamification/abuse` | Abuse/fraud signals (params: type, page) |
+| POST | `/admin/gamification/abuse/:cleanerId/pause-rewards` | Pause rewards for cleaner |
+| GET | `/admin/support/cleaner/:cleanerId/gamification` | Support view: goal progress, why paused, reward history |
+| POST | `/admin/support/cleaner/:cleanerId/gamification/recompute` | Recompute level and goal progress |
+| POST | `/admin/support/cleaner/:cleanerId/gamification/grant-reward` | Grant reward manually (body: reward_id, reason?, duration_days?) |
+| POST | `/admin/support/cleaner/:cleanerId/gamification/remove-reward` | Remove active reward (body: reward_id, reason?) |
+
+---
+
+## Cleaner – Gamification (cleaner-facing)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/cleaner/progress` | Progress hub (level, core/stretch/maintenance %, next actions, active rewards; optional next_best_actions, recovery_steps) |
+| GET | `/cleaner/goals` | List goals with progress; include type (core\|stretch\|maintenance), counts_when?, reward_preview? |
+| GET | `/cleaner/badges` | List badges with earned status (id, name, icon, earned, earned_date, how_to_earn, category) |
+| GET | `/cleaner/rewards` | Active rewards, reward_history, choice_eligible (for Rewards Center tabs) |
+| GET | `/cleaner/stats` | Metrics: on_time_rate, acceptance_rate, photo_compliance, avg_rating, disputes_opened_lost, add_on_completions |
+| GET | `/cleaner/maintenance` | progress_paused, progress_paused_reason, recovery_steps (optional if in progress) |
+| POST | `/cleaner/rewards/choice/:choiceGroupId/select` | Select one reward (body: { reward_id }) |
+| GET | `/cleaners/:id` | When used for public profile, may include `level`, `badges` (array of { id, name, icon? }) for client trust signals |
 
 ---
 

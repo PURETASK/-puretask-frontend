@@ -5,7 +5,7 @@ export const appointmentService = {
   getLiveAppointment: async (bookingId: string): Promise<LiveAppointment | null> => {
     try {
       const res = await apiClient.get<{ appointment?: LiveAppointment }>(
-        `/client/jobs/${bookingId}/live`
+        `/client/jobs/${bookingId}/live-status`
       );
       if (res.appointment) return res.appointment;
     } catch {

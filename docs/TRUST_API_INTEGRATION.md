@@ -8,14 +8,16 @@ This project includes a fetch-based API client and TanStack Query hooks for cred
 |------|---------|
 | `src/lib/apiClient.ts` | Fetch-based `apiGet` / `apiPost` with Bearer token auth |
 | `src/types/trust.ts` | Data contracts (CreditsBalance, Invoice, LiveAppointment, etc.) |
-| `src/hooks/useCreditsTrust.ts` | `useCreditsBalance`, `useCreditsLedger` |
-| `src/hooks/useBillingTrust.ts` | `useInvoices`, `useInvoice` |
+| `src/hooks/useCreditsTrust.ts` | `useCreditsBalance`, `useCreditsLedger`, `useBuyCredits` |
+| `src/hooks/useBillingTrust.ts` | `useInvoices`, `useInvoice`, `usePayInvoice` |
 | `src/hooks/useLiveAppointmentTrust.ts` | `useLiveAppointment`, `usePostAppointmentEvent` |
 | `src/app/client/credits-trust/page.tsx` | Demo: `/client/credits-trust` |
 | `src/app/client/billing-trust/page.tsx` | Demo: `/client/billing-trust` |
 | `src/app/client/appointments/[bookingId]/live-trust/page.tsx` | Demo: `/client/appointments/:id/live-trust` |
 
 ## Backend Endpoints Expected
+
+See [TRUST_BACKEND_INTEGRATION.md](./TRUST_BACKEND_INTEGRATION.md) for full integration reference (auth, response contracts, roles, pay-invoice, buy-credits). Endpoints:
 
 - `GET /api/credits/balance`
 - `GET /api/credits/ledger?...`
@@ -24,6 +26,8 @@ This project includes a fetch-based API client and TanStack Query hooks for cred
 - `GET /api/appointments/:bookingId/live`
 - `POST /api/appointments/:bookingId/events`
 - `POST /api/appointments/:bookingId/photos` (optional)
+- `POST /client/invoices/:id/pay` — Pay invoice (body: `payment_method: "credits"|"card"`)
+- `POST /credits/checkout` — Buy credits (body: `packageId`, `successUrl`, `cancelUrl`)
 
 ## Configuration
 
@@ -41,12 +45,12 @@ This project includes a fetch-based API client and TanStack Query hooks for cred
 
 ### Auth
 
-The apiClient uses **Bearer tokens** (from `localStorage` key `puretask_token`). For cookie sessions, change `apiClient.ts` to use `credentials: "include"` and remove the `Authorization` header.
+The apiClient attaches the **Bearer token** to every request. Token is stored in `localStorage` under `STORAGE_KEYS.AUTH_TOKEN` (`puretask_token`). Use the same apiClient for all fetch-based API calls—do not use raw `fetch` that skips the token. For cookie sessions, change `apiClient.ts` to use `credentials: "include"` and remove the `Authorization` header.
 
 ## Demo Routes
 
-- `/client/credits-trust` – Credits balance + ledger
-- `/client/billing-trust` – Invoices list
+- `/client/credits-trust` – Credits balance + ledger + Buy credits
+- `/client/billing-trust` – Invoices list + Pay invoice (credits or card)
 - `/client/appointments/[bookingId]/live-trust` – Live appointment state + event posting
 
 ## Using in Existing Pages

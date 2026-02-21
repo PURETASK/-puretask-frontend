@@ -44,7 +44,9 @@ export function SearchAutocomplete({
       const response = await apiClient.get('/search/autocomplete', {
         params: { q: query, limit: 8 },
       });
-      return response.data;
+      const res = response as { data?: { suggestions?: unknown[] }; suggestions?: unknown[] };
+      const data = res.data ?? res;
+      return (data ?? {}) as { suggestions?: AutocompleteSuggestion[] };
     },
     enabled: query.length >= minLength,
     staleTime: 30000,
@@ -75,7 +77,7 @@ export function SearchAutocomplete({
     } else if (e.key === 'Enter') {
       e.preventDefault();
       if (selectedIndex >= 0 && suggestions[selectedIndex]) {
-        handleSelect(suggestions[selectedIndex]);
+        handleSelect(suggestions[selectedIndex] as AutocompleteSuggestion);
       } else if (query.trim() && onSearch) {
         onSearch(query);
       }

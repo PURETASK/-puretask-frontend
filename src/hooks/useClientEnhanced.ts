@@ -42,10 +42,15 @@ export const useSaveDraftBooking = () => {
   });
 };
 
+type LiveStatusResponse = { job?: { current_status?: string; events?: Array<{ new_state?: string; created_at?: string; [k: string]: unknown }> } };
+
 export const useLiveJobStatus = (jobId: string, enabled = true) => {
-  return useQuery({
+  return useQuery<LiveStatusResponse>({
     queryKey: ['client', 'jobs', jobId, 'live-status'],
-    queryFn: () => clientEnhancedService.getLiveStatus(jobId),
+    queryFn: async () => {
+      const res = await clientEnhancedService.getLiveStatus(jobId);
+      return (res ?? {}) as LiveStatusResponse;
+    },
     enabled: enabled && !!jobId,
     refetchInterval: 10000, // Poll every 10 seconds
   });

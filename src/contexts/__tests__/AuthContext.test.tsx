@@ -1,23 +1,23 @@
 // src/contexts/__tests__/AuthContext.test.tsx
 // Unit tests for AuthContext
 
-import { describe, it, expect, beforeEach, vi } from '@jest/globals';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { AuthProvider, useAuth } from '../AuthContext';
 import { apiClient } from '@/lib/api';
 import { STORAGE_KEYS } from '@/lib/config';
 
-vi.mock('@/lib/api');
-vi.mock('@/contexts/ToastContext', () => ({
+jest.mock('@/lib/api');
+jest.mock('@/contexts/ToastContext', () => ({
   useToast: () => ({
-    showToast: vi.fn(),
+    showToast: jest.fn(),
   }),
 }));
 
 describe('AuthContext', () => {
   beforeEach(() => {
     localStorage.clear();
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   describe('useAuth', () => {

@@ -4,7 +4,6 @@ import React from 'react';
 import Link from 'next/link';
 import { Sheet, SheetContent } from '@/components/ui/Sheet';
 import { ReliabilityScoreCard } from '@/components/reliability/ReliabilityScoreCard';
-import { Button } from '@/components/ui/Button';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
@@ -69,18 +68,25 @@ export function BookingDetailsDrawer({
 
           <div className="flex flex-col gap-2 pt-4 border-t">
             {isToday && (
-              <Button variant="primary" asChild>
-                <Link href={`/client/appointments/${booking.id}/live`}>
-                  View live service
-                </Link>
-              </Button>
+              <Link
+                href={`/client/appointments/${booking.id}/live`}
+                className="inline-flex h-12 min-h-[44px] items-center justify-center rounded-lg bg-blue-600 px-4 text-base font-medium text-white transition-colors hover:bg-blue-700"
+              >
+                View live service
+              </Link>
             )}
-            <Button variant="outline" asChild>
-              <Link href={`/client/bookings/${booking.id}`}>View full details</Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href={`/messages?job=${booking.id}`}>Message cleaner</Link>
-            </Button>
+            <Link
+              href={`/client/bookings/${booking.id}`}
+              className="inline-flex h-12 min-h-[44px] items-center justify-center rounded-lg border-2 border-blue-600 px-4 text-base font-medium text-blue-600 transition-colors hover:bg-blue-50"
+            >
+              View full details
+            </Link>
+            <Link
+              href={`/messages?job=${booking.id}`}
+              className="inline-flex h-12 min-h-[44px] items-center justify-center rounded-lg border-2 border-blue-600 px-4 text-base font-medium text-blue-600 transition-colors hover:bg-blue-50"
+            >
+              Message cleaner
+            </Link>
           </div>
         </div>
       </SheetContent>

@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: 'client' | 'cleaner' | 'admin';
+  requiredRole?: 'client' | 'cleaner' | 'admin' | ('client' | 'cleaner' | 'admin')[];
   redirectTo?: string;
 }
 
@@ -27,7 +27,8 @@ export function ProtectedRoute({
       }
 
       // Check role if required
-      if (requiredRole && user?.role !== requiredRole) {
+      const roleOk = !requiredRole || (Array.isArray(requiredRole) ? requiredRole.includes(user?.role as 'client' | 'cleaner' | 'admin') : user?.role === requiredRole);
+      if (requiredRole && !roleOk) {
         // Redirect to appropriate dashboard based on actual role
         const dashboardMap = {
           client: '/client/dashboard',
@@ -57,7 +58,8 @@ export function ProtectedRoute({
   }
 
   // Wrong role
-  if (requiredRole && user?.role !== requiredRole) {
+  const roleOk = !requiredRole || (Array.isArray(requiredRole) ? requiredRole.includes(user?.role as 'client' | 'cleaner' | 'admin') : user?.role === requiredRole);
+  if (requiredRole && !roleOk) {
     return null;
   }
 

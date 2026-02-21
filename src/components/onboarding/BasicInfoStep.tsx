@@ -80,7 +80,7 @@ export function BasicInfoStep({ onNext, onBack, isLoading }: BasicInfoStepProps)
           placeholder="e.g., Experienced House Cleaner | 5+ Years"
           value={headline}
           onChange={(e) => setHeadline(e.target.value)}
-          helpText="A short tagline that appears on your profile"
+          helperText="A short tagline that appears on your profile"
         />
 
         {/* Bio */}

@@ -37,7 +37,17 @@ export function OnboardingReviewStep({
   completedData,
   progressData,
 }: OnboardingReviewStepProps) {
-  const steps = progressData?.steps || {};
+  const steps = progressData?.steps ?? {} as {
+    agreements?: boolean;
+    basic_info?: boolean;
+    phone_verified?: boolean;
+    profile_photo?: boolean;
+    id_verification?: boolean;
+    background_check?: boolean;
+    service_areas?: boolean;
+    availability?: boolean;
+    rates?: boolean;
+  };
 
   const checklist = [
     { label: 'Terms & Agreements', completed: steps.agreements },

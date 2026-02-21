@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import { useCleaner } from '@/hooks/useCleaners';
@@ -24,7 +24,7 @@ import { holidayService, Holiday } from '@/services/holiday.service';
 import { useToast } from '@/contexts/ToastContext';
 import { Save } from 'lucide-react';
 
-export default function BookingPage() {
+function BookingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const cleanerId = searchParams.get('cleaner');
@@ -591,5 +591,27 @@ export default function BookingPage() {
       </main>
       <Footer />
     </div>
+  );
+}
+
+function BookingPageFallback() {
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <Header />
+      <main className="flex-1 py-8 px-6">
+        <div className="max-w-5xl mx-auto">
+          <SkeletonList items={6} />
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+export default function BookingPage() {
+  return (
+    <Suspense fallback={<BookingPageFallback />}>
+      <BookingPageContent />
+    </Suspense>
   );
 }

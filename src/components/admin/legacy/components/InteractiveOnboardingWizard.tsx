@@ -16,6 +16,8 @@ interface OnboardingProgress {
   completionPercentage: number;
   wizardCompleted: boolean;
   currentStep: number;
+  setup_wizard_step?: number;
+  setup_wizard_completed?: boolean;
   photoUploaded: boolean;
   bioCompleted: boolean;
   servicesDefined: boolean;
@@ -110,7 +112,7 @@ export const InteractiveOnboardingWizard: React.FC = () => {
     }
   };
 
-  const updateProgress = async (updates: Partial<OnboardingProgress>) => {
+  const updateProgress = async (updates: Partial<OnboardingProgress> & Record<string, unknown>) => {
     try {
       await legacyFetch('/cleaner/onboarding/update', {
         method: 'POST',

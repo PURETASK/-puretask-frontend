@@ -1,283 +1,360 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import Link from 'next/link';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Progress } from '@/components/ui/Progress';
+import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { Progress } from '@/components/ui/Progress';
+import {
+  LevelBadge,
+  LevelProgressRing,
+  NextBestActionCard,
+  RewardCard,
+  RewardEffectPill,
+  PausedProgressBanner,
+} from '@/components/gamification';
 import { useQuery } from '@tanstack/react-query';
-import { cleanerEnhancedService } from '@/services/cleanerEnhanced.service';
-import { Sparkles, Target, TrendingUp } from 'lucide-react';
+import { cleanerGamificationService } from '@/services/cleanerGamification.service';
+import {
+  Target,
+  Award,
+  Shield,
+  ChevronRight,
+  HelpCircle,
+  Sparkles,
+} from 'lucide-react';
+
+const LEVEL_LABELS: Record<number, string> = {
+  1: 'Getting Started',
+  2: 'Rising Star',
+  3: 'Reliable Pro',
+  4: 'Trusted Pro',
+  5: 'Elite Pro',
+  6: 'Expert',
+  7: 'Master',
+  8: 'Champion',
+  9: 'Legend',
+  10: 'Elite Champion',
+};
 
 export default function ProgressPage() {
-  // Get goals
+  const [visibilityModalOpen, setVisibilityModalOpen] = useState(false);
+
+  const { data: progressData, isLoading: progressLoading, isError: progressError } = useQuery({
+    queryKey: ['cleaner', 'progress'],
+    queryFn: () => cleanerGamificationService.getProgress(),
+  });
+  const { data: rewardsData } = useQuery({
+    queryKey: ['cleaner', 'rewards'],
+    queryFn: () => cleanerGamificationService.getRewards(),
+  });
+  const { data: badgesData } = useQuery({
+    queryKey: ['cleaner', 'badges'],
+    queryFn: () => cleanerGamificationService.getBadges(),
+  });
   const { data: goalsData } = useQuery({
     queryKey: ['cleaner', 'goals'],
-    queryFn: () => cleanerEnhancedService.getGoals(),
+    queryFn: () => cleanerGamificationService.getGoals().then((g) => ({ goals: g ?? [] })),
   });
 
-  const profile = {
-    level: 7,
-    xp: 2450,
-    xpToNextLevel: 3000,
-    totalBookings: 87,
-    totalEarnings: 12450,
-    rating: 4.9,
-    badges: 12,
-  };
+  const currentLevel = progressData?.current_level ?? 4;
+  const levelLabel = progressData?.level_label ?? LEVEL_LABELS[progressData?.current_level ?? 4] ?? `Level ${progressData?.current_level ?? 4}`;
+  const coreCompletionPercent = progressData?.core_completion_percent ?? 72;
+  const stretchSelected = progressData?.stretch_selected ?? true;
+  const maintenanceOk = progressData?.maintenance_ok ?? true;
+  const progressPausedReason = progressData?.progress_paused ? (progressData?.progress_paused_reason ?? 'Progress paused') : null;
 
-  const achievements = [
-    {
-      id: 'a1',
-      title: 'First Booking',
-      description: 'Complete your first cleaning job',
-      icon: '🎉',
-      earned: true,
-      earnedDate: 'Nov 15, 2025',
-      xp: 100,
-    },
-    {
-      id: 'a2',
-      title: '10 Bookings',
-      description: 'Complete 10 successful bookings',
-      icon: '⭐',
-      earned: true,
-      earnedDate: 'Dec 20, 2025',
-      xp: 250,
-    },
-    {
-      id: 'a3',
-      title: '50 Bookings',
-      description: 'Complete 50 successful bookings',
-      icon: '🌟',
-      earned: true,
-      earnedDate: 'Jan 5, 2026',
-      xp: 500,
-    },
-    {
-      id: 'a4',
-      title: '100 Bookings',
-      description: 'Complete 100 successful bookings',
-      icon: '💎',
-      earned: false,
-      progress: 87,
-      total: 100,
-      xp: 1000,
-    },
-    {
-      id: 'a5',
-      title: '5-Star Pro',
-      description: 'Maintain 4.8+ rating for 20 bookings',
-      icon: '🏆',
-      earned: true,
-      earnedDate: 'Dec 28, 2025',
-      xp: 300,
-    },
-    {
-      id: 'a6',
-      title: 'Early Bird',
-      description: 'Complete 10 bookings before 8 AM',
-      icon: '🌅',
-      earned: false,
-      progress: 6,
-      total: 10,
-      xp: 150,
-    },
-    {
-      id: 'a7',
-      title: 'Rapid Responder',
-      description: 'Respond to 50 messages within 5 minutes',
-      icon: '⚡',
-      earned: true,
-      earnedDate: 'Jan 3, 2026',
-      xp: 200,
-    },
-    {
-      id: 'a8',
-      title: 'Perfectionist',
-      description: 'Get 25 perfect 5.0 ratings',
-      icon: '✨',
-      earned: false,
-      progress: 18,
-      total: 25,
-      xp: 400,
-    },
-  ];
+  const nextBestActions =
+    (progressData?.next_best_actions?.length ?? 0) > 0
+      ? (progressData?.next_best_actions ?? []).map((a) => ({
+          title: a.title,
+          description: a.description,
+          actionHref: a.action_href ?? '/cleaner/jobs',
+          actionLabel: a.action_label ?? 'Take action',
+          unlockPreview: a.unlock_preview,
+        }))
+      : [
+          { title: 'Complete 3 more add-ons', description: "You're 3 away from your add-on goal this period.", actionHref: '/cleaner/jobs', actionLabel: 'Take Next Action', unlockPreview: 'unlock Priority Visibility for 7 days' },
+          { title: 'Send a post-job message', description: 'Request a review to boost your rating goal.', actionHref: '/cleaner/messages', actionLabel: 'Send Message', unlockPreview: 'counts toward "Meaningful messages" goal' },
+        ];
 
-  const recentActivity = [
-    { date: 'Today', action: 'Earned "Rapid Responder" badge', xp: 200 },
-    { date: 'Jan 5', action: 'Completed 50th booking', xp: 500 },
-    { date: 'Jan 3', action: 'Reached Level 7', xp: 0 },
-    { date: 'Dec 28', action: 'Earned "5-Star Pro" badge', xp: 300 },
-  ];
+  const activeRewards =
+    (progressData?.active_rewards?.length ? progressData.active_rewards : rewardsData?.active_rewards)?.map((r: { reward_id: string; name: string; effect?: string; applies_to?: string; days_remaining?: number }) => ({
+      id: r.reward_id,
+      name: r.name,
+      effect: r.effect ?? 'Active reward',
+      appliesTo: r.applies_to ?? 'All regions',
+      daysRemaining: r.days_remaining ?? 0,
+      variant: 'active' as const,
+    })) ?? [
+      { id: 'r1', name: 'Priority Visibility', effect: 'Early exposure +10 min for 14 days', appliesTo: 'All regions', daysRemaining: 7, variant: 'active' as const },
+    ];
+
+  const recentAchievements =
+    badgesData?.filter((b) => b.earned).length
+      ? (badgesData ?? []).filter((b) => b.earned).slice(0, 5).map((b) => ({ id: b.id, title: b.name, icon: b.icon ?? '🏅', earnedDate: b.earned_date ?? '' }))
+      : [
+          { id: 'b1', title: 'On-Time Pro', icon: '⏱️', earnedDate: '2 days ago' },
+          { id: 'b2', title: 'Photo Perfect', icon: '📸', earnedDate: '1 week ago' },
+        ];
+
+  if (progressLoading && !progressData) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Header />
+        <main className="flex-1 py-8 px-6 flex items-center justify-center">
+          <p className="text-gray-500">Loading your progress…</p>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
       <main className="flex-1 py-8 px-6">
         <div className="max-w-7xl mx-auto">
-          {/* Goals Overview */}
-          {goalsData?.goals && goalsData.goals.length > 0 && (
-            <Card className="mb-6 border-green-200 bg-green-50">
+          {/* Paused banner when maintenance fails */}
+          {progressPausedReason && (
+            <PausedProgressBanner
+              reason={progressPausedReason}
+              recoverySteps={['Do 3 dispute-free jobs', 'Improve on-time over next 10 jobs']}
+              onSeeWhatCounts={() => {}}
+              onContactSupport={() => (window.location.href = '/support')}
+              className="mb-6"
+            />
+          )}
+
+          {/* Header: Your Progress + LevelBadge + How visibility works */}
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-3xl font-bold text-gray-900">Your Progress</h1>
+              <LevelBadge level={currentLevel} label={levelLabel} size="lg" />
+            </div>
+            <button
+              type="button"
+              onClick={() => setVisibilityModalOpen(true)}
+              className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
+            >
+              <HelpCircle className="h-4 w-4" />
+              How visibility works
+            </button>
+          </div>
+
+          {/* Main top: Progress ring + Core / Stretch / Maintenance */}
+          <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <Card>
+              <CardContent className="p-6 flex flex-col items-center">
+                <LevelProgressRing
+                  percentage={coreCompletionPercent}
+                  currentLevel={currentLevel}
+                  nextLevel={currentLevel + 1}
+                  size={140}
+                />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6 space-y-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-500 mb-1">Core completion</p>
+                  <Progress value={coreCompletionPercent} max={100} showLabel size="md" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 mb-1">Stretch goal</p>
+                  <p className="text-gray-900">
+                    {stretchSelected ? (
+                      <span className="text-green-600 font-medium">Selected</span>
+                    ) : (
+                      <span className="text-amber-600">Not selected yet</span>
+                    )}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 mb-1">Maintenance</p>
+                  <p className="text-gray-900">
+                    {maintenanceOk ? (
+                      <span className="text-green-600 font-medium flex items-center gap-1">
+                        <Shield className="h-4 w-4" /> Compliant
+                      </span>
+                    ) : (
+                      <span className="text-amber-600">Needs attention</span>
+                    )}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
               <CardContent className="p-6">
-                <div className="flex items-start gap-3">
-                  <Target className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-green-900 mb-2">Active Goals</h3>
-                    <div className="space-y-3">
-                      {goalsData.goals.map((goal: any) => (
-                        <div key={goal.id} className="bg-white p-3 rounded-lg">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="font-medium text-gray-900">{goal.type}</span>
-                            <span className="text-sm text-gray-600">
-                              {goal.current}/{goal.target}
-                            </span>
-                          </div>
-                          <Progress value={(goal.current / goal.target) * 100} className="h-2" />
-                        </div>
-                      ))}
+                <h3 className="font-semibold text-gray-900 mb-3">Quick actions</h3>
+                <div className="flex flex-col gap-2">
+                  <Link
+                    href={`/cleaner/progress/level/${currentLevel}`}
+                    className="inline-flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    View Level Details
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
+                  <Link
+                    href="/cleaner/goals"
+                    className="inline-flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    View Goals
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
+                  <Link
+                    href="/cleaner/rewards"
+                    className="inline-flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    View Rewards
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
+                  <Link
+                    href="/cleaner/badges"
+                    className="inline-flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    View Badges
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
+                  <Link
+                    href="/cleaner/maintenance"
+                    className="inline-flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    View Maintenance Status
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Next Best Actions */}
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Target className="h-5 w-5" />
+              Next best actions
+            </h2>
+            <div className="grid md:grid-cols-2 gap-4">
+              {nextBestActions.map((action, i) => (
+                <NextBestActionCard
+                  key={i}
+                  title={action.title}
+                  description={action.description}
+                  actionHref={action.actionHref}
+                  actionLabel={action.actionLabel}
+                  unlockPreview={action.unlockPreview}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Active rewards + Recent achievements */}
+          <div className="grid lg:grid-cols-2 gap-8">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Award className="h-5 w-5" />
+                Active rewards
+              </h2>
+              <div className="space-y-4">
+                {activeRewards.length > 0 ? (
+                  activeRewards.map((r) => (
+                    <div key={r.id} className="space-y-2">
+                      <RewardEffectPill label={r.effect} variant="highlight" />
+                      <RewardCard
+                        id={r.id}
+                        name={r.name}
+                        effect={r.effect}
+                        appliesTo={r.appliesTo}
+                        daysRemaining={r.daysRemaining}
+                        variant={r.variant}
+                        onViewHowItWorks={() => setVisibilityModalOpen(true)}
+                      />
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-500 text-sm">No active rewards. Complete goals to unlock.</p>
+                )}
+              </div>
+              <Link href="/cleaner/rewards" className="mt-3 inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800">
+                View all rewards
+                <ChevronRight className="h-4 w-4" />
+              </Link>
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Sparkles className="h-5 w-5" />
+                Recent achievements
+              </h2>
+              <div className="flex flex-wrap gap-3">
+                {recentAchievements.map((a) => (
+                  <div
+                    key={a.id}
+                    className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2"
+                  >
+                    <span className="text-2xl">{a.icon}</span>
+                    <div>
+                      <p className="font-medium text-gray-900 text-sm">{a.title}</p>
+                      <p className="text-xs text-gray-500">{a.earnedDate}</p>
                     </div>
                   </div>
+                ))}
+              </div>
+              <Link href="/cleaner/badges" className="mt-3 inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800">
+                View all badges
+                <ChevronRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Legacy goals from API (if any) — keep for backward compatibility */}
+          {goalsData?.goals && goalsData.goals.length > 0 && (
+            <Card className="mt-8 border-green-200 bg-green-50">
+              <CardContent className="p-6">
+                <h3 className="font-semibold text-green-900 mb-3">Active goals (from API)</h3>
+                <div className="space-y-3">
+                  {goalsData.goals.map((goal: { id: string; type?: string; current?: number; target?: number }) => (
+                    <div key={goal.id} className="bg-white p-3 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium text-gray-900">{goal.type ?? goal.id}</span>
+                        <span className="text-sm text-gray-600">
+                          {goal.current ?? 0} / {goal.target ?? 0}
+                        </span>
+                      </div>
+                      <Progress
+                        value={goal.current ?? 0}
+                        max={goal.target ?? 1}
+                        className="h-2"
+                      />
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
           )}
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">🏆 Progress & Achievements</h1>
-              <p className="text-gray-600">Track your journey and earn rewards</p>
-            </div>
-            <Button variant="outline" onClick={() => (window.location.href = '/cleaner/dashboard')}>
-              ← Back to Dashboard
-            </Button>
-          </div>
-
-          {/* Profile Stats */}
-          <Card className="mb-8">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <h2 className="text-2xl font-bold text-gray-900">Level {profile.level}</h2>
-                    <Badge variant="info">XP: {profile.xp}/{profile.xpToNextLevel}</Badge>
-                  </div>
-                  <Progress value={(profile.xp / profile.xpToNextLevel) * 100} className="w-64 mb-2" />
-                  <p className="text-sm text-gray-600">{profile.xpToNextLevel - profile.xp} XP to Level {profile.level + 1}</p>
-                </div>
-                <div className="grid grid-cols-4 gap-8 text-center">
-                  <div>
-                    <div className="text-3xl font-bold text-blue-600">{profile.totalBookings}</div>
-                    <div className="text-sm text-gray-600">Bookings</div>
-                  </div>
-                  <div>
-                    <div className="text-3xl font-bold text-green-600">${profile.totalEarnings.toLocaleString()}</div>
-                    <div className="text-sm text-gray-600">Earned</div>
-                  </div>
-                  <div>
-                    <div className="text-3xl font-bold text-yellow-600">{profile.rating}</div>
-                    <div className="text-sm text-gray-600">Rating</div>
-                  </div>
-                  <div>
-                    <div className="text-3xl font-bold text-purple-600">{profile.badges}</div>
-                    <div className="text-sm text-gray-600">Badges</div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Achievements */}
-            <div className="lg:col-span-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Achievements</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {achievements.map((achievement) => (
-                      <div
-                        key={achievement.id}
-                        className={`p-4 rounded-lg border-2 ${
-                          achievement.earned
-                            ? 'border-yellow-400 bg-yellow-50'
-                            : 'border-gray-200 bg-gray-50 opacity-60'
-                        }`}
-                      >
-                        <div className="flex items-start gap-3">
-                          <span className="text-4xl">{achievement.icon}</span>
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-gray-900 mb-1">{achievement.title}</h3>
-                            <p className="text-sm text-gray-600 mb-2">{achievement.description}</p>
-                            {achievement.earned ? (
-                              <div className="flex items-center gap-2">
-                                <Badge variant="info">+{achievement.xp} XP</Badge>
-                                <span className="text-xs text-gray-500">{achievement.earnedDate}</span>
-                              </div>
-                            ) : (
-                              <div>
-                                <div className="flex items-center justify-between mb-1">
-                                  <span className="text-xs text-gray-600">
-                                    {achievement.progress}/{achievement.total}
-                                  </span>
-                                  <span className="text-xs text-gray-500">+{achievement.xp} XP</span>
-                                </div>
-                                <Progress
-                                  value={((achievement.progress || 0) / (achievement.total || 1)) * 100}
-                                  className="h-2"
-                                />
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Recent Activity */}
-            <div className="lg:col-span-1">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Activity</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {recentActivity.map((activity, index) => (
-                    <div key={index} className="flex items-start gap-3 pb-4 border-b border-gray-200 last:border-b-0 last:pb-0">
-                      <div className="flex-1">
-                        <p className="text-sm text-gray-900 mb-1">{activity.action}</p>
-                        <p className="text-xs text-gray-500">{activity.date}</p>
-                      </div>
-                      {activity.xp > 0 && (
-                        <Badge variant="secondary" className="text-xs">
-                          +{activity.xp} XP
-                        </Badge>
-                      )}
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-
-              <Card className="mt-6">
-                <CardContent className="p-6 text-center">
-                  <span className="text-4xl mb-3 block">📜</span>
-                  <h3 className="font-semibold text-gray-900 mb-2">Certifications</h3>
-                  <p className="text-sm text-gray-600 mb-4">Unlock advanced certifications to stand out</p>
-                  <Button variant="primary" onClick={() => (window.location.href = '/cleaner/certifications')}>
-                    View Certifications
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
         </div>
       </main>
       <Footer />
+
+      {/* Simple visibility explainer modal */}
+      {visibilityModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setVisibilityModalOpen(false)}>
+          <div
+            className="bg-white rounded-xl shadow-xl max-w-md w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">How visibility works</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Higher-level cleaners and those with active rewards (like Priority Visibility) appear earlier in client search results. 
+              Completing core and stretch goals, staying in good standing with maintenance, and earning rewards all help you get more bookings.
+            </p>
+            <Button variant="primary" onClick={() => setVisibilityModalOpen(false)}>
+              Got it
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-

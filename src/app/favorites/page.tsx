@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { Loading } from '@/components/ui/Loading';
 import { SkeletonList } from '@/components/ui/Skeleton';
 import { ErrorDisplay } from '@/components/error/ErrorDisplay';
 import { EmptyFavorites } from '@/components/ui/EmptyState';
@@ -43,7 +43,8 @@ function FavoritesContent() {
     queryKey: ['favorites', 'recommendations'],
     queryFn: async () => {
       try {
-        return await clientEnhancedService.getFavoriteRecommendations();
+        const res = await clientEnhancedService.getFavoriteRecommendations();
+        return (res ?? {}) as { recommendations?: unknown[] };
       } catch {
         return { recommendations: [] };
       }
@@ -55,7 +56,8 @@ function FavoritesContent() {
     queryKey: ['favorites', 'insights'],
     queryFn: async () => {
       try {
-        return await clientEnhancedService.getFavoriteInsights();
+        const res = await clientEnhancedService.getFavoriteInsights();
+        return (res ?? {}) as { insights?: { most_booked?: { name?: string; count?: number }; total_bookings?: number; average_rating?: number } };
       } catch {
         return { insights: {} };
       }
@@ -263,7 +265,6 @@ function FavoritesContent() {
                           src={cleaner.avatar_url}
                           fallback={cleaner.name[0]}
                           size="lg"
-                          className="flex-shrink-0"
                         />
 
                         {/* Info */}
@@ -279,15 +280,15 @@ function FavoritesContent() {
                                   <span className="font-medium">{cleaner.rating.toFixed(1)}</span>
                                   <span>({cleaner.reviews_count || 0} reviews)</span>
                                 </div>
-                                {cleaner.last_booking_date && (
+                                {(cleaner as { last_booking_date?: string }).last_booking_date && (
                                   <div className="flex items-center gap-1 text-gray-500">
                                     <Clock className="h-3 w-3" />
-                                    <span>Last booked {new Date(cleaner.last_booking_date).toLocaleDateString()}</span>
+                                    <span>Last booked {new Date((cleaner as { last_booking_date?: string }).last_booking_date ?? '').toLocaleDateString()}</span>
                                   </div>
                                 )}
-                                {cleaner.total_bookings > 0 && (
+                                {((cleaner as { total_bookings?: number }).total_bookings ?? 0) > 0 && (
                                   <Badge variant="success" className="text-xs">
-                                    {cleaner.total_bookings} bookings
+                                    {(cleaner as { total_bookings?: number }).total_bookings} bookings
                                   </Badge>
                                 )}
                               </div>

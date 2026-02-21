@@ -46,10 +46,10 @@ export function RecurringBookingCard({
   };
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, 'success' | 'warning' | 'destructive' | 'default'> = {
+    const variants: Record<string, 'success' | 'warning' | 'error' | 'default'> = {
       active: 'success',
       paused: 'warning',
-      cancelled: 'destructive',
+      cancelled: 'error',
     };
     return <Badge variant={variants[status] || 'default'}>{status}</Badge>;
   };

@@ -92,7 +92,8 @@ function PaymentMethodsTab() {
     queryKey: ['client', 'payment-methods'],
     queryFn: async () => {
       try {
-        return await apiClient.get('/client/payment-methods');
+        const res = await apiClient.get('/client/payment-methods');
+        return (res ?? {}) as { paymentMethods?: unknown[] };
       } catch {
         return { paymentMethods: [] };
       }
@@ -191,7 +192,8 @@ function AddressBookTab() {
     queryKey: ['client', 'addresses'],
     queryFn: async () => {
       try {
-        return await apiClient.get('/client/addresses');
+        const res = await apiClient.get('/client/addresses');
+        return (res ?? {}) as { addresses?: unknown[] };
       } catch {
         return { addresses: [] };
       }
@@ -280,7 +282,10 @@ function NotificationPreferencesTab() {
   const queryClient = useQueryClient();
   const { data: preferencesData } = useQuery({
     queryKey: ['notifications', 'preferences'],
-    queryFn: () => apiClient.get('/notifications/preferences'),
+    queryFn: async () => {
+      const res = await apiClient.get('/notifications/preferences');
+      return (res ?? {}) as { preferences?: { email?: boolean; sms?: boolean; push?: boolean; jobUpdates?: boolean; marketing?: boolean } };
+    },
   });
 
   const [preferences, setPreferences] = useState({
@@ -375,7 +380,8 @@ function CreditSettingsTab() {
     queryKey: ['credits', 'balance'],
     queryFn: async () => {
       try {
-        return await apiClient.get('/credits/balance');
+        const res = await apiClient.get('/credits/balance');
+        return (res ?? {}) as { balance?: number };
       } catch {
         return { balance: 0 };
       }

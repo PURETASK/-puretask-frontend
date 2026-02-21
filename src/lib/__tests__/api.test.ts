@@ -4,20 +4,20 @@
 import { describe, it, expect, beforeEach, vi } from '@jest/globals';
 
 // Mock axios before importing api
-vi.mock('axios', () => ({
+jest.mock('axios', () => ({
   default: {
-    create: vi.fn(() => ({
+    create: jest.fn(() => ({
       interceptors: {
-        request: { use: vi.fn() },
-        response: { use: vi.fn() },
+        request: { use: jest.fn() },
+        response: { use: jest.fn() },
       },
-      get: vi.fn().mockResolvedValue({ data: {} }),
-      post: vi.fn().mockResolvedValue({ data: {} }),
+      get: jest.fn().mockResolvedValue({ data: {} }),
+      post: jest.fn().mockResolvedValue({ data: {} }),
     })),
   },
 }));
 
-vi.mock('../config', () => ({
+jest.mock('../config', () => ({
   API_CONFIG: { baseURL: 'http://localhost:3000', timeout: 10000, wsURL: 'ws://localhost:3001' },
   STORAGE_KEYS: { AUTH_TOKEN: 'auth_token', USER_DATA: 'user_data' },
 }));
@@ -25,7 +25,7 @@ vi.mock('../config', () => ({
 describe('API Client', () => {
   beforeEach(() => {
     localStorage.clear();
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   describe('Request Interceptor', () => {

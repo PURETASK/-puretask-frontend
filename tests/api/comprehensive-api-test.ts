@@ -40,7 +40,7 @@ async function runTest(name: string, testFn: () => Promise<void>) {
 async function testAllEndpoints() {
   console.log('🧪 COMPREHENSIVE API ENDPOINT TESTING\n');
   console.log('Testing against:', BASE_URL);
-  console.log('=' * 50 + '\n');
+  console.log('='.repeat(50) + '\n');
 
   // ============================================
   // 1. AUTHENTICATION ENDPOINTS

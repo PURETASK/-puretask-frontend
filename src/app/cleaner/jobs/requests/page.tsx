@@ -193,7 +193,10 @@ function JobRequestCard({
 }) {
   const { data: matchingScore } = useQuery({
     queryKey: ['cleaner', 'jobs', job.id, 'matching-score'],
-    queryFn: () => cleanerEnhancedService.getMatchingScore(job.id),
+    queryFn: async () => {
+      const res = await cleanerEnhancedService.getMatchingScore(job.id);
+      return (res ?? {}) as { matchingScore?: number; recommendation?: string; factors?: Array<{ name: string; score: number }> };
+    },
     enabled: !!job.id,
   });
 
@@ -211,7 +214,7 @@ function JobRequestCard({
               </CardTitle>
               {matchingScore && (
                 <Badge
-                  variant={recommendation === 'high' ? 'success' : recommendation === 'medium' ? 'primary' : 'default'}
+                  variant={recommendation === 'high' ? 'success' : recommendation === 'medium' ? 'info' : 'default'}
                   className="text-xs"
                 >
                   {score}% Match

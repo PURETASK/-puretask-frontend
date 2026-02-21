@@ -14,6 +14,10 @@ export const messageService = {
     return apiClient.post('/messages', data);
   },
 
+  // Get a single conversation (messages with a user)
+  getConversation: async (userId: string) =>
+    apiClient.get(`/messages/with/${userId}`) as Promise<{ messages: Message[] }>,
+
   // Get conversations list
   getConversations: async (params?: {
     page?: number;

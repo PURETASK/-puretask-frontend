@@ -176,7 +176,7 @@ function AdminDashboardContent() {
       type: 'booking_created' as const,
       title: 'New Booking Created',
       description: 'John Doe booked a standard cleaning',
-      timestamp: new Date().toISOString(),
+      timestamp: '2025-02-14T13:00:00.000Z', // static for render purity
       meta: { amount: 120, status: 'pending' },
     },
     {
@@ -184,7 +184,7 @@ function AdminDashboardContent() {
       type: 'payment_received' as const,
       title: 'Payment Received',
       description: 'Payment processed for booking #1234',
-      timestamp: new Date(Date.now() - 3600000).toISOString(),
+      timestamp: '2025-02-14T12:00:00.000Z', // 1 hour ago (static for render purity)
       meta: { amount: 150 },
     },
     {
@@ -192,7 +192,7 @@ function AdminDashboardContent() {
       type: 'profile_updated' as const,
       title: 'New Cleaner Registered',
       description: 'Jane Smith completed registration',
-      timestamp: new Date(Date.now() - 7200000).toISOString(),
+      timestamp: '2025-02-14T10:00:00.000Z', // 2 hours ago (static for render purity)
     },
   ];
 

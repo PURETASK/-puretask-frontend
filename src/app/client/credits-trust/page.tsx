@@ -7,19 +7,49 @@ import * as React from 'react';
 import {
   useCreditsBalance,
   useCreditsLedger,
+  useBuyCredits,
   type CreditsLedgerFilters,
 } from '@/hooks/useCreditsTrust';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { Button } from '@/components/ui/Button';
+import { useToast } from '@/contexts/ToastContext';
+
+const CREDIT_PACKAGES = [
+  { packageId: 'starter', label: '100 credits', amount: '$10' },
+  { packageId: 'standard', label: '500 credits', amount: '$45' },
+  { packageId: 'premium', label: '1000 credits', amount: '$80' },
+];
 
 function CreditsTrustContent() {
   const [filters, setFilters] = React.useState<CreditsLedgerFilters>({
     limit: 50,
   });
+  const [selectedPackage, setSelectedPackage] = React.useState(CREDIT_PACKAGES[0].packageId);
 
   const balanceQ = useCreditsBalance();
   const ledgerQ = useCreditsLedger(filters);
+  const buyCredits = useBuyCredits();
+
+  const { showToast } = useToast();
+
+  const handleBuyCredits = () => {
+    if (typeof window === 'undefined') return;
+    const base = window.location.origin;
+    buyCredits.mutate(
+      {
+        packageId: selectedPackage,
+        successUrl: `${base}/client/credits-trust?success=1`,
+        cancelUrl: `${base}/client/credits-trust?cancel=1`,
+      },
+      {
+        onError: (err: { message?: string; status?: number }) => {
+          showToast(err?.message || `Checkout failed (${err?.status || 'error'})`, 'error');
+        },
+      }
+    );
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -35,10 +65,32 @@ function CreditsTrustContent() {
           ) : balanceQ.isError ? (
             <p className="text-red-600">Failed to load balance.</p>
           ) : balanceQ.data ? (
-            <p>
-              {balanceQ.data.balance} {balanceQ.data.currency} • Updated{' '}
-              {new Date(balanceQ.data.lastUpdatedISO).toLocaleString()}
-            </p>
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <p>
+                {balanceQ.data.balance} {balanceQ.data.currency} • Updated{' '}
+                {new Date(balanceQ.data.lastUpdatedISO).toLocaleString()}
+              </p>
+              <div className="flex items-center gap-3">
+                <select
+                  value={selectedPackage}
+                  onChange={(e) => setSelectedPackage(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg"
+                >
+                  {CREDIT_PACKAGES.map((p) => (
+                    <option key={p.packageId} value={p.packageId}>
+                      {p.label} — {p.amount}
+                    </option>
+                  ))}
+                </select>
+                <Button
+                  variant="primary"
+                  onClick={handleBuyCredits}
+                  disabled={buyCredits.isPending}
+                >
+                  {buyCredits.isPending ? 'Redirecting…' : 'Buy credits'}
+                </Button>
+              </div>
+            </div>
           ) : null}
         </section>
 
@@ -118,10 +170,10 @@ function CreditsTrustContent() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
-                  {ledgerQ.data.entries.map((e) => (
+                  {ledgerQ.data.entries.map((e: { id: string; createdAtISO?: string; type?: string; amount?: number; status?: string; currency?: string; description?: string }) => (
                     <tr key={e.id}>
                       <td className="px-4 py-3 text-sm text-gray-700">
-                        {new Date(e.createdAtISO).toLocaleString()}
+                        {new Date(e.createdAtISO ?? '').toLocaleString()}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-900">{e.id}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{e.type}</td>

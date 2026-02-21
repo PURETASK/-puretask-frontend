@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -31,16 +31,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "PureTask - Professional Cleaning Services",
   description: "Book trusted cleaners in your area",
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 5,
-    userScalable: true,
-  },
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#2563eb' },
-    { media: '(prefers-color-scheme: dark)', color: '#1e40af' },
-  ],
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -49,6 +39,17 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false, // Disable auto-detection of phone numbers
   },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#2563eb' },
+    { media: '(prefers-color-scheme: dark)', color: '#1e40af' },
+  ],
 };
 
 export default function RootLayout({

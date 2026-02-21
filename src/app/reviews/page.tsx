@@ -34,7 +34,8 @@ function ReviewsContent() {
     queryKey: ['reviews', 'given'],
     queryFn: async () => {
       try {
-        return await apiClient.get('/client/reviews/given');
+        const res = await apiClient.get('/client/reviews/given');
+        return (res ?? {}) as { reviews?: unknown[] };
       } catch {
         return { reviews: [] };
       }
@@ -44,7 +45,10 @@ function ReviewsContent() {
   // Get review insights
   const { data: insightsData } = useQuery({
     queryKey: ['reviews', 'insights'],
-    queryFn: () => clientEnhancedService.getReviewInsights(),
+    queryFn: async () => {
+      const res = await clientEnhancedService.getReviewInsights();
+      return (res ?? {}) as { insights?: { total_reviews?: number; avg_rating?: number; average_rating?: number; most_reviewed_cleaner?: { name?: string }; [k: string]: unknown } };
+    },
   });
 
   const reviews = reviewsData?.reviews || [];
@@ -77,7 +81,7 @@ function ReviewsContent() {
           </div>
 
           {/* Review Insights */}
-          {insightsData?.insights && (
+          {insightsData?.insights ? (
             <Card className="mb-6 border-purple-200 bg-purple-50">
               <CardContent className="p-6">
                 <div className="flex items-start gap-3">
@@ -114,7 +118,7 @@ function ReviewsContent() {
                 </div>
               </CardContent>
             </Card>
-          )}
+          ) : null}
 
           {/* Reviews Given Tab */}
           {isLoading ? (
@@ -232,7 +236,7 @@ function WriteReviewModal({ review, onClose }: { review?: any; onClose: () => vo
         await apiClient.patch(`/client/reviews/${review.id}`, data);
         reviewId = review.id;
       } else {
-        const response = await apiClient.post('/client/reviews', data);
+        const response = await apiClient.post('/client/reviews', data) as { review?: { id?: string } };
         reviewId = response.review?.id;
       }
       // Add photos if any

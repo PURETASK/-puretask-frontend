@@ -33,16 +33,24 @@ function CleanerProfileContent() {
   // Get cleaner profile
   const { data: profileData, isLoading: loadingProfile } = useQuery({
     queryKey: ['cleaner', 'profile'],
-    queryFn: () => apiClient.get('/cleaner/profile'),
+    queryFn: async () => {
+      const res = await apiClient.get('/cleaner/profile');
+      return (res ?? {}) as { profile?: { profile?: { base_rate_cph?: number; deep_addon_cph?: number }; base_rate_cph?: number; deep_addon_cph?: number } };
+    },
   });
 
   // Get performance insights
   const { data: insightsData } = useQuery({
     queryKey: ['cleaner', 'profile', 'insights'],
-    queryFn: () => cleanerEnhancedService.getProfileInsights(),
+    queryFn: async () => {
+      const res = await cleanerEnhancedService.getProfileInsights();
+      return (res ?? {}) as { insights?: { profile_views?: number; bookings_from_profile?: number; completion_score?: number; avg_rating?: number } };
+    },
   });
 
-  const profile = profileData?.profile;
+  type ProfileShape = { profile?: { base_rate_cph?: number; deep_addon_cph?: number }; base_rate_cph?: number; deep_addon_cph?: number };
+  const profile = profileData?.profile as ProfileShape | undefined;
+  const pricingProfile = profile?.profile ?? profile;
 
   if (loadingProfile) {
     return <Loading size="lg" text="Loading profile..." fullScreen />;
@@ -84,7 +92,7 @@ function CleanerProfileContent() {
           </div>
 
           {/* Performance Insights Banner */}
-          {insightsData?.insights && (
+          {insightsData?.insights ? (
             <Card className="mb-6 border-blue-200 bg-blue-50">
               <CardContent className="p-6">
                 <div className="flex items-start gap-3">
@@ -129,11 +137,11 @@ function CleanerProfileContent() {
                 </div>
               </CardContent>
             </Card>
-          )}
+          ) : null}
 
           {/* Tab Content */}
           {activeTab === 'profile' && <ProfileTab profile={profile} insights={insightsData?.insights} />}
-          {activeTab === 'services' && <ServicesTab />}
+          {activeTab === 'services' && <ServicesTab profile={pricingProfile} />}
           {activeTab === 'areas' && <ServiceAreasTab />}
           {activeTab === 'verification' && <VerificationTab profile={profile} />}
           {activeTab === 'settings' && <SettingsTab />}
@@ -285,7 +293,7 @@ function ProfileTab({ profile, insights }: { profile: any; insights?: any }) {
 }
 
 // Services Tab Component
-function ServicesTab() {
+function ServicesTab({ profile: pricingProfile }: { profile?: { base_rate_cph?: number; deep_addon_cph?: number } }) {
   const { data: profile } = useQuery({
     queryKey: ['cleaner', 'profile'],
     queryFn: () => apiClient.get('/cleaner/profile'),
@@ -303,7 +311,7 @@ function ServicesTab() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Base Rate (per hour)</label>
               <Input
                 type="number"
-                defaultValue={profile?.profile?.base_rate_cph || 0}
+                defaultValue={pricingProfile?.base_rate_cph ?? 0}
                 placeholder="0.00"
               />
             </div>
@@ -311,7 +319,7 @@ function ServicesTab() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Deep Clean Add-on (per hour)</label>
               <Input
                 type="number"
-                defaultValue={profile?.profile?.deep_addon_cph || 0}
+                defaultValue={pricingProfile?.deep_addon_cph ?? 0}
                 placeholder="0.00"
               />
             </div>
@@ -330,7 +338,10 @@ function ServicesTab() {
 function ServiceAreasTab() {
   const { data: areasData } = useQuery({
     queryKey: ['cleaner', 'service-areas'],
-    queryFn: () => apiClient.get('/cleaner/service-areas'),
+    queryFn: async () => {
+      const res = await apiClient.get('/cleaner/service-areas');
+      return (res ?? {}) as { serviceAreas?: unknown[] };
+    },
   });
 
   const serviceAreas = areasData?.serviceAreas || [];

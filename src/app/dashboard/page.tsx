@@ -5,6 +5,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Breadcrumbs } from '@/components/navigation/Breadcrumbs';
 import { StatsCard } from '@/components/features/StatsCard';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Calendar, Users, DollarSign, TrendingUp, Plus } from 'lucide-react';
@@ -77,7 +78,7 @@ export default function DashboardPage() {
               ))}
             </div>
             <div className="mt-4 text-center">
-              <Button variant="outline">View All Bookings</Button>
+              <Link href="/client/bookings"><Button variant="outline">View All Bookings</Button></Link>
             </div>
           </CardContent>
         </Card>

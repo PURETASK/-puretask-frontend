@@ -50,7 +50,8 @@ export function captureMessage(message: string, level: 'info' | 'warning' | 'err
   
   // Fallback to console in development
   if (process.env.NODE_ENV === 'development') {
-    console[level]('Message captured:', message, context);
+    const method = level === 'warning' ? 'warn' : level;
+    (console as unknown as Record<string, (...args: unknown[]) => void>)[method]('Message captured:', message, context);
   }
 }
 

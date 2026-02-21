@@ -76,9 +76,8 @@ function ReferralContent() {
 
   const handleSendEmail = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Send referral email to:', email);
     setEmail('');
-    // Would call API here
+    // TODO: Call referral email API when backend is ready
   };
 
   return (

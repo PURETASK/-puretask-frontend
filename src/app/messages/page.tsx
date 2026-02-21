@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { Loading } from '@/components/ui/Loading';
 import { SkeletonList } from '@/components/ui/Skeleton';
 import { ErrorDisplay } from '@/components/error/ErrorDisplay';
 import { EmptyMessages } from '@/components/ui/EmptyState';

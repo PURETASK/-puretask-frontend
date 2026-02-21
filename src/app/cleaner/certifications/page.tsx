@@ -16,11 +16,16 @@ export default function CertificationsPage() {
   const [activeTab, setActiveTab] = useState('available');
 
   // Get certification recommendations
-  const { data: recommendationsData } = useQuery({
+  const { data: recommendationsData } = useQuery<{
+    recommendations?: Array<{ name: string; reason: string }>;
+  }>({
     queryKey: ['cleaner', 'certifications', 'recommendations'],
     queryFn: async () => {
       try {
-        return await apiClient.get('/cleaner/certifications/recommendations');
+        const res = await apiClient.get<{ recommendations?: Array<{ name: string; reason: string }> }>(
+          '/cleaner/certifications/recommendations'
+        );
+        return res ?? { recommendations: [] };
       } catch {
         return { recommendations: [] };
       }

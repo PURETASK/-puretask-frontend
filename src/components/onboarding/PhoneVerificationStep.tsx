@@ -114,13 +114,13 @@ export function PhoneVerificationStep({
           <div className="space-y-4">
             <Input
               label="Phone Number"
-              fieldType="tel"
+              fieldType="phone"
               placeholder="+1 (555) 123-4567"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               required
               autoComplete="tel"
-              helpText="Enter your phone number in international format (e.g., +1234567890)"
+              helperText="Enter your phone number in international format (e.g., +1234567890)"
             />
 
             {error && (
@@ -164,7 +164,7 @@ export function PhoneVerificationStep({
               required
               maxLength={6}
               autoComplete="one-time-code"
-              helpText="Enter the 6-digit code from your SMS"
+              helperText="Enter the 6-digit code from your SMS"
             />
 
             {error && (

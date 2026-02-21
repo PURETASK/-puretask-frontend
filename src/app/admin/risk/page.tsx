@@ -250,7 +250,7 @@ export default function AdminRiskPage() {
                           </div>
                         </div>
                         <p className="text-gray-700 mb-2">
-                          <strong>Issue:</strong> "{dispute.issue}"
+                          <strong>Issue:</strong> &quot;{dispute.issue}&quot;
                         </p>
                         <p className="text-sm text-gray-600">Evidence: {dispute.evidence}</p>
                       </div>

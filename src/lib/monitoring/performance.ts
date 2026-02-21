@@ -17,16 +17,21 @@ export interface PerformanceMetric {
 export function initPerformanceMonitoring() {
   if (typeof window === 'undefined') return;
 
-  // Track Core Web Vitals
-  if ('web-vital' in window) {
-    import('web-vitals').then(({ onCLS, onFID, onFCP, onLCP, onTTFB }) => {
+  // Track Core Web Vitals (optional; only if package is installed)
+  void (async () => {
+    try {
+      const vitals = await import(/* webpackMode: "weak" */ 'web-vitals').catch(() => null);
+      if (!vitals) return;
+      const { onCLS, onFID, onFCP, onLCP, onTTFB } = vitals;
       onCLS(sendToAnalytics);
       onFID(sendToAnalytics);
       onFCP(sendToAnalytics);
       onLCP(sendToAnalytics);
       onTTFB(sendToAnalytics);
-    });
-  }
+    } catch {
+      // web-vitals not installed
+    }
+  })();
 
   // Track custom metrics
   trackPageLoadTime();

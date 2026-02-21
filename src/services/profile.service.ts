@@ -13,9 +13,9 @@ export interface ChangePasswordData {
 }
 
 export const profileService = {
-  // Get current user profile
+  // Get current user profile (use /auth/me for current user)
   getProfile: async () => {
-    return apiClient.get<{ user: User }>('/users/me');
+    return apiClient.get<{ user: User }>('/auth/me');
   },
 
   // Update profile

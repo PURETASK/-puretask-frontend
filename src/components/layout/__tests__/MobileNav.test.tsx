@@ -79,8 +79,8 @@ describe('MobileNav', () => {
     const bookingsLink = screen.getByText(/bookings/i);
     fireEvent.click(bookingsLink);
 
-    // Menu should close (link should not be visible)
-    expect(screen.queryByText(/bookings/i)).not.toBeVisible();
+    // Menu should close (drawer unmounts or hides links)
+    expect(screen.queryByText(/bookings/i)).not.toBeInTheDocument();
   });
 
   it('toggles menu open/close', () => {

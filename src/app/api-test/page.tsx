@@ -8,6 +8,13 @@ import { messageService } from '@/services/message.service';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { apiGet } from '@/lib/apiClient';
+import { STORAGE_KEYS } from '@/lib/config';
+
+const BACKEND_BASE =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  'http://localhost:4000';
 
 export default function APITestPage() {
   const { user, isAuthenticated, login, logout } = useAuth();
@@ -26,6 +33,49 @@ export default function APITestPage() {
         timestamp: new Date().toLocaleTimeString(),
       },
     ]);
+  };
+
+  // Health check (no auth) – verifies backend is reachable and CORS is OK
+  const testHealth = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`${BACKEND_BASE}/health`, { method: 'GET' });
+      const text = await res.text();
+      let data: unknown;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = text || null;
+      }
+      addResult('Health Check', res.ok, { status: res.status, data });
+    } catch (err: any) {
+      addResult(
+        'Health Check',
+        false,
+        null,
+        err?.message || 'Network/CORS error. Is the backend on port 4000?'
+      );
+    }
+    setIsLoading(false);
+  };
+
+  // Protected route – uses apiClient (same client as Trust hooks); verifies Bearer token is sent
+  const testProtectedRoute = async () => {
+    setIsLoading(true);
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN) : null;
+      if (!token) {
+        addResult('Protected Route (/api/credits/balance)', false, null, 'No token. Log in first.');
+        setIsLoading(false);
+        return;
+      }
+      const data = await apiGet<{ balance?: number }>('/api/credits/balance');
+      addResult('Protected Route (/api/credits/balance)', true, data);
+    } catch (err: any) {
+      const msg = err?.status ? `${err.status}: ${err?.message || 'Unauthorized'}` : (err?.message || 'Request failed');
+      addResult('Protected Route (/api/credits/balance)', false, null, msg);
+    }
+    setIsLoading(false);
   };
 
   // Test Authentication
@@ -119,10 +169,13 @@ export default function APITestPage() {
               <h3 className="font-semibold text-gray-900 mb-3">API Configuration</h3>
               <div className="bg-gray-100 p-3 rounded-lg font-mono text-sm text-gray-700">
                 <div>
-                  <strong>Backend URL:</strong> {process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}
+                  <strong>Backend URL:</strong> {BACKEND_BASE}
                 </div>
                 <div>
-                  <strong>Frontend URL:</strong> {process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}
+                  <strong>Frontend URL:</strong> {process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001')}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Token key: {STORAGE_KEYS.AUTH_TOKEN} | Set via NEXT_PUBLIC_API_URL or NEXT_PUBLIC_API_BASE_URL
                 </div>
               </div>
             </div>
@@ -135,6 +188,20 @@ export default function APITestPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              <Button
+                variant="primary"
+                onClick={testHealth}
+                disabled={isLoading}
+              >
+                Health Check
+              </Button>
+              <Button
+                variant="primary"
+                onClick={testProtectedRoute}
+                disabled={isLoading}
+              >
+                Protected Route
+              </Button>
               <Button
                 variant="primary"
                 onClick={testAuth}
@@ -231,19 +298,20 @@ export default function APITestPage() {
             <div className="space-y-3 text-gray-700">
               <div>
                 <h4 className="font-semibold text-gray-900 mb-1">1. Start Your Backend Server</h4>
-                <p>Make sure your backend is running on <code className="bg-gray-100 px-2 py-1 rounded">http://localhost:3000</code></p>
+                <p>Backend must run on <code className="bg-gray-100 px-2 py-1 rounded">{BACKEND_BASE}</code> (configure via <code>NEXT_PUBLIC_API_URL</code> or <code>NEXT_PUBLIC_API_BASE_URL</code> in .env.local).</p>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-1">2. Create a Test Account</h4>
-                <p>Register a test user through your backend or use an existing account.</p>
+                <h4 className="font-semibold text-gray-900 mb-1">2. Quick Connectivity Tests</h4>
+                <p><strong>Health Check</strong> – verifies backend is reachable (no auth). If this fails, check CORS allows your origin (e.g. localhost:3001).</p>
+                <p><strong>Protected Route</strong> – calls <code>/api/credits/balance</code> with Bearer token. 200 = token valid; 401 = token missing/invalid.</p>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-1">3. Update Test Credentials</h4>
-                <p>Edit the <code className="bg-gray-100 px-2 py-1 rounded">testAuth()</code> function in this file to use your test credentials.</p>
+                <h4 className="font-semibold text-gray-900 mb-1">3. Create a Test Account</h4>
+                <p>Register via <code>/auth/register</code> or use an existing account. Backend must return <code>token</code> (not <code>accessToken</code>) in login/register response.</p>
               </div>
               <div>
                 <h4 className="font-semibold text-gray-900 mb-1">4. Run Tests</h4>
-                <p>Click the test buttons above to verify each API endpoint is working correctly.</p>
+                <p>Run Health Check first, then login and run Protected Route to confirm frontend–backend communication.</p>
               </div>
             </div>
           </CardContent>

@@ -49,12 +49,12 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
 
     // Connection handlers
     socket.on('connect', () => {
-      console.log('WebSocket connected');
+      if (process.env.NODE_ENV === 'development') console.log('WebSocket connected');
       setIsConnected(true);
     });
 
     socket.on('disconnect', () => {
-      console.log('WebSocket disconnected');
+      if (process.env.NODE_ENV === 'development') console.log('WebSocket disconnected');
       setIsConnected(false);
     });
 

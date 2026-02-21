@@ -130,7 +130,7 @@ export function AuthForm() {
             {mode === 'login' && (
               <div className="text-right">
                 <a
-                  href="/forgot-password"
+                  href="/auth/forgot-password"
                   className="text-sm text-blue-600 hover:text-blue-700"
                 >
                   Forgot password?

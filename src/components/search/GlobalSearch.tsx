@@ -55,7 +55,7 @@ export function GlobalSearch() {
       const response = await apiClient.get('/search/global', {
         params: { q: query, limit: 10 },
       });
-      return response.data;
+      return (response ?? {}) as { results?: SearchResult[] };
     },
     enabled: query.length >= 2,
     staleTime: 30000,
@@ -161,9 +161,9 @@ export function GlobalSearch() {
                 </div>
                 {isLoading ? (
                   <div className="p-4 text-center text-gray-500 text-sm">Searching...</div>
-                ) : searchResults?.results?.length > 0 ? (
+                ) : (searchResults?.results?.length ?? 0) > 0 ? (
                   <div className="max-h-64 overflow-y-auto">
-                    {searchResults.results.map((result: SearchResult) => (
+                    {(searchResults?.results ?? []).map((result: SearchResult) => (
                       <button
                         key={`${result.type}-${result.id}`}
                         onClick={() => {

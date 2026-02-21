@@ -14,10 +14,10 @@ import { useBooking } from '@/hooks/useBookings';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
 import { apiClient } from '@/lib/api';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/contexts/ToastContext';
 import { cleanerEnhancedService } from '@/services/cleanerEnhanced.service';
-import { MapPin, Clock, DollarSign, FileText, Navigation } from 'lucide-react';
+import { MapPin, Clock, DollarSign, FileText, Navigation, Target, Camera, MessageSquare, AlertTriangle } from 'lucide-react';
 
 export default function CleanerJobDetailsPage() {
   return (
@@ -46,7 +46,7 @@ function CleanerJobDetailsContent() {
   const { data: directionsData } = useQuery({
     queryKey: ['cleaner', 'jobs', jobId, 'directions'],
     queryFn: () => cleanerEnhancedService.getDirections(jobId),
-    enabled: !!jobId && (job.status === 'accepted' || job.status === 'scheduled'),
+    enabled: !!jobId && !!data?.booking && data.booking.status !== 'completed' && data.booking.status !== 'cancelled',
   });
 
   // Track time
@@ -143,10 +143,26 @@ function CleanerJobDetailsContent() {
     );
   }
 
-  const job = data.booking;
-  const canStart = job.status === 'accepted' || job.status === 'scheduled';
+  const job = data.booking as typeof data.booking & { client?: { name?: string; rating?: number } };
+  const canStart = job.status === 'accepted' || job.status === 'pending';
   const canComplete = job.status === 'in_progress';
   const isCompleted = job.status === 'completed';
+
+  // Clock-in window: opens 15 min before scheduled start
+  const scheduledStart = job.scheduled_start_at ? new Date(job.scheduled_start_at).getTime() : 0;
+  const clockInWindowStart = scheduledStart - 15 * 60 * 1000;
+  const now = Date.now();
+  const clockInBanner =
+    isCompleted || job.status === 'cancelled'
+      ? null
+      : now < clockInWindowStart
+        ? Math.ceil((clockInWindowStart - now) / 60000)
+        : now <= scheduledStart + 30 * 60 * 1000
+          ? 'open'
+          : null;
+
+  // Placeholder: goals this job helps (replace with API)
+  const jobHelpsGoals = ['Add-on completion', 'On-time completion', 'Before & after photos'];
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -163,9 +179,110 @@ function CleanerJobDetailsContent() {
             </Button>
           </div>
 
+          {/* Gamification: clock-in banner + "This job helps" tags */}
+          {clockInBanner !== null && (
+            <div className="mb-6 space-y-3">
+              {typeof clockInBanner === 'number' && (
+                <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 flex items-center gap-2 text-amber-800">
+                  <Clock className="h-5 w-5 flex-shrink-0" />
+                  <span className="text-sm font-medium">
+                    Clock-in window opens in {clockInBanner} minute{clockInBanner !== 1 ? 's' : ''}.
+                  </span>
+                </div>
+              )}
+              {clockInBanner === 'open' && (
+                <div className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 flex items-center gap-2 text-green-800">
+                  <Clock className="h-5 w-5 flex-shrink-0" />
+                  <span className="text-sm font-medium">You can clock in now.</span>
+                </div>
+              )}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm text-gray-500">This job helps:</span>
+                {jobHelpsGoals.map((g) => (
+                  <span
+                    key={g}
+                    className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800"
+                  >
+                    <Target className="h-3 w-3" />
+                    {g}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="grid lg:grid-cols-3 gap-6">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-6">
+              {/* Job checklist: clock in, send update, photos */}
+              {(canStart || canComplete || isCompleted) && (
+                <Card className="border-blue-100 bg-blue-50/50">
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Target className="h-4 w-4" />
+                      Job checklist
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-700">Clock in / out</span>
+                      {checkInLocation || job.status === 'in_progress' || isCompleted ? (
+                        <span className="text-green-600 text-sm font-medium">Done</span>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="primary"
+                          onClick={() => {
+                            handleCheckIn();
+                            if (canStart) updateJobStatus({ eventType: 'job_started' });
+                          }}
+                          isLoading={isUpdating}
+                        >
+                          Clock In
+                        </Button>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-700">Send update (template)</span>
+                      <Button size="sm" variant="outline" onClick={() => router.push(`/messages?jobId=${job.id}`)}>
+                        Send Update
+                      </Button>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-700">Before photo (at least 1)</span>
+                      {beforePhotos.length >= 1 ? (
+                        <span className="text-green-600 text-sm font-medium">Uploaded</span>
+                      ) : (
+                        <span className="text-amber-600 text-sm">Remember: before + after photo</span>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-700">After photo (at least 1)</span>
+                      {afterPhotos.length >= 1 ? (
+                        <span className="text-green-600 text-sm font-medium">Uploaded</span>
+                      ) : (
+                        <span className="text-amber-600 text-sm">Required to complete</span>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      <Button size="sm" variant="outline" onClick={() => document.querySelector<HTMLInputElement>('input[type="file"]')?.click()}>
+                        <Camera className="h-4 w-4 mr-1" />
+                        Upload Photos
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-gray-600"
+                        onClick={() => showToast('Report safety concern: use Support or in-app reporting when available.', 'info')}
+                      >
+                        <AlertTriangle className="h-4 w-4 mr-1" />
+                        Report Safety Concern
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Status Card */}
               <Card>
                 <CardHeader>
@@ -257,13 +374,13 @@ function CleanerJobDetailsContent() {
                     <div className="md:col-span-2">
                       <label className="text-sm font-medium text-gray-500">Address</label>
                       <p className="text-gray-900">{job.address}</p>
-                      {directionsData && (
+                      {directionsData && typeof directionsData === 'object' && 'directionsUrl' in directionsData ? (
                         <div className="mt-2 flex gap-2">
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => {
-                              window.open(directionsData.directionsUrl, '_blank');
+                              window.open((directionsData as { directionsUrl: string }).directionsUrl, '_blank');
                             }}
                             className="flex items-center gap-2"
                           >
@@ -283,7 +400,7 @@ function CleanerJobDetailsContent() {
                             View on Map
                           </Button>
                         </div>
-                      )}
+                      ) : null}
                     </div>
                     {job.client_notes && (
                       <div className="md:col-span-2">

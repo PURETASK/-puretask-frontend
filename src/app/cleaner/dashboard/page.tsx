@@ -32,15 +32,26 @@ function CleanerDashboardContent() {
   const { data: bookingsData, isLoading } = useBookings();
   const { data: analyticsData, isLoading: analyticsLoading } = useQuery({
     queryKey: ['cleaner', 'dashboard', 'analytics', 'month'],
-    queryFn: () => cleanerEnhancedService.getDashboardAnalytics('month'),
+    queryFn: async () => {
+      const res = await cleanerEnhancedService.getDashboardAnalytics('month');
+      return (res ?? {}) as { analytics?: Record<string, unknown> };
+    },
   });
   const { data: goalsData } = useQuery({
     queryKey: ['cleaner', 'goals'],
-    queryFn: () => cleanerEnhancedService.getGoals(),
+    queryFn: async () => {
+      const res = await cleanerEnhancedService.getGoals();
+      return (res ?? {}) as { goals?: Record<string, unknown> };
+    },
   });
   const bookings = bookingsData?.bookings || [];
-  const analytics = analyticsData?.analytics;
-  const goals = goalsData?.goals;
+  const analytics = (analyticsData?.analytics ?? {}) as Record<string, unknown> & {
+    earningsTrend?: Array<{ date?: string; earnings?: number }>;
+    jobsTrend?: Array<{ count?: number }>;
+    ratingTrend?: Array<{ avg_rating?: number }>;
+    platformAverage?: { avg_earnings?: number };
+  };
+  const goals = (goalsData?.goals ?? {}) as Record<string, { target?: number; period?: string }>;
 
   if (isLoading) {
     return (
@@ -104,9 +115,11 @@ function CleanerDashboardContent() {
     .slice(-6);
 
   // Activity feed
+  const getActivityType = (status: string): 'booking_created' | 'booking_completed' =>
+    status === 'completed' ? 'booking_completed' : 'booking_created';
   const activities = bookings.slice(0, 5).map((b: any) => ({
     id: b.id,
-    type: b.status === 'completed' ? 'booking_completed' : 'booking_created',
+    type: getActivityType(b.status ?? ''),
     title:
       b.status === 'completed'
         ? 'Job Completed'
@@ -156,7 +169,7 @@ function CleanerDashboardContent() {
                     <LineChart
                       data={analytics.earningsTrend.map((item: any) => ({
                         label: format(new Date(item.date), 'MMM d'),
-                        value: parseFloat(item.earnings || 0),
+                        value: Number(item.earnings ?? 0),
                       }))}
                       title=""
                       height={200}
@@ -165,7 +178,7 @@ function CleanerDashboardContent() {
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-gray-600">Platform Average</span>
                         <span className="font-semibold">
-                          ${parseFloat(analytics.platformAverage?.avg_earnings || 0).toFixed(0)}
+                          ${Number(analytics.platformAverage?.avg_earnings ?? 0).toFixed(0)}
                         </span>
                       </div>
                     </div>
@@ -233,14 +246,14 @@ function CleanerDashboardContent() {
                     {analytics.ratingTrend && analytics.ratingTrend.length > 0 && (
                       <div className="text-center p-4 bg-green-50 rounded-lg">
                         <p className="text-2xl font-bold text-green-600">
-                          {parseFloat(analytics.ratingTrend[analytics.ratingTrend.length - 1]?.avg_rating || 0).toFixed(1)}
+                          {Number(analytics.ratingTrend[analytics.ratingTrend.length - 1]?.avg_rating ?? 0).toFixed(1)}
                         </p>
                         <p className="text-sm text-gray-600 mt-1">Current Rating</p>
                       </div>
                     )}
                     <div className="text-center p-4 bg-purple-50 rounded-lg">
                       <p className="text-2xl font-bold text-purple-600">
-                        {analytics.platformAverage?.avg_earnings > totalEarnings ? 'Below' : 'Above'}
+                        {(analytics.platformAverage?.avg_earnings ?? 0) > totalEarnings ? 'Below' : 'Above'}
                       </p>
                       <p className="text-sm text-gray-600 mt-1">Platform Average</p>
                     </div>

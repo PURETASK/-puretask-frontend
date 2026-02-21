@@ -16,7 +16,7 @@ interface AuthContextType {
   refreshUser: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -46,7 +46,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           } catch (error) {
             // Token expired or invalid - clear storage but don't redirect yet
             // Let the user stay on current page, they'll be redirected on next API call
-            console.log('Token validation failed, clearing auth data');
+            if (process.env.NODE_ENV === 'development') {
+              console.log('Token validation failed, clearing auth data');
+            }
             localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
             localStorage.removeItem(STORAGE_KEYS.USER_DATA);
             setUser(null);

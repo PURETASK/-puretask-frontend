@@ -4,13 +4,34 @@
 'use client';
 
 import * as React from 'react';
-import { useInvoices } from '@/hooks/useBillingTrust';
+import { useInvoices, usePayInvoice } from '@/hooks/useBillingTrust';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { Button } from '@/components/ui/Button';
+import { useToast } from '@/contexts/ToastContext';
+
+const UNPAID_STATUSES = ['sent', 'open', 'draft'];
 
 function BillingTrustContent() {
+  const { showToast } = useToast();
   const invoicesQ = useInvoices();
+  const payInvoice = usePayInvoice();
+
+  const handlePay = (invoiceId: string, paymentMethod: 'credits' | 'card') => {
+    payInvoice.mutate(
+      { invoiceId, payment_method: paymentMethod },
+      {
+        onSuccess: () => {
+          showToast('Invoice paid successfully', 'success');
+          payInvoice.reset();
+        },
+        onError: (err: { message?: string }) => {
+          showToast(err?.message || 'Failed to pay invoice', 'error');
+        },
+      }
+    );
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -40,18 +61,45 @@ function BillingTrustContent() {
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">
                     Total
                   </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
-                {invoicesQ.data.invoices.map((inv) => (
+                {invoicesQ.data.invoices.map((inv: { id: string; status: string; total: number; currency?: string; createdAtISO?: string }) => (
                   <tr key={inv.id}>
                     <td className="px-4 py-3 text-sm text-gray-900">{inv.id}</td>
                     <td className="px-4 py-3 text-sm text-gray-700">
-                      {new Date(inv.createdAtISO).toLocaleDateString()}
+                      {new Date(inv.createdAtISO ?? '').toLocaleDateString()}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-700">{inv.status}</td>
                     <td className="px-4 py-3 text-sm text-gray-700">
                       {inv.total} {inv.currency}
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      {UNPAID_STATUSES.includes(inv.status) ? (
+                        <span className="flex gap-2">
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={() => handlePay(inv.id, 'credits')}
+                            disabled={payInvoice.isPending}
+                          >
+                            Pay with credits
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handlePay(inv.id, 'card')}
+                            disabled={payInvoice.isPending}
+                          >
+                            Pay with card
+                          </Button>
+                        </span>
+                      ) : (
+                        <span className="text-gray-500">—</span>
+                      )}
                     </td>
                   </tr>
                 ))}

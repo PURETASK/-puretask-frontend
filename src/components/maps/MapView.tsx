@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -38,7 +38,7 @@ export function MapView({
     }
 
     // Check if Google Maps is already loaded
-    if (window.google && window.google.maps) {
+    if ((window as GoogleMapsWindow).google?.maps) {
       initializeMap();
       return;
     }
@@ -63,9 +63,10 @@ export function MapView({
   }, [lat, lng, zoom, markers]);
 
   const initializeMap = () => {
-    if (!mapRef.current || !window.google) return;
+    const g = (window as GoogleMapsWindow).google;
+    if (!mapRef.current || !g?.maps) return;
 
-    const map = new window.google.maps.Map(mapRef.current, {
+    const map = new g.maps.Map(mapRef.current, {
       center: { lat, lng },
       zoom,
       mapTypeControl: true,
@@ -75,7 +76,7 @@ export function MapView({
 
     // Add markers
     markers.forEach((marker) => {
-      new window.google.maps.Marker({
+      new g.maps.Marker({
         position: { lat: marker.lat, lng: marker.lng },
         map,
         label: marker.label,
@@ -84,17 +85,17 @@ export function MapView({
 
     // Add directions if destination provided
     if (showDirections && destination) {
-      const directionsService = new window.google.maps.DirectionsService();
-      const directionsRenderer = new window.google.maps.DirectionsRenderer();
+      const directionsService = new g.maps.DirectionsService();
+      const directionsRenderer = new g.maps.DirectionsRenderer();
       directionsRenderer.setMap(map);
 
       directionsService.route(
         {
           origin: { lat, lng },
           destination: { lat: destination.lat, lng: destination.lng },
-          travelMode: window.google.maps.TravelMode.DRIVING,
+          travelMode: g.maps.TravelMode.DRIVING,
         },
-        (result, status) => {
+        (result: unknown, status: string) => {
           if (status === 'OK') {
             directionsRenderer.setDirections(result);
           }
@@ -135,8 +136,15 @@ export function MapView({
 }
 
 // Declare Google Maps types
-declare global {
-  interface Window {
-    google: typeof google;
-  }
+// Google Maps types - loaded at runtime
+interface GoogleMapsWindow {
+  google?: {
+    maps: {
+      Map: new (el: HTMLElement, opts: object) => { setCenter: (c: object) => void };
+      Marker: new (opts: object) => void;
+      DirectionsService: new () => { route: (req: object, cb: (result: unknown, status: string) => void) => void };
+      DirectionsRenderer: new () => { setMap: (m: unknown) => void; setDirections: (r: unknown) => void };
+      TravelMode: { DRIVING: string };
+    };
+  };
 }

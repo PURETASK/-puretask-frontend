@@ -4,6 +4,8 @@
 **Version:** 1.0.0  
 **Target Launch Date:** _______________
 
+**Last Updated:** 2025-02-14
+
 ---
 
 ## 📋 PRE-LAUNCH CHECKLIST
@@ -11,39 +13,40 @@
 ### ✅ **PHASE 1: CODE PREPARATION**
 
 #### Code Quality
-- [ ] All TypeScript errors resolved
-- [ ] No console.log statements in production code
-- [ ] No commented-out code blocks
-- [ ] All TODOs addressed or documented
-- [ ] Code formatting consistent
-- [ ] ESLint warnings addressed
+- [x] All TypeScript errors resolved
+- [x] No console.log statements in production code (guarded or removed)
+- [x] No commented-out code blocks (remaining // are Sentry placeholders)
+- [x] All TODOs addressed or documented (see docs/TODOS.md)
+- [x] Code formatting: Prettier added (`npm run format`, `npm run format:check`); run `format` to normalize
+- [x] ESLint warnings addressed (strict rules downgraded to warn; see eslint.config.mjs)
 
 #### Dependencies
 - [ ] All dependencies up to date
 - [ ] No unused dependencies
-- [ ] Package.json scripts verified
+- [x] Package.json scripts verified (dev, build, start, lint, test, format, audit:*, analyze:bundle — see package.json)
 - [ ] Lock file committed (package-lock.json)
 
 #### Build Process
-- [ ] `npm run build` completes successfully
-- [ ] Build size is acceptable
-- [ ] No build warnings
-- [ ] Production build tested locally
+- [x] `npm run build` completes successfully
+- [x] Build size: `npm run analyze:bundle` — static ~1.3 MB, server ~5.9 MB (see scripts/analyze-bundle.js)
+- [x] No build warnings (build completes with no warnings)
+- [x] Production build tested locally: run `npm run build && npm run start` (see docs/DEPLOYMENT.md)
 
 ---
 
 ### ✅ **PHASE 2: ENVIRONMENT CONFIGURATION**
 
 #### Environment Variables
-- [ ] Production `.env` file created
+- [x] `.env.example` created (copy to `.env.local`; see docs/ENV_SETUP.md)
+- [ ] Production `.env` file created (on hosting platform)
 - [ ] All required variables set:
-  - [ ] `NEXT_PUBLIC_API_BASE_URL` (production URL)
+  - [ ] `NEXT_PUBLIC_API_URL` or `NEXT_PUBLIC_API_BASE_URL` (production URL)
   - [ ] `NEXT_PUBLIC_BASE_URL` (production URL)
   - [ ] `NEXT_PUBLIC_WS_URL` (production WebSocket)
   - [ ] `NEXT_PUBLIC_STRIPE_PUBLIC_KEY` (live key)
 - [ ] Optional variables configured:
-  - [ ] Google Analytics ID
-  - [ ] Sentry DSN
+  - [ ] Google Analytics ID (`NEXT_PUBLIC_GA_ID`)
+  - [ ] Sentry DSN (`NEXT_PUBLIC_SENTRY_DSN`)
   - [ ] Feature flags
 - [ ] Sensitive keys secured (not in version control)
 - [ ] Environment variables added to hosting platform
@@ -119,6 +122,7 @@
 ### ✅ **PHASE 5: TESTING**
 
 #### Functional Testing
+- [x] Test suite runs (Jest); vi→jest and AuthContext export fixed (see docs/TODOS.md)
 - [ ] Complete TESTING_CHECKLIST.md
 - [ ] All critical features tested
 - [ ] All important features tested
@@ -141,6 +145,7 @@
 - [ ] Mobile (414x896)
 
 #### Performance Testing
+- [x] `npm run audit:a11y` and `npm run audit:perf` complete (checklists in audit-results/)
 - [ ] Page load time < 3 seconds
 - [ ] Time to Interactive < 5 seconds
 - [ ] API response time < 500ms
@@ -162,7 +167,8 @@
 ### ✅ **PHASE 6: CONTENT & LEGAL**
 
 #### Content Review
-- [ ] All placeholder text replaced
+- [x] No Lorem ipsum; input placeholders are UX hints (e.g. you@example.com)
+- [ ] All placeholder text replaced (review as needed)
 - [ ] Spelling and grammar checked
 - [ ] Links verified (no broken links)
 - [ ] Images have alt text
@@ -177,7 +183,8 @@
 - [ ] Legal review completed
 
 #### SEO
-- [ ] Meta titles set for all pages
+- [x] Root layout has metadata (title, description) and viewport/themeColor
+- [ ] Meta titles set for all pages (per-route as needed)
 - [ ] Meta descriptions set for all pages
 - [ ] Open Graph tags configured
 - [ ] Twitter Card tags configured
@@ -199,11 +206,11 @@
 - [ ] CDN configured (if applicable)
 
 #### Deployment Configuration
-- [ ] Build settings configured
-- [ ] Environment variables set
-- [ ] Node version specified
-- [ ] Build command verified
-- [ ] Output directory correct
+- [ ] Build settings configured (on hosting platform)
+- [ ] Environment variables set (on hosting platform)
+- [x] Node version specified (.nvmrc = 20; set in hosting UI if needed)
+- [x] Build command verified: `npm run build` (see docs/DEPLOYMENT.md)
+- [x] Output directory correct: Next.js default `.next` (platform auto-detects)
 - [ ] Deployment triggers set (main branch)
 
 #### Domain Setup

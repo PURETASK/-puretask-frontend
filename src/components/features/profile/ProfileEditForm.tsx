@@ -79,7 +79,7 @@ export function ProfileEditForm() {
             </label>
             <div className="flex items-center gap-4">
               <Avatar
-                src={user.avatar_url}
+                src={(user as { avatar_url?: string }).avatar_url}
                 alt={user.full_name || user.email}
                 size="xl"
                 fallback={user.full_name?.[0] || user.email?.[0] || 'U'}
@@ -94,7 +94,7 @@ export function ProfileEditForm() {
                 >
                   {isUploadingAvatar ? 'Uploading...' : 'Change Photo'}
                 </Button>
-                {user.avatar_url && (
+                {(user as { avatar_url?: string }).avatar_url && (
                   <Button
                     type="button"
                     variant="ghost"

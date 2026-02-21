@@ -56,12 +56,6 @@ export function generateMetadata({
       images: [ogImage],
       creator: '@puretask',
     },
-    viewport: {
-      width: 'device-width',
-      initialScale: 1,
-      maximumScale: 1,
-    },
-    themeColor: '#3B82F6',
     manifest: '/manifest.json',
     icons: {
       icon: '/favicon.ico',

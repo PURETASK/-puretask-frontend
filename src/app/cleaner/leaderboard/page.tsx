@@ -21,7 +21,8 @@ export default function LeaderboardPage() {
     queryKey: ['cleaner', 'leaderboard', 'personal', timeframe, category],
     queryFn: async () => {
       try {
-        return await apiClient.get(`/cleaner/leaderboard/personal?timeframe=${timeframe}&category=${category}`);
+        const res = await apiClient.get(`/cleaner/leaderboard/personal?timeframe=${timeframe}&category=${category}`);
+        return (res ?? {}) as { rank?: number | null; trend?: number | null; nextRank?: { rank?: number; gap?: string } | null };
       } catch {
         return { rank: null, trend: null, nextRank: null };
       }
@@ -139,13 +140,13 @@ export default function LeaderboardPage() {
                           </div>
                         </div>
                       )}
-                      {rankingData.nextRank && (
+                      {rankingData.nextRank ? (
                         <div>
                           <p className="text-blue-700">Next Rank</p>
                           <p className="text-lg font-bold text-blue-900">#{rankingData.nextRank.rank}</p>
                           <p className="text-xs text-blue-600">Need {rankingData.nextRank.gap}</p>
                         </div>
-                      )}
+                      ) : null}
                     </div>
                   </div>
                 </div>

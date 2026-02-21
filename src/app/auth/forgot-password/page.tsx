@@ -22,8 +22,8 @@ export default function ForgotPasswordPage() {
       await authService.requestPasswordReset(email);
       setIsSubmitted(true);
       showToast('Password reset link sent to your email!', 'success');
-    } catch (error: any) {
-      showToast(error.message || 'Failed to send reset link', 'error');
+    } catch (error: unknown) {
+      showToast(error instanceof Error ? error.message : 'Failed to send reset link', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
 
           <CardContent>
             <p className="text-center text-gray-700 mb-6">
-              We've sent a password reset link to <strong>{email}</strong>
+              We&apos;ve sent a password reset link to <strong>{email}</strong>
             </p>
             <p className="text-center text-sm text-gray-600 mb-6">
               Click the link in the email to reset your password. The link will expire in 1 hour.
@@ -77,7 +77,7 @@ export default function ForgotPasswordPage() {
           </div>
           <CardTitle className="text-center text-2xl">Forgot Password?</CardTitle>
           <p className="text-center text-gray-600 mt-2">
-            No worries! Enter your email and we'll send you a reset link.
+            No worries! Enter your email and we&apos;ll send you a reset link.
           </p>
         </CardHeader>
 

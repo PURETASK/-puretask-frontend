@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
 import { Input } from '@/components/ui/Input';
 import { Loading } from '@/components/ui/Loading';
+import { QuickTemplatePicker } from '@/components/gamification';
 import { useMessages, useSendMessage, useRealtimeMessages } from '@/hooks/useMessages';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -15,6 +16,7 @@ interface ChatWindowProps {
   recipientId?: string;
   recipientName?: string;
   recipientAvatar?: string;
+  jobId?: string;
 }
 
 export function ChatWindow({
@@ -22,15 +24,17 @@ export function ChatWindow({
   recipientId,
   recipientName = 'User',
   recipientAvatar,
+  jobId,
 }: ChatWindowProps) {
   const [message, setMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatId = jobId || conversationId;
 
-  const { data: messagesData, isLoading } = useMessages(conversationId);
+  const { data: messagesData, isLoading } = useMessages(chatId);
   const { mutate: sendMessage, isPending: isSending } = useSendMessage();
   
   // Enable real-time updates
-  useRealtimeMessages(conversationId);
+  useRealtimeMessages(chatId);
 
   const messages = messagesData?.messages || [];
 
@@ -137,6 +141,13 @@ export function ChatWindow({
 
       {/* Input */}
       <div className="border-t p-4">
+        <div className="flex items-center gap-2 mb-2">
+          <QuickTemplatePicker
+            onSelect={setMessage}
+            append
+            currentMessage={message}
+          />
+        </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm">
             <Paperclip className="h-5 w-5" />

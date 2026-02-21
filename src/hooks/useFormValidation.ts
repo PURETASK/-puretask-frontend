@@ -9,8 +9,9 @@ export function useFormValidation<T extends FieldValues>(
   defaultValues?: Partial<T>
 ): UseFormReturn<T> {
   return useForm<T>({
-    resolver: zodResolver(schema),
-    defaultValues: defaultValues as T,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(schema as any) as any,
+    defaultValues: defaultValues as any,
     mode: 'onBlur', // Validate on blur for better UX
-  });
+  }) as unknown as UseFormReturn<T>;
 }

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 export function useBookings(status?: string) {
   return useQuery({
     queryKey: ['bookings', status],
-    queryFn: () => bookingService.getMyBookings({ status }),
+    queryFn: () => bookingService.getMyBookings({ status: status as 'upcoming' | 'completed' | 'cancelled' | 'all' | undefined }),
   });
 }
 

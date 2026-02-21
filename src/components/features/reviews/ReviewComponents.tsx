@@ -73,7 +73,7 @@ export function ReviewList({
                             {review.reviewer.name}
                           </h4>
                           {review.is_verified && (
-                            <Badge variant="success" size="sm">
+                            <Badge variant="success" className="text-xs">
                               ✓ Verified
                             </Badge>
                           )}
@@ -88,7 +88,7 @@ export function ReviewList({
                     </div>
 
                     {showServiceType && review.booking && (
-                      <Badge variant="default" size="sm" className="mb-2">
+                      <Badge variant="default" className="mb-2 text-xs">
                         {review.booking.service_type.replace('_', ' ')}
                       </Badge>
                     )}

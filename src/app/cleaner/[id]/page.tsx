@@ -20,6 +20,8 @@ import { format } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
 import { AvailabilityCalendar } from '@/components/features/cleaner/AvailabilityCalendar';
 import { PhotoGallery } from '@/components/features/cleaner/PhotoGallery';
+import { LevelBadge } from '@/components/gamification';
+import { Award, HelpCircle } from 'lucide-react';
 
 export default function CleanerProfilePage() {
   const params = useParams();
@@ -56,6 +58,11 @@ export default function CleanerProfilePage() {
 
   const cleaner = cleanerData.cleaner;
   const reviews = reviewsData?.reviews || [];
+  // Trust signals for clients (level + top badges). Use API when available.
+  const cleanerLevel = (cleaner as { level?: number }).level ?? null;
+  const topBadges: { id: string; name: string; icon?: string }[] =
+    (cleaner as { badges?: { id: string; name: string; icon?: string }[] }).badges?.slice(0, 3) ?? [];
+  const [showWhatMeans, setShowWhatMeans] = useState(false);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -108,6 +115,47 @@ export default function CleanerProfilePage() {
                           <Badge variant="info">⭐ Top Rated</Badge>
                         )}
                       </div>
+                      {/* Level + top badges (trust signals; no internal scoring exposed) */}
+                      {(cleanerLevel != null || topBadges.length > 0) && (
+                        <div className="mt-4 pt-4 border-t border-gray-100">
+                          <div className="flex flex-wrap items-center gap-3">
+                            {cleanerLevel != null && (
+                              <LevelBadge level={cleanerLevel} size="md" />
+                            )}
+                            {topBadges.length > 0 && (
+                              <div className="flex items-center gap-2">
+                                <Award className="h-4 w-4 text-amber-500" />
+                                <span className="text-sm text-gray-600">Top badges:</span>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {topBadges.map((b) => (
+                                    <span
+                                      key={b.id}
+                                      className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 border border-amber-200"
+                                      title={b.name}
+                                    >
+                                      {b.icon ?? '🏅'} {b.name}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => setShowWhatMeans(!showWhatMeans)}
+                              className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700"
+                            >
+                              <HelpCircle className="h-3.5 w-3.5" />
+                              What this means
+                            </button>
+                          </div>
+                          {showWhatMeans && (
+                            <p className="text-xs text-gray-500 mt-2 max-w-md">
+                              Level and badges reflect this cleaner’s track record on the platform—on-time jobs, quality photos, and positive reviews. 
+                              They’re trust signals only; we don’t share internal scoring.
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>

@@ -54,15 +54,13 @@ export function LottieSuccess({
         onLoad={() => setIsReady(true)}
         strategy="afterInteractive"
       />
-      {isReady && (
-        <dotlottie-wc
-          src={src}
-          autoplay={autoplay}
-          loop={loop}
-          style={{ width, height }}
-          className={className}
-        />
-      )}
+      {isReady && React.createElement('dotlottie-wc', {
+        src,
+        autoplay,
+        loop,
+        style: { width, height },
+        className,
+      })}
     </>
   );
 }

@@ -8,10 +8,10 @@ import { useRouter } from 'next/navigation';
 import { useBookings, useBooking, useCreateBooking, useCancelBooking } from '../useBookings';
 import * as bookingService from '@/services/booking.service';
 
-vi.mock('next/navigation');
-vi.mock('@/services/booking.service');
-vi.mock('@/contexts/ToastContext', () => ({
-  useToast: () => ({ showToast: vi.fn() }),
+jest.mock('next/navigation');
+jest.mock('@/services/booking.service');
+jest.mock('@/contexts/ToastContext', () => ({
+  useToast: () => ({ showToast: jest.fn() }),
 }));
 
 describe('useBookings hooks', () => {
@@ -26,11 +26,11 @@ describe('useBookings hooks', () => {
       },
     });
     mockRouter = {
-      push: vi.fn(),
-      replace: vi.fn(),
+      push: jest.fn(),
+      replace: jest.fn(),
     };
     (useRouter as any).mockReturnValue(mockRouter);
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (

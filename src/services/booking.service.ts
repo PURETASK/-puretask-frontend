@@ -41,7 +41,7 @@ export const bookingService = {
     page?: number;
     per_page?: number;
   }) => {
-    return apiClient.get('/bookings/me', { params });
+    return apiClient.get<{ bookings: Job[] }>('/bookings/me', { params });
   },
 
   // Cancel booking

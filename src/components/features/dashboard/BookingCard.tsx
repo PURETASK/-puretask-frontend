@@ -89,9 +89,9 @@ export function BookingCard({
               View details
             </Button>
           )}
-          <Button variant="outline" size="sm" asChild>
-            <Link href={`/messages?job=${id}`}>Message</Link>
-          </Button>
+          <Link href={`/messages?job=${id}`} className="inline-flex h-11 min-h-[44px] items-center justify-center rounded-lg border-2 border-blue-600 px-3 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-50">
+            Message
+          </Link>
         </div>
       </CardContent>
     </Card>

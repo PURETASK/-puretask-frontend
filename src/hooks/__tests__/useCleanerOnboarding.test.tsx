@@ -8,8 +8,8 @@ import { useRouter } from 'next/navigation';
 import { useCleanerOnboarding } from '../useCleanerOnboarding';
 import * as onboardingApi from '@/lib/api/cleanerOnboarding';
 
-vi.mock('next/navigation');
-vi.mock('@/lib/api/cleanerOnboarding');
+jest.mock('next/navigation');
+jest.mock('@/lib/api/cleanerOnboarding');
 
 describe('useCleanerOnboarding', () => {
   let queryClient: QueryClient;
@@ -23,11 +23,11 @@ describe('useCleanerOnboarding', () => {
       },
     });
     mockRouter = {
-      push: vi.fn(),
-      replace: vi.fn(),
+      push: jest.fn(),
+      replace: jest.fn(),
     };
     (useRouter as any).mockReturnValue(mockRouter);
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (

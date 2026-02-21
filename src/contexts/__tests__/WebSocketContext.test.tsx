@@ -1,21 +1,21 @@
 // src/contexts/__tests__/WebSocketContext.test.tsx
 // Unit tests for WebSocketContext
 
-import { describe, it, expect, beforeEach, vi } from '@jest/globals';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import { renderHook, waitFor } from '@testing-library/react';
 import { WebSocketProvider, useWebSocket } from '../WebSocketContext';
 import { AuthProvider } from '../AuthContext';
 import { io } from 'socket.io-client';
 
-vi.mock('socket.io-client');
-vi.mock('../AuthContext', () => ({
+jest.mock('socket.io-client');
+jest.mock('../AuthContext', () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   useAuth: () => ({
     isAuthenticated: true,
     user: { id: 'user-123', email: 'test@example.com' },
   }),
 }));
-vi.mock('@/lib/config', () => ({
+jest.mock('@/lib/config', () => ({
   API_CONFIG: { wsURL: 'ws://localhost:3001' },
   STORAGE_KEYS: { AUTH_TOKEN: 'auth_token' },
 }));
@@ -26,14 +26,14 @@ describe('WebSocketContext', () => {
   beforeEach(() => {
     localStorage.setItem('auth_token', 'test-token');
     mockSocket = {
-      on: vi.fn(),
-      off: vi.fn(),
-      emit: vi.fn(),
-      disconnect: vi.fn(),
+      on: jest.fn(),
+      off: jest.fn(),
+      emit: jest.fn(),
+      disconnect: jest.fn(),
       connected: true,
     };
     (io as any).mockReturnValue(mockSocket);
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   describe('useWebSocket', () => {
@@ -96,7 +96,7 @@ describe('WebSocketContext', () => {
       );
 
       const { result } = renderHook(() => useWebSocket(), { wrapper });
-      const callback = vi.fn();
+      const callback = jest.fn();
 
       result.current.on('test:event', callback);
 
@@ -111,7 +111,7 @@ describe('WebSocketContext', () => {
       );
 
       const { result } = renderHook(() => useWebSocket(), { wrapper });
-      const callback = vi.fn();
+      const callback = jest.fn();
 
       result.current.off('test:event', callback);
 

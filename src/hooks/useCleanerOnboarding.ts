@@ -153,7 +153,7 @@ export function useCleanerOnboarding() {
 
   // Step 3: Verify OTP
   const verifyOTPMutation = useMutation({
-    mutationFn: (data: PhoneVerificationData) => verifyOTP(data.phone_number, data.otp_code),
+    mutationFn: (data: PhoneVerificationData) => verifyOTP(data.phone_number, data.otp_code ?? ''),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['onboarding-progress'] });
       goToNextStep();

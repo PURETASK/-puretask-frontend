@@ -1,9 +1,36 @@
 // src/hooks/useCreditsTrust.ts
 // TanStack Query hooks for credits (Trust-Fintech REST)
 
-import { useQuery } from '@tanstack/react-query';
-import { apiGet } from '@/lib/apiClient';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiGet, apiPost } from '@/lib/apiClient';
 import type { CreditLedgerEntry, CreditsBalance } from '@/types/trust';
+
+export type BuyCreditsRequest = {
+  packageId: string;
+  successUrl: string;
+  cancelUrl: string;
+};
+
+export type BuyCreditsResponse = {
+  checkoutUrl?: string;
+  url?: string;
+};
+
+export function useBuyCredits() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: BuyCreditsRequest) =>
+      apiPost<BuyCreditsRequest, BuyCreditsResponse>('/credits/checkout', body),
+    onSuccess: (data) => {
+      const url = data?.checkoutUrl ?? data?.url;
+      if (url && typeof window !== 'undefined') {
+        window.location.href = url;
+      }
+      queryClient.invalidateQueries({ queryKey: ['credits', 'balance'] });
+      queryClient.invalidateQueries({ queryKey: ['credits', 'ledger'] });
+    },
+  });
+}
 
 export type CreditsLedgerFilters = {
   from?: string; // ISO date or datetime

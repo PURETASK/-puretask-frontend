@@ -188,7 +188,7 @@ export default function AdminCommunicationPage() {
                   <div className="space-y-2">
                     <div className="p-3 bg-gray-50 rounded-lg flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-gray-900">"Holiday Hours Update"</p>
+                        <p className="font-medium text-gray-900">&quot;Holiday Hours Update&quot;</p>
                         <p className="text-sm text-gray-600">Sent to 1,247 users • 2 days ago</p>
                       </div>
                       <Button variant="outline" size="sm">
@@ -197,7 +197,7 @@ export default function AdminCommunicationPage() {
                     </div>
                     <div className="p-3 bg-gray-50 rounded-lg flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-gray-900">"New Features!"</p>
+                        <p className="font-medium text-gray-900">&quot;New Features!&quot;</p>
                         <p className="text-sm text-gray-600">Sent to 345 cleaners • 5 days ago</p>
                       </div>
                       <Button variant="outline" size="sm">

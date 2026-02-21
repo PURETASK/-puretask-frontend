@@ -1,0 +1,20 @@
+# Dependencies and build
+node_modules
+.next
+out
+build
+dist
+coverage
+
+# Lock and generated
+package-lock.json
+*.min.js
+*.min.css
+
+# Legacy and scripts that may break
+legacy
+*.bak
+
+# Audit and test output
+audit-results
+eslint-out.json

@@ -16,6 +16,7 @@ import { useBookings } from '@/hooks/useBookings';
 import { useDashboardInsights, useRecommendations } from '@/hooks/useClientEnhanced';
 import { LineChart } from '@/components/ui/Charts';
 import { format } from 'date-fns';
+import { formatCurrency } from '@/lib/utils';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { BookingDetailsDrawer } from '@/components/bookings/BookingDetailsDrawer';
 import { Calendar, TrendingUp, Clock, Sparkles, CreditCard, FileText } from 'lucide-react';
@@ -79,9 +80,11 @@ function ClientDashboardContent() {
     }));
 
   // Activity feed data
+  const getActivityType = (status: string): 'booking_created' | 'booking_completed' =>
+    status === 'completed' ? 'booking_completed' : 'booking_created';
   const activities = bookings.slice(0, 5).map((b: any) => ({
     id: b.id,
-    type: b.status === 'completed' ? 'booking_completed' : 'booking_created',
+    type: getActivityType(b.status ?? ''),
     title:
       b.status === 'completed'
         ? 'Booking Completed'
@@ -105,18 +108,20 @@ function ClientDashboardContent() {
               <p className="text-gray-600 mt-1">Welcome back! Here's your overview.</p>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" asChild>
-                <Link href="/client/credits" className="flex items-center gap-2">
-                  <CreditCard className="h-4 w-4" />
-                  Credits
-                </Link>
-              </Button>
-              <Button variant="outline" asChild>
-                <Link href="/client/billing" className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  Billing
-                </Link>
-              </Button>
+              <Link
+                href="/client/credits"
+                className="inline-flex h-12 min-h-[44px] items-center justify-center gap-2 rounded-lg border-2 border-blue-600 px-4 text-base font-medium text-blue-600 transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
+              >
+                <CreditCard className="h-4 w-4" />
+                Credits
+              </Link>
+              <Link
+                href="/client/billing"
+                className="inline-flex h-12 min-h-[44px] items-center justify-center gap-2 rounded-lg border-2 border-blue-600 px-4 text-base font-medium text-blue-600 transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
+              >
+                <FileText className="h-4 w-4" />
+                Billing
+              </Link>
               <Button variant="primary" onClick={() => (window.location.href = '/search')}>
                 + Book a Cleaner
               </Button>
@@ -162,7 +167,7 @@ function ClientDashboardContent() {
                       variant="outline"
                       size="sm"
                       className="mt-2"
-                      onClick={() => (window.location.href = `/booking?cleaner=${insights.favoriteCleaner.cleaner_id}`)}
+                      onClick={() => (window.location.href = `/booking?cleaner=${insights.favoriteCleaner?.cleaner_id ?? ''}`)}
                     >
                       Book Again
                     </Button>

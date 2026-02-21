@@ -53,9 +53,10 @@ export function reportWebVitals(metric: any) {
       non_interaction: true,
     });
   }
-  
-  // Log for debugging
-  console.log("[Web Vitals]", metric.name, metric.value);
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[Web Vitals]', metric.name, metric.value);
+  }
 }
 
 /**
