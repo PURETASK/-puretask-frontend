@@ -7,7 +7,9 @@ import { Footer } from '@/components/layout/Footer';
 import { BookingCard } from '@/components/features/dashboard/BookingCard';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { SkeletonList } from '@/components/ui/Skeleton';
+import { Stagger, StaggerItem } from '@/components/motion/Stagger';
+import { AnimatedCardMotion } from '@/components/motion/AnimatedCardMotion';
+import { JobRowSkeleton } from '@/components/ui/skeleton/JobRowSkeleton';
 import { ErrorDisplay } from '@/components/error/ErrorDisplay';
 import { EmptyBookings } from '@/components/ui/EmptyState';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
@@ -39,8 +41,10 @@ function MyBookingsContent() {
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Header />
         <main className="flex-1 py-8 px-6">
-          <div className="max-w-7xl mx-auto">
-            <SkeletonList items={6} />
+          <div className="max-w-7xl mx-auto space-y-3">
+            <JobRowSkeleton />
+            <JobRowSkeleton />
+            <JobRowSkeleton />
           </div>
         </main>
       </div>
@@ -110,22 +114,26 @@ function MyBookingsContent() {
 
       {/* Bookings Grid */}
       {filteredBookings.length > 0 ? (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Stagger className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredBookings.map((booking: any) => (
-            <div key={booking.id} onClick={() => router.push(`/client/bookings/${booking.id}`)} className="cursor-pointer">
-              <BookingCard
-                id={booking.id}
-                cleanerName={booking.cleaner?.full_name || booking.cleaner?.name || 'Cleaner'}
-                date={format(new Date(booking.scheduled_start_at), 'MMM d, yyyy')}
-                time={format(new Date(booking.scheduled_start_at), 'h:mm a')}
-                service={booking.service_type || 'Standard Cleaning'}
-                address={booking.address}
-                status={booking.status}
-                price={booking.credit_amount * 10}
-              />
-            </div>
+            <StaggerItem key={booking.id}>
+              <AnimatedCardMotion>
+                <div onClick={() => router.push(`/client/bookings/${booking.id}`)} className="cursor-pointer">
+                  <BookingCard
+                    id={booking.id}
+                    cleanerName={booking.cleaner?.full_name || booking.cleaner?.name || 'Cleaner'}
+                    date={format(new Date(booking.scheduled_start_at), 'MMM d, yyyy')}
+                    time={format(new Date(booking.scheduled_start_at), 'h:mm a')}
+                    service={booking.service_type || 'Standard Cleaning'}
+                    address={booking.address}
+                    status={booking.status}
+                    price={booking.credit_amount * 10}
+                  />
+                </div>
+              </AnimatedCardMotion>
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
       ) : (
         <div className="bg-white rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
           <div className="text-5xl mb-4">📅</div>

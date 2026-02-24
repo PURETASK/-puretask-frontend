@@ -5,14 +5,20 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
+import { ScrollRevealSection } from '@/components/motion/ScrollRevealSection';
+import Link from 'next/link';
+
 export default function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-1 px-4 md:px-6 py-6 md:py-10">
         <HeroSection />
-        <HowItWorks />
+        <ScrollRevealSection delay={0.1} y={32}>
+          <HowItWorks />
+        </ScrollRevealSection>
         {/* Trust Badges Section */}
+        <ScrollRevealSection delay={0.15} y={24}>
         <section className="py-12 px-6 bg-white">
           <div className="max-w-6xl mx-auto">
             <div className="grid md:grid-cols-3 gap-8 text-center">
@@ -40,7 +46,9 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+        </ScrollRevealSection>
         {/* Testimonials Section */}
+        <ScrollRevealSection delay={0.1} y={28}>
         <section className="py-16 px-6 bg-gray-50">
           <div className="max-w-6xl mx-auto">
             <h2 className="text-4xl font-bold text-center mb-12 text-gray-900">
@@ -85,7 +93,9 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+        </ScrollRevealSection>
         {/* CTA Section */}
+        <ScrollRevealSection delay={0.1} y={24}>
         <section className="py-16 px-6 bg-blue-600 text-white">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-4xl font-bold mb-4">
@@ -95,15 +105,16 @@ export default function LandingPage() {
               Join thousands of happy customers today
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="secondary" size="lg">
-                Find Cleaners
+              <Button variant="secondary" size="lg" asChild>
+                <Link href="/search">Find Cleaners</Link>
               </Button>
-              <Button variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-blue-600">
-                Become a Cleaner
+              <Button variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-blue-600" asChild>
+                <Link href="/auth/register">Become a Cleaner</Link>
               </Button>
             </div>
           </div>
         </section>
+        </ScrollRevealSection>
       </main>
       <Footer />
     </div>

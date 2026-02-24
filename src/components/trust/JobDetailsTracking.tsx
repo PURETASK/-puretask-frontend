@@ -7,6 +7,8 @@ import ReliabilityRing from '@/components/trust/ReliabilityRing';
 import { mapBackendJobStatusToRail } from '@/components/trust/jobStatus';
 import type { JobDetailsDTO, JobCheckIn, JobPhoto, TrackingState } from '@/types/jobDetails';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { BeforeAfterCompare } from '@/components/trust/BeforeAfterCompare';
+import { PresenceMapCard } from '@/components/tracking/PresenceMapCard';
 import { MapPin, Clock, User, CreditCard, Camera } from 'lucide-react';
 
 type JobDetailsTrackingProps = {
@@ -85,6 +87,17 @@ function PhotosBlock({ photos }: { photos: JobPhoto[] }) {
   const after = photos.filter((p) => p.type === 'after');
   if (before.length === 0 && after.length === 0) return null;
 
+  const hasBoth = before.length > 0 && after.length > 0;
+  if (hasBoth) {
+    return (
+      <BeforeAfterCompare
+        before={before}
+        after={after}
+        className="w-full"
+      />
+    );
+  }
+
   return (
     <div className="grid grid-cols-2 gap-2">
       {before.length > 0 && (
@@ -133,8 +146,24 @@ export default function JobDetailsTracking({ details, tracking = null, compact =
   const railStatus = mapBackendJobStatusToRail(effectiveStatus);
   const isCancelledOrDisputed = ['cancelled', 'disputed'].includes((effectiveStatus || '').toLowerCase());
 
+  const mapStatus = effectiveStatus === 'on_my_way' ? 'on_route' : effectiveStatus === 'in_progress' || effectiveStatus === 'awaiting_approval' ? 'working' : effectiveStatus === 'completed' ? 'working' : 'scheduled';
+  const directionsUrl = job.address
+    ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(job.address)}`
+    : job.latitude != null && job.longitude != null
+      ? `https://www.google.com/maps/dir/?api=1&destination=${job.latitude},${job.longitude}`
+      : undefined;
+
   return (
     <div className="space-y-4">
+      {/* Presence map (Phase 3 placeholder) */}
+      {!isCancelledOrDisputed && (job.address || job.latitude != null) && (
+        <PresenceMapCard
+          status={mapStatus as 'on_route' | 'arrived' | 'working' | 'scheduled'}
+          address={job.address}
+          directionsUrl={directionsUrl}
+        />
+      )}
+
       {/* Timeline rail */}
       {!isCancelledOrDisputed && (
         <Card>

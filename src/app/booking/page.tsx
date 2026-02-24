@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import { useCleaner } from '@/hooks/useCleaners';
@@ -19,10 +19,12 @@ import { SkeletonList } from '@/components/ui/Skeleton';
 import { ErrorDisplay } from '@/components/error/ErrorDisplay';
 import { DateTimePicker } from '@/components/features/booking/DateTimePicker';
 import { ServiceSelection } from '@/components/features/booking/ServiceSelection';
+import { BookingStepper, BookingStepContent } from '@/components/features/booking/BookingStepper';
 import { formatCurrency } from '@/lib/utils';
 import { holidayService, Holiday } from '@/services/holiday.service';
 import { useToast } from '@/contexts/ToastContext';
 import { Save } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 
 function BookingPageContent() {
   const router = useRouter();
@@ -43,6 +45,7 @@ function BookingPageContent() {
   const cleaner = cleanerData?.cleaner;
 
   const [step, setStep] = useState(1);
+  const stepDirection = useRef<1 | -1>(1);
   const [bookingData, setBookingData] = useState({
     service_type: 'standard' as 'standard' | 'deep' | 'move_in_out',
     duration_hours: 3,
@@ -192,36 +195,15 @@ function BookingPageContent() {
       <main className="flex-1 py-8 px-6">
         <div className="max-w-5xl mx-auto">
           {/* Progress Steps */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between">
-              {[1, 2, 3, 4].map((s) => (
-                <div key={s} className="flex items-center flex-1">
-                  <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                      step >= s
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-300 text-gray-600'
-                    }`}
-                  >
-                    {s}
-                  </div>
-                  {s < 4 && (
-                    <div
-                      className={`flex-1 h-1 mx-2 ${
-                        step > s ? 'bg-blue-600' : 'bg-gray-300'
-                      }`}
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-between mt-2 text-sm text-gray-600">
-              <span>Service</span>
-              <span>Date & Time</span>
-              <span>Address</span>
-              <span>Confirm</span>
-            </div>
-          </div>
+          <BookingStepper
+            currentStep={step}
+            steps={[
+              { label: 'Service' },
+              { label: 'Date & Time' },
+              { label: 'Address' },
+              { label: 'Confirm' },
+            ]}
+          />
 
           <div className="grid lg:grid-cols-3 gap-6">
             {/* Main Form */}
@@ -236,26 +218,30 @@ function BookingPageContent() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {/* Step 1: Service Selection */}
-                  {step === 1 && (
-                    <ServiceSelection
-                      value={bookingData}
-                      onChange={(data) => setBookingData({ ...bookingData, ...data })}
-                    />
-                  )}
+                  <AnimatePresence mode="wait" initial={false}>
+                    {/* Step 1: Service Selection */}
+                    {step === 1 && (
+                      <BookingStepContent key={1} step={1} direction={stepDirection.current}>
+                        <ServiceSelection
+                          value={bookingData}
+                          onChange={(data) => setBookingData({ ...bookingData, ...data })}
+                        />
+                      </BookingStepContent>
+                    )}
 
-                  {/* Step 2: Date & Time */}
-                  {step === 2 && (
-                    <DateTimePicker
-                      cleanerId={cleanerId}
-                      onSelect={(date, time) =>
-                        setBookingData({
-                          ...bookingData,
-                          scheduled_date: date,
-                          scheduled_time: time,
-                        })
-                      }
-                    />
+                    {/* Step 2: Date & Time */}
+                    {step === 2 && (
+                      <BookingStepContent key={2} step={2} direction={stepDirection.current}>
+                        <DateTimePicker
+                          cleanerId={cleanerId}
+                          onSelect={(date, time) =>
+                            setBookingData({
+                              ...bookingData,
+                              scheduled_date: date,
+                              scheduled_time: time,
+                            })
+                          }
+                        />
                   )}
                   {step === 2 && !holidayLoading && selectedHoliday && (
                     <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
@@ -276,7 +262,8 @@ function BookingPageContent() {
                   )}
 
                   {/* Step 3: Address */}
-                  {step === 3 && (
+                    {step === 3 && (
+                      <BookingStepContent key={3} step={3} direction={stepDirection.current}>
                     <div className="space-y-4">
                       <Input
                         label="Street Address"
@@ -358,10 +345,12 @@ function BookingPageContent() {
                         />
                       </div>
                     </div>
-                  )}
+                      </BookingStepContent>
+                    )}
 
                   {/* Step 4: Review */}
-                  {step === 4 && (
+                    {step === 4 && (
+                      <BookingStepContent key={4} step={4} direction={stepDirection.current}>
                     <div className="space-y-6">
                       {!holidayLoading && selectedHoliday && (
                         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
@@ -410,14 +399,22 @@ function BookingPageContent() {
                           </div>
                         </div>
                       </div>
-                    </div>
-                  )}
+                      </BookingStepContent>
+                    )}
+
+                  </AnimatePresence>
 
                   {/* Navigation Buttons */}
                   <div className="flex justify-between mt-8">
                     <div className="flex gap-2">
                       {step > 1 && (
-                        <Button variant="outline" onClick={() => setStep(step - 1)}>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            stepDirection.current = -1;
+                            setStep(step - 1);
+                          }}
+                        >
                           Back
                         </Button>
                       )}
@@ -437,7 +434,10 @@ function BookingPageContent() {
                     {step < 4 ? (
                       <Button
                         variant="primary"
-                        onClick={() => setStep(step + 1)}
+                        onClick={() => {
+                          stepDirection.current = 1;
+                          setStep(step + 1);
+                        }}
                         className="ml-auto"
                       >
                         Next

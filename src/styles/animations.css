@@ -212,7 +212,7 @@
 }
 
 .animate-shimmer {
-  animation: shimmer 2s infinite;
+  animation: shimmer 2s infinite linear;
   background: linear-gradient(
     to right,
     #f0f0f0 0%,
@@ -221,4 +221,28 @@
     #f0f0f0 100%
   );
   background-size: 1000px 100%;
+}
+
+/* Skeleton shimmer - works in light and dark */
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 25%,
+    rgba(255, 255, 255, 0.12) 37%,
+    rgba(255, 255, 255, 0.04) 63%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 1.2s infinite linear;
+  border-radius: inherit;
+}
+
+:root .skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e8e8e8 37%,
+    #f0f0f0 63%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 1.2s infinite linear;
 }

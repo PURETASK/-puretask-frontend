@@ -10,6 +10,8 @@ interface SkeletonProps {
   height?: string | number;
   lines?: number;
   animated?: boolean;
+  /** 'pulse' = default opacity pulse; 'shimmer' = moving gradient */
+  animation?: 'pulse' | 'shimmer';
 }
 
 export function Skeleton({
@@ -19,10 +21,11 @@ export function Skeleton({
   height,
   lines,
   animated = true,
+  animation = 'pulse',
 }: SkeletonProps) {
   const baseClasses = cn(
-    'bg-gray-200 dark:bg-gray-700',
-    animated && 'animate-pulse',
+    animation === 'shimmer' ? 'skeleton-shimmer rounded' : 'bg-gray-200 dark:bg-gray-700',
+    animated && animation === 'pulse' && 'animate-pulse',
     className
   );
 
@@ -93,15 +96,15 @@ export function SkeletonTable({ rows = 5, columns = 4 }: { rows?: number; column
   );
 }
 
-export function SkeletonList({ items = 5 }: { items?: number }) {
+export function SkeletonList({ items = 5, animation = 'shimmer' }: { items?: number; animation?: 'pulse' | 'shimmer' }) {
   return (
     <div className="space-y-4">
       {Array.from({ length: items }).map((_, i) => (
         <div key={i} className="flex items-center gap-4">
-          <Skeleton variant="circular" width={48} height={48} />
+          <Skeleton animation={animation} variant="circular" width={48} height={48} />
           <div className="flex-1 space-y-2">
-            <Skeleton width="60%" height={16} />
-            <Skeleton width="40%" height={12} />
+            <Skeleton animation={animation} width="60%" height={16} />
+            <Skeleton animation={animation} width="40%" height={12} />
           </div>
         </div>
       ))}

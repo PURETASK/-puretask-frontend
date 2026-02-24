@@ -7,7 +7,7 @@ import { Footer } from '@/components/layout/Footer';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { SkeletonList } from '@/components/ui/Skeleton';
+import { JobRowSkeleton } from '@/components/ui/skeleton/JobRowSkeleton';
 import { ErrorDisplay } from '@/components/error/ErrorDisplay';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useBooking, useCancelBooking } from '@/hooks/useBookings';
@@ -54,8 +54,10 @@ function BookingDetailsContent() {
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Header />
         <main className="flex-1 py-8 px-6">
-          <div className="max-w-7xl mx-auto">
-            <SkeletonList items={6} />
+          <div className="max-w-7xl mx-auto space-y-3">
+            <JobRowSkeleton />
+            <JobRowSkeleton />
+            <JobRowSkeleton />
           </div>
         </main>
       </div>

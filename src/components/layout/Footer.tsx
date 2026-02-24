@@ -22,6 +22,7 @@ export function Footer({ className }: FooterProps) {
               <li><Link href="/help" className="hover:text-white transition-colors">Help Center</Link></li>
               <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
               <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+              <li><Link href="/cookies" className="hover:text-white transition-colors">Cookie Policy</Link></li>
             </ul>
           </div>
 
@@ -35,6 +36,7 @@ export function Footer({ className }: FooterProps) {
               <li><Link href="/client/bookings" className="hover:text-white transition-colors">My Bookings</Link></li>
               <li><Link href="/client/recurring" className="hover:text-white transition-colors">Recurring Bookings</Link></li>
               <li><Link href="/client/settings" className="hover:text-white transition-colors">Settings</Link></li>
+              <li><Link href="/client/support" className="hover:text-white transition-colors">Support</Link></li>
               <li><Link href="/favorites" className="hover:text-white transition-colors">Favorite Cleaners</Link></li>
               <li><Link href="/reviews" className="hover:text-white transition-colors">Write a Review</Link></li>
             </ul>
@@ -51,6 +53,7 @@ export function Footer({ className }: FooterProps) {
               <li><Link href="/cleaner/certifications" className="hover:text-white transition-colors">Certifications</Link></li>
               <li><Link href="/cleaner/progress" className="hover:text-white transition-colors">Progress Tracking</Link></li>
               <li><Link href="/cleaner/leaderboard" className="hover:text-white transition-colors">Leaderboard</Link></li>
+              <li><Link href="/cleaner/reviews" className="hover:text-white transition-colors">My Reviews</Link></li>
             </ul>
           </div>
 

@@ -8,7 +8,9 @@ import { BookingCard } from '@/components/features/dashboard/BookingCard';
 import { ActivityFeed } from '@/components/features/dashboard/ActivityFeed';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { SkeletonList } from '@/components/ui/Skeleton';
+import { Stagger, StaggerItem } from '@/components/motion/Stagger';
+import { AnimatedCardMotion } from '@/components/motion/AnimatedCardMotion';
+import { JobRowSkeleton } from '@/components/ui/skeleton/JobRowSkeleton';
 import { ErrorDisplay } from '@/components/error/ErrorDisplay';
 import { EmptyBookings } from '@/components/ui/EmptyState';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
@@ -45,8 +47,10 @@ function ClientDashboardContent() {
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Header />
         <main className="flex-1 py-8 px-6">
-          <div className="max-w-7xl mx-auto">
-            <SkeletonList items={6} />
+          <div className="max-w-7xl mx-auto space-y-3">
+            <JobRowSkeleton />
+            <JobRowSkeleton />
+            <JobRowSkeleton />
           </div>
         </main>
       </div>
@@ -261,25 +265,28 @@ function ClientDashboardContent() {
                   </Button>
                 </div>
                 {upcomingBookings.length > 0 ? (
-                  <div className="grid gap-4">
+                  <Stagger className="grid gap-4">
                     {upcomingBookings.slice(0, 3).map((booking: any) => (
-                      <BookingCard
-                        key={booking.id}
-                        id={booking.id}
-                        cleanerName={booking.cleaner?.full_name || 'Cleaner'}
-                        date={format(new Date(booking.scheduled_start_at), 'MMM d, yyyy')}
-                        time={format(new Date(booking.scheduled_start_at), 'h:mm a')}
-                        service={booking.service_type}
-                        address={booking.address}
-                        status={booking.status}
-                        price={booking.total_price}
-                        onViewDetails={() => {
-                          setDrawerBooking(booking);
-                          setDrawerOpen(true);
-                        }}
-                      />
+                      <StaggerItem key={booking.id}>
+                        <AnimatedCardMotion>
+                          <BookingCard
+                            id={booking.id}
+                            cleanerName={booking.cleaner?.full_name || 'Cleaner'}
+                            date={format(new Date(booking.scheduled_start_at), 'MMM d, yyyy')}
+                            time={format(new Date(booking.scheduled_start_at), 'h:mm a')}
+                            service={booking.service_type}
+                            address={booking.address}
+                            status={booking.status}
+                            price={booking.total_price}
+                            onViewDetails={() => {
+                              setDrawerBooking(booking);
+                              setDrawerOpen(true);
+                            }}
+                          />
+                        </AnimatedCardMotion>
+                      </StaggerItem>
                     ))}
-                  </div>
+                  </Stagger>
                 ) : (
                   <EmptyBookings />
                 )}

@@ -55,7 +55,7 @@ export function getDashboardRoute(role: UserRole): string {
  */
 export function canAccessRoute(pathname: string, userRole: UserRole): boolean {
   // Public routes (no auth required)
-  const publicRoutes = ['/', '/auth/login', '/auth/register', '/auth/forgot-password', '/search'];
+  const publicRoutes = ['/', '/auth/login', '/auth/register', '/auth/forgot-password', '/auth/reset-password', '/auth/verify-email', '/search'];
   
   if (publicRoutes.some(route => pathname === route || pathname.startsWith(route))) {
     return true;

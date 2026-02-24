@@ -3,11 +3,11 @@
 import React from 'react';
 import { BadgeCard } from './BadgeCard';
 import type { BadgeCardProps } from './BadgeCard';
+import { Stagger } from '@/components/motion/Stagger';
 import { cn } from '@/lib/utils';
 
 export interface BadgeGridProps {
   badges: BadgeCardProps[];
-  /** Columns: 2, 3, or 4 */
   columns?: 2 | 3 | 4;
   emptyMessage?: string;
   className?: string;
@@ -33,7 +33,7 @@ export function BadgeGrid({
   }
 
   return (
-    <div
+    <Stagger
       className={cn(
         'grid gap-4',
         columns === 2 && 'grid-cols-1 sm:grid-cols-2',
@@ -45,6 +45,6 @@ export function BadgeGrid({
       {badges.map((badge) => (
         <BadgeCard key={badge.id} {...badge} />
       ))}
-    </div>
+    </Stagger>
   );
 }
