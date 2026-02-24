@@ -518,6 +518,7 @@ function PreferencesTab() {
       accept_same_day?: boolean;
     };
   };
+  const { showToast } = useToast();
   const { data: preferencesData } = useQuery<PreferencesResponse>({
     queryKey: ['cleaner', 'preferences'],
     queryFn: () => apiClient.get('/cleaner/preferences') as Promise<PreferencesResponse>,
@@ -534,7 +535,7 @@ function PreferencesTab() {
   const { mutate: updatePreferences, isPending } = useMutation({
     mutationFn: (data: any) => apiClient.put('/cleaner/preferences', data),
     onSuccess: () => {
-      // TODO: Show success toast
+      showToast('Preferences saved!', 'success');
     },
   });
 

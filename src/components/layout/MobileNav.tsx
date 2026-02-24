@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Menu, X, Home, Calendar, MessageSquare, User, Settings, LogOut } from 'lucide-react';
+import { Menu, X, Home, Calendar, MessageSquare, User, Settings, LogOut, Trophy, Target, Award, Medal } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -24,13 +24,34 @@ export function MobileNav({ className }: MobileNavProps) {
 
   const cleanerNavItems = [
     { href: '/cleaner/dashboard', label: 'Dashboard', icon: Home },
+    { href: '/cleaner/progress', label: 'Progress', icon: Trophy },
+    { href: '/cleaner/goals', label: 'Goals', icon: Target },
+    { href: '/cleaner/rewards', label: 'Rewards', icon: Award },
+    { href: '/cleaner/badges', label: 'Badges', icon: Medal },
     { href: '/cleaner/calendar', label: 'Calendar', icon: Calendar },
     { href: '/cleaner/jobs/requests', label: 'Jobs', icon: Calendar },
     { href: '/messages', label: 'Messages', icon: MessageSquare },
     { href: '/cleaner/profile', label: 'Profile', icon: User },
   ];
 
-  const items = user?.role === 'cleaner' ? cleanerNavItems : navItems;
+  const adminNavItems = [
+    { href: '/admin', label: 'Admin Panel', icon: Home },
+    { href: '/admin/gamification', label: 'Gamification', icon: Trophy },
+    { href: '/admin/gamification/flags', label: 'Flags', icon: Settings },
+    { href: '/admin/gamification/goals', label: 'Goals Library', icon: Target },
+    { href: '/admin/gamification/rewards', label: 'Rewards', icon: Award },
+    { href: '/admin/gamification/choices', label: 'Choice Groups', icon: Award },
+    { href: '/admin/gamification/governor', label: 'Governor', icon: Settings },
+    { href: '/admin/gamification/abuse', label: 'Abuse Monitor', icon: Settings },
+    { href: '/messages', label: 'Messages', icon: MessageSquare },
+  ];
+
+  const items =
+    user?.role === 'cleaner'
+      ? cleanerNavItems
+      : user?.role === 'admin'
+        ? adminNavItems
+        : navItems;
 
   return (
     <>

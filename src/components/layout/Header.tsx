@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search, Menu, Home, Users, Briefcase, Shield, LayoutDashboard } from 'lucide-react';
+import { Search, Menu, Home, Users, Briefcase, Shield, LayoutDashboard, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
@@ -46,22 +46,38 @@ export function Header({ onMenuClick, className }: HeaderProps) {
           
           {/* Admin-specific navigation */}
           {user?.role === 'admin' && (
-            <Link href="/admin">
-              <Button variant="ghost" size="md" className="gap-2">
-                <Shield className="h-4 w-4" />
-                Admin Panel
-              </Button>
-            </Link>
+            <>
+              <Link href="/admin">
+                <Button variant="ghost" size="md" className="gap-2">
+                  <Shield className="h-4 w-4" />
+                  Admin Panel
+                </Button>
+              </Link>
+              <Link href="/admin/gamification">
+                <Button variant="ghost" size="md" className="gap-2">
+                  <Trophy className="h-4 w-4" />
+                  Gamification
+                </Button>
+              </Link>
+            </>
           )}
           
           {/* Cleaner-specific navigation */}
           {user?.role === 'cleaner' && (
-            <Link href="/cleaner/dashboard">
-              <Button variant="ghost" size="md" className="gap-2">
-                <LayoutDashboard className="h-4 w-4" />
-                My Dashboard
-              </Button>
-            </Link>
+            <>
+              <Link href="/cleaner/dashboard">
+                <Button variant="ghost" size="md" className="gap-2">
+                  <LayoutDashboard className="h-4 w-4" />
+                  My Dashboard
+                </Button>
+              </Link>
+              <Link href="/cleaner/progress">
+                <Button variant="ghost" size="md" className="gap-2">
+                  <Trophy className="h-4 w-4" />
+                  Progress
+                </Button>
+              </Link>
+            </>
           )}
           
           {/* Client-specific navigation */}
@@ -155,6 +171,22 @@ export function Header({ onMenuClick, className }: HeaderProps) {
             Find Cleaner
           </Button>
         </Link>
+        {user?.role === 'cleaner' && (
+          <Link href="/cleaner/progress">
+            <Button variant="ghost" size="sm" className="gap-2 flex-shrink-0">
+              <Trophy className="h-4 w-4" />
+              Progress
+            </Button>
+          </Link>
+        )}
+        {user?.role === 'admin' && (
+          <Link href="/admin/gamification">
+            <Button variant="ghost" size="sm" className="gap-2 flex-shrink-0">
+              <Trophy className="h-4 w-4" />
+              Gamification
+            </Button>
+          </Link>
+        )}
         <Link href="/cleaner/onboarding">
           <Button variant="ghost" size="sm" className="gap-2 flex-shrink-0">
             <Briefcase className="h-4 w-4" />

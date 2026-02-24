@@ -14,6 +14,7 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useAvailableJobs, useAcceptJob } from '@/hooks/useCleanerJobs';
 import { useQuery } from '@tanstack/react-query';
 import { cleanerEnhancedService } from '@/services/cleanerEnhanced.service';
+import { buildExplanationFromBreakdown, type MatchingBreakdown } from '@/constants/matchingExplanations';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
 import { Badge } from '@/components/ui/Badge';
@@ -195,13 +196,27 @@ function JobRequestCard({
     queryKey: ['cleaner', 'jobs', job.id, 'matching-score'],
     queryFn: async () => {
       const res = await cleanerEnhancedService.getMatchingScore(job.id);
-      return (res ?? {}) as { matchingScore?: number; recommendation?: string; factors?: Array<{ name: string; score: number }> };
+      return (res ?? {}) as {
+        matchingScore?: number;
+        recommendation?: string;
+        factors?: Array<{ name: string; score: number }>;
+        explanation?: string[];
+        breakdown?: MatchingBreakdown;
+      };
     },
     enabled: !!job.id,
   });
 
-  const score = matchingScore?.matchingScore || 0;
-  const recommendation = matchingScore?.recommendation || 'medium';
+  const score = matchingScore?.matchingScore ?? 0;
+  const recommendation = matchingScore?.recommendation ?? 'medium';
+
+  // Build explanation bullets from breakdown (DECISIONS §3); fallback to explanation array or factors
+  const explanationBullets =
+    matchingScore?.breakdown && Object.keys(matchingScore.breakdown).length > 0
+      ? buildExplanationFromBreakdown(matchingScore.breakdown)
+      : matchingScore?.explanation?.length
+        ? matchingScore.explanation
+        : matchingScore?.factors?.map((f) => `${f.name}: ${Math.round(f.score)}%`) ?? [];
 
   return (
     <Card className="hover:shadow-lg transition-shadow">
@@ -232,18 +247,15 @@ function JobRequestCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Matching Score Breakdown */}
-        {matchingScore && matchingScore.factors && (
+        {/* Matching explanation: built from breakdown (reliability, distance, repeatClient, flexibility, riskAlignment) or fallback to explanation array / factors */}
+        {matchingScore && explanationBullets.length > 0 && (
           <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-            <p className="text-xs font-medium text-blue-900 mb-2">Match Breakdown:</p>
-            <div className="space-y-1">
-              {matchingScore.factors.map((factor: any, idx: number) => (
-                <div key={idx} className="flex items-center justify-between text-xs">
-                  <span className="text-blue-700">{factor.name}</span>
-                  <span className="font-medium text-blue-900">{Math.round(factor.score)}%</span>
-                </div>
+            <p className="text-xs font-medium text-blue-900 mb-2">Why this match:</p>
+            <ul className="space-y-1 list-disc list-inside text-xs text-blue-800">
+              {explanationBullets.map((bullet, idx) => (
+                <li key={idx}>{bullet}</li>
               ))}
-            </div>
+            </ul>
           </div>
         )}
 

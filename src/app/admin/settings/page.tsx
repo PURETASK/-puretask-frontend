@@ -12,6 +12,8 @@ import { useSystemSettings, useUpdateSetting } from '@/hooks/useAdmin';
 import { adminEnhancedService } from '@/services/adminEnhanced.service';
 import { useQuery } from '@tanstack/react-query';
 import { Settings, DollarSign, Mail, Shield, Bell, Globe, Sparkles, FileText } from 'lucide-react';
+import { getAdminSettingsCategoryLabel } from '@/constants/adminSettingsCategories';
+import type { SystemSetting } from '@/services/admin.service';
 
 type FeatureFlagsResponse = { flags?: Record<string, { description?: string }> };
 type AuditLogResponse = { logs?: unknown[] };
@@ -87,6 +89,43 @@ function AdminSettingsContent() {
               ← Back to Dashboard
             </Button>
           </div>
+
+          {/* Settings by category (API list): pass API field (setting_type or category) to getAdminSettingsCategoryLabel so key matches map */}
+          {settingsData?.data?.settings && (settingsData.data.settings as SystemSetting[]).length > 0 && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Settings by category</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {Object.entries(
+                    (settingsData.data?.settings ?? []).reduce<Record<string, SystemSetting[]>>(
+                      (acc, s) => {
+                        const typeKey = s.setting_type ?? s.category ?? 'other';
+                        if (!acc[typeKey]) acc[typeKey] = [];
+                        acc[typeKey].push(s);
+                        return acc;
+                      },
+                      {}
+                    )
+                  ).map(([typeKey, items]) => (
+                    <div key={typeKey}>
+                      <h3 className="text-sm font-semibold text-gray-700 mb-2">
+                        {getAdminSettingsCategoryLabel(typeKey)}
+                      </h3>
+                      <ul className="space-y-1 text-sm text-gray-600">
+                        {items.map((s) => (
+                          <li key={s.id}>
+                            {s.key}: {typeof s.value === 'string' && s.value.length > 40 ? `${s.value.slice(0, 40)}…` : String(s.value)}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <div className="grid lg:grid-cols-4 gap-6">
             {/* Tabs Sidebar */}

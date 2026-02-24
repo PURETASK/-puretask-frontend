@@ -17,6 +17,7 @@ import { apiClient } from '@/lib/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/contexts/ToastContext';
 import { cleanerEnhancedService } from '@/services/cleanerEnhanced.service';
+import { jobService } from '@/services/job.service';
 import { MapPin, Clock, DollarSign, FileText, Navigation, Target, Camera, MessageSquare, AlertTriangle } from 'lucide-react';
 
 export default function CleanerJobDetailsPage() {
@@ -82,6 +83,26 @@ function CleanerJobDetailsContent() {
     },
   });
 
+  const { mutate: checkIn, isPending: isCheckingIn } = useMutation({
+    mutationFn: (payload: { lat: number; lng: number; accuracyM?: number }) =>
+      jobService.checkIn(jobId, { ...payload, source: 'device' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['booking', jobId] });
+      showToast('Checked in successfully!', 'success');
+    },
+    onError: (err: any) => {
+      showToast(err?.response?.data?.error?.message ?? 'Check-in failed', 'error');
+    },
+  });
+
+  const { mutateAsync: uploadPhoto, isPending: isUploadingPhoto } = useMutation({
+    mutationFn: ({ type, file }: { type: 'before' | 'after'; file: File }) =>
+      jobService.uploadJobPhoto(jobId, type, file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['booking', jobId] });
+    },
+  });
+
   const handleCheckIn = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -90,8 +111,11 @@ function CleanerJobDetailsContent() {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
           });
-          // TODO: Send check-in to backend
-          showToast('Checked in successfully!', 'success');
+          checkIn({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            accuracyM: position.coords.accuracy ?? undefined,
+          });
         },
         () => {
           showToast('Failed to get location. Please enable location services.', 'error');
@@ -100,15 +124,22 @@ function CleanerJobDetailsContent() {
     }
   };
 
-  const handlePhotoUpload = (type: 'before' | 'after', files: FileList | null) => {
+  const handlePhotoUpload = async (type: 'before' | 'after', files: FileList | null) => {
     if (!files) return;
     const fileArray = Array.from(files);
-    if (type === 'before') {
-      setBeforePhotos([...beforePhotos, ...fileArray]);
-    } else {
-      setAfterPhotos([...afterPhotos, ...fileArray]);
+    for (const file of fileArray) {
+      try {
+        await uploadPhoto({ type, file });
+      } catch {
+        showToast(`Failed to upload ${type} photo`, 'error');
+        return;
+      }
     }
-    // TODO: Upload photos to backend
+    if (type === 'before') {
+      setBeforePhotos((prev) => [...prev, ...fileArray]);
+    } else {
+      setAfterPhotos((prev) => [...prev, ...fileArray]);
+    }
     showToast(`${type === 'before' ? 'Before' : 'After'} photos uploaded!`, 'success');
   };
 
@@ -236,7 +267,7 @@ function CleanerJobDetailsContent() {
                             handleCheckIn();
                             if (canStart) updateJobStatus({ eventType: 'job_started' });
                           }}
-                          isLoading={isUpdating}
+                          isLoading={isUpdating || isCheckingIn}
                         >
                           Clock In
                         </Button>
@@ -529,7 +560,7 @@ function CleanerJobDetailsContent() {
                           handleCheckIn();
                           updateJobStatus({ eventType: 'job_started' });
                         }}
-                        isLoading={isUpdating}
+                        isLoading={isUpdating || isCheckingIn}
                       >
                         Check In & Start Job
                       </Button>

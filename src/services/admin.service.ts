@@ -39,7 +39,9 @@ export interface SystemSetting {
   id: string;
   key: string;
   value: string;
-  category: string;
+  /** API may return category and/or setting_type; use the same value for getAdminSettingsCategoryLabel() */
+  category?: string;
+  setting_type?: string;
   description?: string;
 }
 

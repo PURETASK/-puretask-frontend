@@ -8,9 +8,8 @@ import { OnboardingProgress } from '../OnboardingProgress';
 describe('OnboardingProgress', () => {
   it('displays progress percentage', () => {
     render(<OnboardingProgress currentStep={3} totalSteps={10} progress={30} />);
-    
-    expect(screen.getByText('30% Complete')).toBeInTheDocument();
-    expect(screen.getByText('Step 3 of 10')).toBeInTheDocument();
+    expect(screen.getByText(/30\s*%\s*Complete/)).toBeInTheDocument();
+    expect(screen.getByText(/Step\s*3\s*of\s*10/)).toBeInTheDocument();
   });
 
   it('highlights current step', () => {

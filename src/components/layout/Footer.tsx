@@ -83,6 +83,38 @@ export function Footer({ className }: FooterProps) {
           </div>
         </div>
 
+        {/* Gamification – all pages (Cleaner + Admin) */}
+        <div className="mt-8 pt-8 border-t border-gray-800">
+          <h3 className="text-white font-semibold text-lg mb-4">Gamification</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <h4 className="text-gray-400 font-medium text-sm uppercase tracking-wide mb-3">Cleaner (Progress & rewards)</h4>
+              <ul className="space-y-2">
+                <li><Link href="/cleaner/progress" className="hover:text-white transition-colors">Progress Hub</Link></li>
+                <li><Link href="/cleaner/goals" className="hover:text-white transition-colors">Goals</Link></li>
+                <li><Link href="/cleaner/rewards" className="hover:text-white transition-colors">Rewards</Link></li>
+                <li><Link href="/cleaner/badges" className="hover:text-white transition-colors">Badges</Link></li>
+                <li><Link href="/cleaner/stats" className="hover:text-white transition-colors">Stats</Link></li>
+                <li><Link href="/cleaner/maintenance" className="hover:text-white transition-colors">Maintenance</Link></li>
+                <li><Link href="/cleaner/progress/level/4" className="hover:text-white transition-colors">Level 4 Detail</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-gray-400 font-medium text-sm uppercase tracking-wide mb-3">Admin</h4>
+              <ul className="space-y-2">
+                <li><Link href="/admin/gamification" className="hover:text-white transition-colors">Gamification Overview</Link></li>
+                <li><Link href="/admin/gamification/flags" className="hover:text-white transition-colors">Feature Flags</Link></li>
+                <li><Link href="/admin/gamification/goals" className="hover:text-white transition-colors">Goals Library</Link></li>
+                <li><Link href="/admin/gamification/rewards" className="hover:text-white transition-colors">Rewards</Link></li>
+                <li><Link href="/admin/gamification/choices" className="hover:text-white transition-colors">Choice Groups</Link></li>
+                <li><Link href="/admin/gamification/governor" className="hover:text-white transition-colors">Governor</Link></li>
+                <li><Link href="/admin/gamification/abuse" className="hover:text-white transition-colors">Abuse Monitor</Link></li>
+              </ul>
+              <p className="text-xs text-gray-500 mt-2">Support debug: /admin/support/cleaner/[id]/gamification</p>
+            </div>
+          </div>
+        </div>
+
         {/* Admin Section (Only show if user is admin - for now showing all) */}
         <div className="mt-8 pt-8 border-t border-gray-800">
           <h3 className="text-white font-semibold text-lg mb-4">Admin Portal</h3>

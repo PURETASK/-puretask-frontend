@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { useToast } from '@/contexts/ToastContext';
+import { referralService } from '@/services/referral.service';
 import {
   Gift,
   Copy,
@@ -30,43 +32,53 @@ export default function ReferralPage() {
 function ReferralContent() {
   const [copied, setCopied] = useState(false);
   const [email, setEmail] = useState('');
+  const [sending, setSending] = useState(false);
+  const { showToast } = useToast();
 
-  // Mock data - would come from API
-  const referralCode = 'PURE-JD2026';
-  const referralLink = `https://puretask.com/signup?ref=${referralCode}`;
-  const referralStats = {
+  // Mock data when GET /referral/me is not available; replace with API when backend provides it
+  const [referralCode, setReferralCode] = useState('PURE-JD2026');
+  const [referralLink, setReferralLink] = useState(`https://puretask.com/signup?ref=${referralCode}`);
+  const [referralStats, setReferralStats] = useState({
     totalReferrals: 12,
     completedBookings: 8,
     pendingRewards: 75,
     totalEarned: 240,
-  };
+  });
+  const [recentReferrals, setRecentReferrals] = useState([
+    { id: '1', name: 'Sarah Johnson', email: 's***@gmail.com', status: 'completed', reward: 30, date: '2026-01-05' },
+    { id: '2', name: 'Mike Chen', email: 'm***@yahoo.com', status: 'pending', reward: 15, date: '2026-01-08' },
+    { id: '3', name: 'Emily Davis', email: 'e***@hotmail.com', status: 'completed', reward: 30, date: '2025-12-28' },
+  ]);
 
-  const recentReferrals = [
-    {
-      id: '1',
-      name: 'Sarah Johnson',
-      email: 's***@gmail.com',
-      status: 'completed',
-      reward: 30,
-      date: '2026-01-05',
-    },
-    {
-      id: '2',
-      name: 'Mike Chen',
-      email: 'm***@yahoo.com',
-      status: 'pending',
-      reward: 15,
-      date: '2026-01-08',
-    },
-    {
-      id: '3',
-      name: 'Emily Davis',
-      email: 'e***@hotmail.com',
-      status: 'completed',
-      reward: 30,
-      date: '2025-12-28',
-    },
-  ];
+  // Optional: fetch referral/me on mount to replace mock data when backend is ready
+  React.useEffect(() => {
+    referralService.getMe().then((data) => {
+      if (data.referral_code) {
+        setReferralCode(data.referral_code);
+        setReferralLink(data.referral_link ?? `https://puretask.com/signup?ref=${data.referral_code}`);
+      }
+      if (data.total_referrals != null) {
+        setReferralStats({
+          totalReferrals: data.total_referrals ?? 0,
+          completedBookings: data.completed_bookings ?? 0,
+          pendingRewards: data.pending_rewards ?? 0,
+          totalEarned: data.total_earned ?? 0,
+        });
+      }
+      if (data.recent_referrals?.length) {
+        setRecentReferrals(
+          data.recent_referrals.map((r) => ({
+            id: r.id,
+            name: r.name,
+            email: r.email,
+            status: r.status,
+            reward: r.reward,
+            date: r.date,
+          }))
+        );
+      }
+    }).catch(() => {});
+  }, []);
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(referralLink);
@@ -74,10 +86,19 @@ function ReferralContent() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleSendEmail = (e: React.FormEvent) => {
+  const handleSendEmail = async (e: React.FormEvent) => {
     e.preventDefault();
-    setEmail('');
-    // TODO: Call referral email API when backend is ready
+    if (!email.trim()) return;
+    setSending(true);
+    try {
+      await referralService.sendInvite({ email: email.trim() });
+      showToast('Invite sent!', 'success');
+      setEmail('');
+    } catch (err: any) {
+      showToast(err?.response?.data?.error?.message ?? 'Failed to send invite', 'error');
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -256,7 +277,7 @@ function ReferralContent() {
                       required
                       className="flex-1"
                     />
-                    <Button type="submit" variant="primary">
+                    <Button type="submit" variant="primary" isLoading={sending}>
                       Send Invite
                     </Button>
                   </form>

@@ -68,5 +68,26 @@ export const jobService = {
   ): Promise<{ message: string }> => {
     return apiClient.post(`/jobs/${jobId}/rate`, { rating, comment });
   },
+
+  // Check-in (cleaner) with location
+  checkIn: async (
+    jobId: string,
+    payload: { lat: number; lng: number; accuracyM?: number; source?: 'device' | 'manual_override' }
+  ): Promise<{ ok: boolean }> => {
+    return apiClient.post(`/jobs/${jobId}/check-in`, payload);
+  },
+
+  // Upload before/after photo (cleaner)
+  uploadJobPhoto: async (
+    jobId: string,
+    kind: 'before' | 'after',
+    file: File
+  ): Promise<{ url?: string }> => {
+    const formData = new FormData();
+    formData.append('kind', kind);
+    formData.append('photo', file);
+    const res = await apiClient.post(`/jobs/${jobId}/photos`, formData);
+    return res as { url?: string };
+  },
 };
 

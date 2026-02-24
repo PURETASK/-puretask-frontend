@@ -75,13 +75,19 @@ export function getUserFriendlyMessage(error: AppError): string {
 }
 
 /**
- * Log error (in production, send to error tracking service)
+ * Log error (in production, send to Sentry or other error tracking service)
  */
 export function logError(error: AppError, context?: Record<string, any>) {
   if (process.env.NODE_ENV === 'development') {
     console.error('Error:', error, context);
-  } else {
-    // TODO: Send to Sentry or other error tracking service
-    // Sentry.captureException(error, { extra: context });
+  }
+  // Send to Sentry in production (or when DSN is set) so we have a record
+  if (typeof window !== 'undefined') {
+    import('@/lib/monitoring/sentry').then(({ captureException }) => {
+      const err = new Error(error.message);
+      (err as any).code = error.code;
+      (err as any).statusCode = error.statusCode;
+      captureException(err, { appError: error, ...context });
+    }).catch(() => {});
   }
 }

@@ -33,13 +33,13 @@ export default function AdminChoicesPage() {
       render: (v) => (Array.isArray(v) ? v.length : 0),
     },
     { key: 'eligibility_window_days', label: 'Window (days)', render: (v) => (v != null ? String(v) : '—') },
-    { key: 'expires_at', label: 'Expires', render: (v) => (v ? new Date(v).toLocaleDateString() : '—') },
+    { key: 'expires_at', label: 'Expires', render: (v) => (v != null ? new Date(v as string | number | Date).toLocaleDateString() : '—') },
     {
       key: 'enabled',
       label: 'Enabled',
       render: (v) => <span className={v ? 'text-green-600 font-medium' : 'text-gray-500'}>{v ? 'Yes' : 'No'}</span>,
     },
-    { key: 'updated_at', label: 'Updated', render: (v) => (v ? new Date(v).toLocaleDateString() : '—') },
+    { key: 'updated_at', label: 'Updated', render: (v) => (v != null ? new Date(v as string | number | Date).toLocaleDateString() : '—') },
   ];
 
   return (

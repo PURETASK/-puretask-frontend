@@ -64,7 +64,23 @@ function CalendarPageContent() {
     },
   });
 
-  const bookings: Array<{ day: number; time?: string; client?: string }> = []; // TODO: derive from useAssignedJobs or useCleanerSchedule
+  const { data: assignedJobs = [] } = useAssignedJobs();
+  const bookings = useMemo(() => {
+    return assignedJobs
+      .filter((job) => {
+        const d = new Date(job.scheduled_start_at);
+        return d.getFullYear() === viewYear && d.getMonth() === viewMonth;
+      })
+      .map((job) => {
+        const d = new Date(job.scheduled_start_at);
+        const clientName = (job as { client?: { full_name?: string } }).client?.full_name ?? `Client`;
+        return {
+          day: d.getDate(),
+          time: format(d, 'HH:mm'),
+          client: clientName,
+        };
+      });
+  }, [assignedJobs, viewYear, viewMonth]);
 
   const calendarHolidays = useMemo(() => {
     const map = new Map<number, Holiday>();

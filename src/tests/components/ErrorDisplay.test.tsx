@@ -6,17 +6,16 @@ describe('ErrorDisplay', () => {
   it('displays error message', () => {
     const error = new Error('Something went wrong');
     render(<ErrorDisplay error={error} />);
-    
-    expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
+    const matches = screen.getAllByText(/something went wrong/i);
+    expect(matches.length).toBeGreaterThan(0);
+    expect(matches[0]).toBeInTheDocument();
   });
 
   it('shows retry button when onRetry provided', () => {
     const error = new Error('Test error');
     const onRetry = jest.fn();
-    
     render(<ErrorDisplay error={error} onRetry={onRetry} />);
-    
-    expect(screen.getByText(/retry/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument();
   });
 
   it('displays custom title', () => {

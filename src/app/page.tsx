@@ -1,5 +1,5 @@
 import React from 'react';
-import { HeroSection } from '@/components/features/landing/HeroSection';
+import HeroSection from '@/components/hero/HeroSection';
 import { HowItWorks } from '@/components/features/landing/HowItWorks';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -9,7 +9,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-1">
+      <main className="flex-1 px-4 md:px-6 py-6 md:py-10">
         <HeroSection />
         <HowItWorks />
         {/* Trust Badges Section */}

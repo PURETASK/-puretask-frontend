@@ -14,6 +14,7 @@ import { SupportActionCard } from '@/components/appointments/SupportActionCard';
 import { Button } from '@/components/ui/Button';
 import { useQuery } from '@tanstack/react-query';
 import { appointmentService } from '@/services/appointment.service';
+import { mergeChecklistWithLabels } from '@/constants/trustChecklist';
 import type { LiveAppointment } from '@/types/appointment';
 
 function getNextAction(state: LiveAppointment['state']) {
@@ -95,7 +96,7 @@ function LiveAppointmentContent() {
 
           <GpsEvidencePanel events={liveData.gps} />
           <PhotoUploadPanel photos={liveData.photos} />
-          <ChecklistProgress items={liveData.checklist} />
+          <ChecklistProgress items={mergeChecklistWithLabels(liveData.checklist)} />
 
           <SupportActionCard />
 

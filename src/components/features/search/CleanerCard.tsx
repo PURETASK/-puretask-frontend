@@ -1,11 +1,15 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
 import { Rating } from '@/components/ui/Rating';
+import { useToast } from '@/contexts/ToastContext';
+import { useQueryClient } from '@tanstack/react-query';
+import { favoritesService } from '@/services/favorites.service';
+
 interface CleanerCardProps {
   id: string;
   name: string;
@@ -51,6 +55,25 @@ export function CleanerCard({
   distance_miles,
   badges = [],
 }: CleanerCardProps) {
+  const { showToast } = useToast();
+  const queryClient = useQueryClient();
+  const [favoritePending, setFavoritePending] = useState(false);
+
+  const handleAddToFavorites = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (favoritePending) return;
+    setFavoritePending(true);
+    try {
+      await favoritesService.addFavorite(id);
+      queryClient.invalidateQueries({ queryKey: ['client', 'favorites'] });
+      showToast('Added to favorites!', 'success');
+    } catch (err: any) {
+      showToast(err?.response?.data?.error?.message ?? 'Failed to add to favorites', 'error');
+    } finally {
+      setFavoritePending(false);
+    }
+  };
+
   // Normalize props (support both old and new format)
   const finalReviewCount = reviews_count ?? reviewCount ?? 0;
   const finalHourlyRate = price_per_hour ?? hourlyRate ?? 0;
@@ -102,11 +125,9 @@ export function CleanerCard({
                 </div>
               </div>
               <button
-                className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 ml-2"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // TODO: Add to favorites
-                }}
+                className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 ml-2 disabled:opacity-50"
+                onClick={handleAddToFavorites}
+                disabled={favoritePending}
                 aria-label="Add to favorites"
                 title="Add to favorites"
               >

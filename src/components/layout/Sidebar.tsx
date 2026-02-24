@@ -12,7 +12,7 @@ interface SidebarProps {
 }
 
 interface NavItem {
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string }>;
   label: string;
   href: string;
   badge?: number;
@@ -59,7 +59,9 @@ export function Sidebar({ isOpen = true, onClose, className }: SidebarProps) {
 
           {/* Navigation */}
           <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-            {navItems.map((item) => (
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
               <a
                 key={item.href}
                 href={item.href}
@@ -70,7 +72,7 @@ export function Sidebar({ isOpen = true, onClose, className }: SidebarProps) {
                     : 'text-gray-700 hover:bg-gray-100'
                 )}
               >
-                <item.icon className="h-5 w-5" />
+                <Icon className="h-5 w-5" />
                 <span className="flex-1">{item.label}</span>
                 {item.badge && (
                   <span className="bg-blue-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
@@ -78,7 +80,8 @@ export function Sidebar({ isOpen = true, onClose, className }: SidebarProps) {
                   </span>
                 )}
               </a>
-            ))}
+            );
+            })}
           </nav>
 
           {/* Bottom Section */}

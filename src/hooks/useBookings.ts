@@ -43,8 +43,10 @@ export function useCancelBooking() {
   return useMutation({
     mutationFn: ({ bookingId, reason }: { bookingId: string; reason?: string }) =>
       bookingService.cancelBooking(bookingId, reason),
-    onSuccess: () => {
+    onSuccess: (_, { bookingId }) => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['job-details', bookingId] });
+      queryClient.invalidateQueries({ queryKey: ['booking', bookingId] });
       showToast('Booking cancelled successfully', 'success');
     },
     onError: (error: any) => {

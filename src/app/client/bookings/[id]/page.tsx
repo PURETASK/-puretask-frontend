@@ -12,6 +12,9 @@ import { ErrorDisplay } from '@/components/error/ErrorDisplay';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useBooking, useCancelBooking } from '@/hooks/useBookings';
 import { useLiveJobStatus, useAddToCalendar } from '@/hooks/useClientEnhanced';
+import { useJobDetails } from '@/hooks/useJobDetails';
+import { useJobTrackingPoll } from '@/hooks/useJobTrackingPoll';
+import JobDetailsTracking from '@/components/trust/JobDetailsTracking';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
 import { Calendar, Share2, MapPin, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
@@ -30,6 +33,12 @@ function BookingDetailsContent() {
   const router = useRouter();
   const bookingId = params.id as string;
   const { data, isLoading, error } = useBooking(bookingId);
+  const { details: jobDetails, isLoading: jobDetailsLoading } = useJobDetails(bookingId);
+  const { tracking: jobTracking } = useJobTrackingPoll(
+    bookingId,
+    8000,
+    !!data?.booking && ['pending', 'accepted', 'scheduled', 'in_progress', 'on_my_way', 'awaiting_approval'].includes(data.booking.status)
+  );
   const { data: liveStatusData, isLoading: liveStatusLoading } = useLiveJobStatus(
     bookingId,
     !!data?.booking && ['pending', 'accepted', 'scheduled', 'in_progress'].includes(data.booking.status)
@@ -126,7 +135,43 @@ function BookingDetailsContent() {
           <div className="grid lg:grid-cols-3 gap-6">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Enhanced Status Card with Live Updates */}
+              {/* Job Details Tracking: rail, reliability ring, ledger, presence, photos */}
+              {jobDetails ? (
+                <>
+                  <JobDetailsTracking details={jobDetails} tracking={jobTracking ?? null} />
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => addToCalendar(bookingId)}
+                          isLoading={isAddingToCalendar}
+                          className="flex items-center gap-2"
+                        >
+                          <Calendar className="h-4 w-4" />
+                          Add to Calendar
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => setShowShareModal(true)} className="flex items-center gap-2">
+                          <Share2 className="h-4 w-4" />
+                          Share
+                        </Button>
+                        {booking.cleaner_id && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => router.push(`/messages?job=${bookingId}`)}
+                            className="flex items-center gap-2"
+                          >
+                            Message Cleaner
+                          </Button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              ) : (
+              /* Enhanced Status Card with Live Updates (fallback when no job details) */
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -232,6 +277,7 @@ function BookingDetailsContent() {
                   </div>
                 </CardContent>
               </Card>
+              )}
 
               {/* Booking Information */}
               <Card>
