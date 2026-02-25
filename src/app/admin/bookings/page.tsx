@@ -17,6 +17,7 @@ import { format } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
 import { MobileTable } from '@/components/mobile/MobileTable';
 import { useMobile } from '@/hooks/useMobile';
+import { EmptyAdminBookings } from '@/components/ui/EmptyState';
 
 type JobInsightsResponse = {
   insights?: {
@@ -300,6 +301,8 @@ function AdminBookingsContent() {
           {/* Bookings Table */}
           {isLoading ? (
             <Loading />
+          ) : bookings.length === 0 ? (
+            <EmptyAdminBookings />
           ) : (
             <Card>
               <CardHeader>

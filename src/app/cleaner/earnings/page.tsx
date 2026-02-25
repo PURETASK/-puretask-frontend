@@ -115,6 +115,26 @@ function CleanerEarningsContent() {
       <Header />
       <main className="flex-1 py-8 px-6">
         <div className="max-w-7xl mx-auto">
+          {earnings.nextPayout?.date && (earnings.pendingEarnings.credits > 0 || earnings.nextPayout.estimatedCredits > 0) && (
+            <Card className="mb-6 border-green-200 bg-green-50/50">
+              <CardContent className="py-4 flex flex-wrap items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <DollarSign className="h-8 w-8 text-green-600" />
+                  <div>
+                    <h3 className="font-semibold text-gray-900">Next payout</h3>
+                    <p className="text-sm text-gray-600">
+                      {formatCurrency(earnings.nextPayout.estimatedUsd || 0)} estimated on{' '}
+                      {earnings.nextPayout.date ? format(new Date(earnings.nextPayout.date), 'MMM d, yyyy') : '—'}
+                    </p>
+                  </div>
+                </div>
+                <Button onClick={() => setShowRequestModal(true)} disabled={earnings.pendingEarnings.credits === 0}>
+                  Request payout
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
           <div className="mb-8 flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Earnings & Payouts</h1>

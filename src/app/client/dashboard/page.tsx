@@ -23,6 +23,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { BookingDetailsDrawer } from '@/components/bookings/BookingDetailsDrawer';
 import { Calendar, TrendingUp, Clock, Sparkles, CreditCard, FileText } from 'lucide-react';
 import Link from 'next/link';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 export default function ClientDashboardPage() {
   return (
@@ -35,7 +36,8 @@ export default function ClientDashboardPage() {
 function ClientDashboardContent() {
   const [drawerBooking, setDrawerBooking] = React.useState<any>(null);
   const [drawerOpen, setDrawerOpen] = React.useState(false);
-  const { data: bookingsData, isLoading } = useBookings();
+  usePageTitle('Dashboard');
+  const { data: bookingsData, isLoading, error, refetch } = useBookings();
   const { data: insightsData, isLoading: insightsLoading } = useDashboardInsights();
   const { data: recommendationsData, isLoading: recommendationsLoading } = useRecommendations();
   const bookings = bookingsData?.bookings || [];
@@ -53,6 +55,26 @@ function ClientDashboardContent() {
             <JobRowSkeleton />
           </div>
         </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Header />
+        <main className="flex-1 py-8 px-6">
+          <div className="max-w-7xl mx-auto">
+            <ErrorDisplay
+              error={error instanceof Error ? error : new Error('Failed to load dashboard')}
+              onRetry={() => refetch()}
+              variant="card"
+              title="Something went wrong"
+            />
+          </div>
+        </main>
+        <Footer />
       </div>
     );
   }
@@ -113,18 +135,18 @@ function ClientDashboardContent() {
             </div>
             <div className="flex gap-2">
               <Link
-                href="/client/credits"
+                href="/client/credits-trust"
                 className="inline-flex h-12 min-h-[44px] items-center justify-center gap-2 rounded-lg border-2 border-blue-600 px-4 text-base font-medium text-blue-600 transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
               >
                 <CreditCard className="h-4 w-4" />
                 Credits
               </Link>
               <Link
-                href="/client/billing"
+                href="/client/billing-trust"
                 className="inline-flex h-12 min-h-[44px] items-center justify-center gap-2 rounded-lg border-2 border-blue-600 px-4 text-base font-medium text-blue-600 transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
               >
                 <FileText className="h-4 w-4" />
-                Billing
+                Invoices
               </Link>
               <Button variant="primary" onClick={() => (window.location.href = '/search')}>
                 + Book a Cleaner

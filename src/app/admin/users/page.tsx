@@ -22,6 +22,7 @@ import { Search, Filter, MoreVertical, Mail, Phone, Calendar, Shield, AlertTrian
 import { format } from 'date-fns';
 import { MobileTable } from '@/components/mobile/MobileTable';
 import { useMobile } from '@/hooks/useMobile';
+import { EmptyAdminUsers } from '@/components/ui/EmptyState';
 
 export default function AdminUsersPage() {
   return (
@@ -289,6 +290,8 @@ function AdminUsersContent() {
           {/* Users Table */}
           {isLoading ? (
             <Loading />
+          ) : users.length === 0 ? (
+            <EmptyAdminUsers />
           ) : (
             <Card>
               <CardHeader>

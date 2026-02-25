@@ -266,4 +266,4 @@ Ordered by impact and dependencies:
 
 ---
 
-*Sources: `docs/UI_REFERENCE.md`, `docs/BACKEND_ENDPOINTS.md`, `docs/CANONICAL_JOB_STATUS.md`, `docs/ADMIN_AUDIT_LOG.md`, `docs/PAGES_AND_FEATURES_ANALYSIS.md`, `docs/FRONTEND_QUESTION_LIST_ANSWER.md`, and current codebase. Update this doc when adding/removing pages or APIs.*
+*Sources: `docs/UI_REFERENCE.md`, `docs/UI_UX_CHANGES_AND_REVIEW.md`, `docs/FRONTEND_BUILD_GUIDE.md`, `docs/BACKEND_ENDPOINTS.md`, `docs/CANONICAL_JOB_STATUS.md`, `docs/ADMIN_AUDIT_LOG.md`, `docs/PAGES_AND_FEATURES_ANALYSIS.md`, `docs/FRONTEND_QUESTION_LIST_ANSWER.md`, and current codebase. Update this doc when adding/removing pages or APIs.*

@@ -116,6 +116,13 @@ export default function CleanerWorkflowPage() {
           <GradientButton onClick={() => r.push(`/cleaner/job/${jobId}/upload?kind=after`)}>
             Upload after photos
           </GradientButton>
+          <button
+            type="button"
+            onClick={() => r.push(`/cleaner/job/${jobId}/tracking`)}
+            className="w-full rounded-2xl border-2 border-blue-600 px-4 py-3 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors"
+          >
+            Full check-in / check-out (tracking + photos)
+          </button>
         </CardContent>
       </Card>
     </div>

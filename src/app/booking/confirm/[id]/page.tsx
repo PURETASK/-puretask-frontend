@@ -134,6 +134,15 @@ export default function BookingConfirmationPage() {
                   </p>
                 </div>
               </div>
+              <div className="mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200 flex items-start gap-2">
+                <Clock className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Credits held for this booking</p>
+                  <p className="text-xs text-gray-600 mt-0.5">
+                    {booking.credit_amount} credits are reserved. We keep a small buffer until the job is completed; any unused amount returns to your balance.
+                  </p>
+                </div>
+              </div>
             </CardContent>
           </Card>
 

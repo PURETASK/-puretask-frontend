@@ -52,6 +52,7 @@ function BookingDetailsContent() {
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
   const [showShareModal, setShowShareModal] = useState(false);
   const [approving, setApproving] = useState(false);
 
@@ -110,15 +111,6 @@ function BookingDetailsContent() {
     }
   };
 
-  const handleCancel = () => {
-    if (showCancelConfirm) {
-      cancelBooking({ bookingId, reason: 'Client requested cancellation' });
-      setShowCancelConfirm(false);
-    } else {
-      setShowCancelConfirm(true);
-    }
-  };
-
   const showHeldCredits = booking && isEscrowHeld(booking.status);
 
   return (
@@ -136,6 +128,31 @@ function BookingDetailsContent() {
               ← Back to Bookings
             </Button>
           </div>
+
+          {/* In progress: timer + held credits */}
+          {booking && (booking.status === 'in_progress' || booking.status === 'on_my_way') && showHeldCredits && (
+            <Card className="mb-6 border-blue-200 bg-blue-50/50">
+              <CardContent className="py-4">
+                <div className="flex flex-wrap items-center gap-6">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-blue-600" />
+                    <span className="text-sm font-medium text-gray-700">Job in progress</span>
+                    {jobDetails?.job?.actual_start_at && (
+                      <span className="text-xs text-gray-500">
+                        Started {format(new Date(jobDetails.job.actual_start_at), 'h:mm a')}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Lock className="h-5 w-5 text-amber-600" />
+                    <span className="text-sm font-medium text-gray-700">
+                      {booking.credit_amount ?? 0} credits held for this job
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <div className="grid lg:grid-cols-3 gap-6">
             {/* Main Content */}
@@ -384,17 +401,27 @@ function BookingDetailsContent() {
                     {showCancelConfirm ? (
                       <div className="space-y-4">
                         <p className="text-gray-700">Are you sure you want to cancel this booking?</p>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Reason (optional)
+                        </label>
+                        <textarea
+                          value={cancelReason}
+                          onChange={(e) => setCancelReason(e.target.value)}
+                          placeholder="e.g. Schedule conflict, found another cleaner..."
+                          className="w-full min-h-[80px] rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          disabled={isCancelling}
+                        />
                         <div className="flex gap-3">
-                          <Button variant="danger" onClick={handleCancel} isLoading={isCancelling}>
+                          <Button variant="danger" onClick={handleCancelConfirm} isLoading={isCancelling}>
                             Yes, Cancel Booking
                           </Button>
-                          <Button variant="outline" onClick={() => setShowCancelConfirm(false)}>
+                          <Button variant="outline" onClick={handleCancelDismiss} disabled={isCancelling}>
                             No, Keep Booking
                           </Button>
                         </div>
                       </div>
                     ) : (
-                      <Button variant="danger" onClick={handleCancel}>
+                      <Button variant="danger" onClick={handleCancelClick}>
                         Cancel Booking
                       </Button>
                     )}

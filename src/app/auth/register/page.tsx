@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import Link from 'next/link';
+import { Eye, EyeOff } from 'lucide-react';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 type UserRole = 'client' | 'cleaner';
 
@@ -14,6 +16,8 @@ export default function RegisterPage() {
   const router = useRouter();
   const { register } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [userType, setUserType] = useState<UserRole>('client');
   const [formData, setFormData] = useState({
     full_name: '',
@@ -22,6 +26,8 @@ export default function RegisterPage() {
     password: '',
     confirmPassword: '',
   });
+
+  usePageTitle('Sign Up');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -181,29 +187,49 @@ export default function RegisterPage() {
               disabled={isLoading}
             />
 
-            <Input
-              label="Password"
-              type="password"
-              autoComplete="new-password"
-              name="password"
-              placeholder="••••••••"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              disabled={isLoading}
-            />
+            <div className="relative">
+              <Input
+                label="Password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="new-password"
+                name="password"
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                disabled={isLoading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((p) => !p)}
+                className="absolute right-3 top-10 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded p-1"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
 
-            <Input
-              label="Confirm Password"
-              type="password"
-              autoComplete="new-password"
-              name="confirmPassword"
-              placeholder="••••••••"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
-              disabled={isLoading}
-            />
+            <div className="relative">
+              <Input
+                label="Confirm Password"
+                type={showConfirmPassword ? 'text' : 'password'}
+                autoComplete="new-password"
+                name="confirmPassword"
+                placeholder="••••••••"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+                disabled={isLoading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword((p) => !p)}
+                className="absolute right-3 top-10 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded p-1"
+                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+              >
+                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
 
             <label className="flex items-start gap-2 cursor-pointer">
               <input

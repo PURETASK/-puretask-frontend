@@ -31,6 +31,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "PureTask - Professional Cleaning Services",
   description: "Book trusted cleaners in your area",
+  manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',

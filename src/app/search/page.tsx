@@ -20,6 +20,7 @@ import { Card, CardContent } from '@/components/ui/Card';
 import { Save, Map, List } from 'lucide-react';
 import { useToast } from '@/contexts/ToastContext';
 import { LazyComponent } from '@/components/ui/LazyComponent';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 export default function SearchPage() {
   const [filters, setFilters] = useState<CleanerSearchParams>({
@@ -29,6 +30,7 @@ export default function SearchPage() {
   });
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const [showSaveSearch, setShowSaveSearch] = useState(false);
+  usePageTitle('Find a Cleaner');
   const { showToast } = useToast();
   const queryClient = useQueryClient();
 
@@ -188,6 +190,8 @@ export default function SearchPage() {
                             background_checked={cleaner.background_checked}
                             services={cleaner.services || []}
                             distance_miles={cleaner.distance_miles}
+                            tier={cleaner.tier}
+                            reliability_score={cleaner.reliability_score}
                           />
                         </LazyComponent>
                       ))}

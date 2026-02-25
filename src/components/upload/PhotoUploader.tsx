@@ -17,21 +17,31 @@ export function PhotoUploader({
   title,
   minRequired = 1,
   onDone,
+  onUploadedKeys,
 }: {
   jobId: string;
   kind: UploadKind;
   title: string;
   minRequired?: number;
   onDone?: () => void;
+  /** Called after upload with storage keys (for tracking check-in/check-out) */
+  onUploadedKeys?: (keys: string[]) => void;
 }) {
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<{ current: number; total: number } | null>(null);
   const canSubmit = files.length >= minRequired && !busy;
 
   async function handleUpload() {
     setBusy(true);
+    setError(null);
+    setProgress({ current: 0, total: files.length });
+    const keys: string[] = [];
     try {
-      for (const file of files) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        setProgress({ current: i + 1, total: files.length });
         const signed = await signUpload({
           jobId,
           kind,
@@ -39,9 +49,7 @@ export function PhotoUploader({
           contentType: file.type,
           bytes: file.size,
         });
-
         await putToSignedUrl(signed.putUrl, file);
-
         await commitPhoto({
           jobId,
           kind,
@@ -49,8 +57,14 @@ export function PhotoUploader({
           contentType: file.type,
           bytes: file.size,
         });
+        keys.push(signed.key);
       }
+      setProgress(null);
+      onUploadedKeys?.(keys);
       onDone?.();
+    } catch (e) {
+      setProgress(null);
+      setError(e instanceof Error ? e.message : 'Upload failed. Please try again.');
     } finally {
       setBusy(false);
     }
@@ -109,6 +123,30 @@ export function PhotoUploader({
           {files.length > 6 && (
             <div className="text-xs opacity-70">+{files.length - 6} more…</div>
           )}
+        </div>
+      )}
+
+      {progress && (
+        <div className="mt-4">
+          <div className="flex items-center justify-between text-sm text-gray-600 mb-1">
+            <span>Uploading…</span>
+            <span>{progress.current} / {progress.total}</span>
+          </div>
+          <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-blue-600 rounded-full transition-all duration-300"
+              style={{ width: `${(progress.current / progress.total) * 100}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="mt-4 p-3 rounded-lg bg-red-50 border border-red-200 flex items-center justify-between gap-2">
+          <p className="text-sm text-red-800">{error}</p>
+          <Button variant="outline" size="sm" onClick={() => { setError(null); handleUpload(); }}>
+            Retry
+          </Button>
         </div>
       )}
 

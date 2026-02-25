@@ -31,6 +31,10 @@ interface CleanerCardProps {
   location?: string;
   distance_miles?: number;
   badges?: string[];
+  /** Tier label (e.g. "Pro", "Elite") for badge */
+  tier?: string;
+  /** 0–100 reliability score for trust ring/label */
+  reliability_score?: number;
 }
 
 export function CleanerCard({
@@ -54,6 +58,8 @@ export function CleanerCard({
   location,
   distance_miles,
   badges = [],
+  tier,
+  reliability_score,
 }: CleanerCardProps) {
   const { showToast } = useToast();
   const queryClient = useQueryClient();
@@ -111,7 +117,19 @@ export function CleanerCard({
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between mb-2">
               <div className="flex-1 min-w-0">
-                <h3 className="text-xl font-semibold text-gray-900 truncate">{name}</h3>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-xl font-semibold text-gray-900 truncate">{name}</h3>
+                  {tier && (
+                    <Badge variant="secondary" className="text-xs bg-indigo-100 text-indigo-800">
+                      {tier}
+                    </Badge>
+                  )}
+                  {reliability_score != null && (
+                    <span className="text-xs font-medium text-gray-600" title="Reliability score">
+                      🛡️ {reliability_score}% reliable
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
                   <Rating value={rating} readOnly size="sm" />
                   <span className="text-sm text-gray-600">

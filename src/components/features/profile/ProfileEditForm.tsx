@@ -8,10 +8,11 @@ import { Input } from '@/components/ui/Input';
 import { Avatar } from '@/components/ui/Avatar';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Loading } from '@/components/ui/Loading';
+import { ProfileSkeleton } from '@/components/ui/skeleton/ProfileSkeleton';
 
 export function ProfileEditForm() {
   const { user } = useAuth();
-  const { profile, updateProfile, uploadAvatar, deleteAvatar, isUpdating, isUploadingAvatar, isDeletingAvatar } = useProfile();
+  const { profile, isLoading: profileLoading, updateProfile, uploadAvatar, deleteAvatar, isUpdating, isUploadingAvatar, isDeletingAvatar } = useProfile();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState({
@@ -60,6 +61,20 @@ export function ProfileEditForm() {
       deleteAvatar();
     }
   };
+
+  if (!user && profileLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Profile Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <ProfileSkeleton />
+          <ProfileSkeleton />
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (!user) {
     return <Loading size="lg" text="Loading profile..." />;

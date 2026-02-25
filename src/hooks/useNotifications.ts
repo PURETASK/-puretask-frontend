@@ -33,6 +33,7 @@ export function useMarkAsRead() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] });
     },
   });
 }
@@ -46,6 +47,7 @@ export function useMarkAllAsRead() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] });
     },
   });
 }

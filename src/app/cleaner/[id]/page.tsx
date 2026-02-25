@@ -161,21 +161,25 @@ export default function CleanerProfilePage() {
                 </CardContent>
               </Card>
 
-              {/* Reliability (Trust-Fintech) */}
-              {reliabilityData?.reliability && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Reliability score</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <ReliabilityScoreCard score={reliabilityData.reliability} showBreakdown />
-                    <ReliabilityBreakdownBars breakdown={reliabilityData.reliability.breakdown} />
-                    {reliabilityData.reliability.explainers?.length > 0 && (
-                      <ReliabilityWhyThisMatch explainers={reliabilityData.reliability.explainers} />
-                    )}
-                  </CardContent>
-                </Card>
-              )}
+              {/* Reliability (Trust-Fintech): score, tier, breakdown; empty state when unavailable */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Reliability score</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {reliabilityData?.reliability ? (
+                    <>
+                      <ReliabilityScoreCard score={reliabilityData.reliability} showBreakdown />
+                      <ReliabilityBreakdownBars breakdown={reliabilityData.reliability.breakdown} />
+                      {reliabilityData.reliability.explainers?.length > 0 && (
+                        <ReliabilityWhyThisMatch explainers={reliabilityData.reliability.explainers} />
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-sm text-gray-500 py-2">Reliability data not available.</p>
+                  )}
+                </CardContent>
+              </Card>
 
               {/* About */}
               {cleaner.bio && (

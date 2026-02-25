@@ -44,23 +44,44 @@ export default function HeroSection() {
           credit ledger that keeps everyone aligned.
         </motion.p>
 
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: 'easeOut', delay: 0.06 }}
+          className="mt-6 text-sm font-medium text-white/90"
+        >
+          I am a…
+        </motion.p>
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, ease: 'easeOut', delay: 0.1 }}
-          className="mt-7 flex flex-col sm:flex-row gap-3"
+          className="mt-3 flex flex-col sm:flex-row gap-3"
         >
           <Link
             href="/search"
-            className="rounded-2xl bg-white px-5 py-3 text-sm font-medium text-black hover:bg-white/90 text-center transition-colors"
+            className="rounded-2xl bg-white px-6 py-4 text-base font-semibold text-black hover:bg-white/90 text-center transition-colors shadow-lg"
           >
-            Get started
+            Client — Find a cleaner
           </Link>
           <Link
-            href="/#how-it-works"
-            className="rounded-2xl border border-white/20 px-5 py-3 text-sm font-medium text-white hover:bg-white/5 text-center transition-colors"
+            href="/auth/register"
+            className="rounded-2xl border-2 border-white/40 px-6 py-4 text-base font-semibold text-white hover:bg-white/10 text-center transition-colors"
           >
-            See how reliability works
+            Cleaner — Join & earn
+          </Link>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, ease: 'easeOut', delay: 0.15 }}
+          className="mt-4 flex flex-wrap gap-3"
+        >
+          <Link
+            href="/#how-it-works"
+            className="rounded-2xl border border-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/5 text-center transition-colors"
+          >
+            See how it works
           </Link>
         </motion.div>
 

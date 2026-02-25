@@ -9,21 +9,46 @@ import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { LottieSuccess } from '@/components/ui/LottieSuccess';
 import Link from 'next/link';
+import { Eye, EyeOff } from 'lucide-react';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 const SUCCESS_ANIMATION_DURATION_MS = 2500;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function validateEmail(email: string): string | null {
+  if (!email.trim()) return 'Email is required';
+  if (!EMAIL_REGEX.test(email.trim())) return 'Please enter a valid email address';
+  return null;
+}
+
+function validatePassword(password: string): string | null {
+  if (!password) return 'Password is required';
+  return null;
+}
 
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
 
+  usePageTitle('Sign In');
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const emailError = validateEmail(formData.email);
+    const passwordError = validatePassword(formData.password);
+    if (emailError || passwordError) {
+      setErrors({ email: emailError ?? undefined, password: passwordError ?? undefined });
+      return;
+    }
+    setErrors({});
     setIsLoading(true);
 
     try {
@@ -87,22 +112,35 @@ export default function LoginPage() {
               name="email"
               placeholder="you@example.com"
               value={formData.email}
-              onChange={handleChange}
+              onChange={(e) => { handleChange(e); setErrors((prev) => ({ ...prev, email: undefined })); }}
+              error={errors.email}
               required
               disabled={isLoading}
             />
 
-            <Input
-              label="Password"
-              type="password"
-              autoComplete="current-password"
-              name="password"
-              placeholder="••••••••"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              disabled={isLoading}
-            />
+            <div className="relative">
+              <Input
+                label="Password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
+                name="password"
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={(e) => { handleChange(e); setErrors((prev) => ({ ...prev, password: undefined })); }}
+                error={errors.password}
+                required
+                disabled={isLoading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((p) => !p)}
+                className="absolute right-3 top-10 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded p-1"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                tabIndex={0}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
 
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center gap-2 cursor-pointer">

@@ -11,6 +11,7 @@ import { Loading } from '@/components/ui/Loading';
 import { SkeletonList } from '@/components/ui/Skeleton';
 import { ErrorDisplay } from '@/components/error/ErrorDisplay';
 import { EmptyFavorites } from '@/components/ui/EmptyState';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { Heart, Star, MapPin, Calendar, Trash2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -76,10 +77,16 @@ function FavoritesContent() {
   });
 
   const favorites = favoritesData?.favorites || [];
+  const [removeConfirm, setRemoveConfirm] = useState<{ id: string; name: string } | null>(null);
 
-  const handleRemoveFavorite = (id: string) => {
-    if (confirm('Remove this cleaner from your favorites?')) {
-      removeFavorite(id);
+  const handleRemoveClick = (id: string, name: string) => {
+    setRemoveConfirm({ id, name });
+  };
+
+  const handleRemoveConfirm = () => {
+    if (removeConfirm) {
+      removeFavorite(removeConfirm.id);
+      setRemoveConfirm(null);
     }
   };
 
@@ -318,7 +325,7 @@ function FavoritesContent() {
                             </Button>
                             <Button
                               variant="ghost"
-                              onClick={() => handleRemoveFavorite(favorite.id)}
+                              onClick={() => handleRemoveClick(favorite.id, cleaner.name)}
                               className="text-red-600 hover:text-red-700 ml-auto"
                             >
                               <Trash2 className="h-4 w-4 mr-1" />
@@ -333,6 +340,17 @@ function FavoritesContent() {
               })}
             </div>
           )}
+
+          <ConfirmDialog
+            open={!!removeConfirm}
+            onClose={() => setRemoveConfirm(null)}
+            onConfirm={handleRemoveConfirm}
+            title="Remove from favorites?"
+            message={removeConfirm ? `Remove ${removeConfirm.name} from your favorites?` : ''}
+            confirmText="Remove"
+            cancelText="Keep"
+            variant="destructive"
+          />
         </div>
       </main>
       <Footer />

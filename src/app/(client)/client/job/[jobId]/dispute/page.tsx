@@ -29,6 +29,9 @@ export default function ClientDisputePage() {
     <Card className="rounded-3xl border-0 shadow-sm">
       <CardHeader>
         <CardTitle>Open a dispute</CardTitle>
+        <p className="text-sm text-gray-600 mt-1">
+          We’ll review your case and get back to you. You can add more details below.
+        </p>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid gap-2 sm:grid-cols-2">
@@ -69,6 +72,15 @@ export default function ClientDisputePage() {
         <GradientButton disabled={busy} onClick={submit}>
           {busy ? 'Submitting...' : 'Submit dispute'}
         </GradientButton>
+
+        <div className="mt-6 p-4 rounded-2xl bg-gray-50 border border-gray-200">
+          <h4 className="text-sm font-semibold text-gray-900 mb-2">What happens next?</h4>
+          <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
+            <li>We typically respond within 24–48 hours.</li>
+            <li>Our team may contact you or your cleaner for more details.</li>
+            <li>Possible outcomes: full or partial refund, or release of payment to the cleaner.</li>
+          </ul>
+        </div>
       </CardContent>
     </Card>
   );

@@ -109,3 +109,57 @@ export function EmptyReviews() {
     />
   );
 }
+
+export function EmptyInvoices() {
+  return (
+    <EmptyState
+      icon="📄"
+      title="No invoices yet"
+      description="Invoices will appear here when you have bookings or purchases"
+    />
+  );
+}
+
+export function EmptyLedger() {
+  return (
+    <EmptyState
+      icon="📋"
+      title="No transactions yet"
+      description="Your credit transactions will show here"
+      action={{
+        label: 'Buy credits',
+        onClick: () => (window.location.href = '/client/credits-trust'),
+      }}
+    />
+  );
+}
+
+export function EmptyAdminBookings() {
+  return (
+    <EmptyState
+      icon="📅"
+      title="No bookings match"
+      description="Try adjusting filters or check back later."
+    />
+  );
+}
+
+export function EmptyAdminUsers() {
+  return (
+    <EmptyState
+      icon="👤"
+      title="No users match"
+      description="Try adjusting search or filters."
+    />
+  );
+}
+
+export function EmptyNotifications() {
+  return (
+    <EmptyState
+      icon="🔔"
+      title="No notifications"
+      description="When you get booking updates or messages, they'll show here."
+    />
+  );
+}
