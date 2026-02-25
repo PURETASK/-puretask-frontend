@@ -16,13 +16,14 @@ function GoalDetailContent() {
   const params = useParams();
   const goalId = (params?.goalId as string) || '';
 
-  const { data: goals, isLoading, isError } = useQuery({
+  const { data: goalsData, isLoading, isError } = useQuery({
     queryKey: ['cleaner', 'goals'],
     queryFn: () => cleanerGamificationService.getGoals(),
     enabled: !!goalId,
   });
 
-  const goal = goals?.find((g) => g.id === goalId);
+  const goals = Array.isArray(goalsData) ? goalsData : (goalsData as { goals?: unknown[] })?.goals ?? [];
+  const goal = goals.find((g: { id?: string }) => g.id === goalId);
   const title = goal?.title ?? goal?.type ?? (goalId || 'Goal');
   const current = goal?.current ?? 0;
   const target = (goal?.target ?? 45) as number;
@@ -59,7 +60,7 @@ function GoalDetailContent() {
     );
   }
 
-  if ((isError || !goals?.length) && !goal) {
+  if ((isError || goals.length === 0) && !goal) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Header />

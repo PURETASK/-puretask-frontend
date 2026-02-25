@@ -77,7 +77,7 @@ export default function SearchPage() {
                   Find Your Perfect Cleaner
                 </h1>
                 <p className="text-gray-600">
-                  {data?.pagination.total || 0} professional cleaners available in your area
+                  {data?.pagination?.total ?? 0} professional cleaners available in your area
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -170,7 +170,7 @@ export default function SearchPage() {
               {/* Results */}
               {!isLoading && !error && data && (
                 <>
-                  {data.data.length > 0 ? (
+                  {Array.isArray(data?.data) && data.data.length > 0 ? (
                     <div className="grid gap-4">
                       {data.data.map((cleaner: any) => (
                         <LazyComponent key={cleaner.id} fallback={<div className="h-32 bg-gray-100 animate-pulse rounded" />}>
@@ -197,29 +197,32 @@ export default function SearchPage() {
                   )}
 
                   {/* Pagination */}
-                  {data.pagination && data.pagination.total_pages > 1 && (
-                    <div className="flex items-center justify-center gap-2 mt-6">
-                      <Button
-                        variant="outline"
-                        onClick={() => handlePageChange(data.pagination.page - 1)}
-                        disabled={data.pagination.page === 1}
-                        aria-label="Previous page"
-                      >
-                        Previous
-                      </Button>
-                      <span className="text-sm text-gray-600">
-                        Page {data.pagination.page} of {data.pagination.total_pages}
-                      </span>
-                      <Button
-                        variant="outline"
-                        onClick={() => handlePageChange(data.pagination.page + 1)}
-                        disabled={data.pagination.page === data.pagination.total_pages}
-                        aria-label="Next page"
-                      >
-                        Next
-                      </Button>
-                    </div>
-                  )}
+                  {(() => {
+                    const pagination = data?.pagination;
+                    return pagination && pagination.total_pages > 1 ? (
+                      <div className="flex items-center justify-center gap-2 mt-6">
+                        <Button
+                          variant="outline"
+                          onClick={() => handlePageChange(pagination.page - 1)}
+                          disabled={pagination.page === 1}
+                          aria-label="Previous page"
+                        >
+                          Previous
+                        </Button>
+                        <span className="text-sm text-gray-600">
+                          Page {pagination.page} of {pagination.total_pages}
+                        </span>
+                        <Button
+                          variant="outline"
+                          onClick={() => handlePageChange(pagination.page + 1)}
+                          disabled={pagination.page === pagination.total_pages}
+                          aria-label="Next page"
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    ) : null;
+                  })()}
                 </>
               )}
             </div>

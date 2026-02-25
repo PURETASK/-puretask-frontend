@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
@@ -12,12 +14,14 @@ import { ErrorDisplay } from '@/components/error/ErrorDisplay';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useBooking, useCancelBooking } from '@/hooks/useBookings';
 import { useLiveJobStatus, useAddToCalendar } from '@/hooks/useClientEnhanced';
-import { useJobDetails } from '@/hooks/useJobDetails';
+import { useJobDetails, JOB_DETAILS_QUERY_KEY } from '@/hooks/useJobDetails';
 import { useJobTrackingPoll } from '@/hooks/useJobTrackingPoll';
 import JobDetailsTracking from '@/components/trust/JobDetailsTracking';
+import { GradientButton } from '@/components/brand/GradientButton';
+import { approveJob } from '@/services/jobs';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
-import { Calendar, Share2, MapPin, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Calendar, Share2, MapPin, Clock, CheckCircle, XCircle, AlertCircle, Lock, Wallet } from 'lucide-react';
 import { useToast } from '@/contexts/ToastContext';
 
 export default function BookingDetailsPage() {
@@ -37,7 +41,7 @@ function BookingDetailsContent() {
   const { tracking: jobTracking } = useJobTrackingPoll(
     bookingId,
     8000,
-    !!data?.booking && ['pending', 'accepted', 'scheduled', 'in_progress', 'on_my_way', 'awaiting_approval'].includes(data.booking.status)
+    !!data?.booking && shouldPollTracking(data.booking.status)
   );
   const { data: liveStatusData, isLoading: liveStatusLoading } = useLiveJobStatus(
     bookingId,
@@ -46,8 +50,10 @@ function BookingDetailsContent() {
   const { mutate: cancelBooking, isPending: isCancelling } = useCancelBooking();
   const { mutate: addToCalendar, isPending: isAddingToCalendar } = useAddToCalendar();
   const { showToast } = useToast();
+  const queryClient = useQueryClient();
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [approving, setApproving] = useState(false);
 
   if (isLoading) {
     return (
@@ -84,6 +90,25 @@ function BookingDetailsContent() {
 
   const booking = data.booking as typeof data.booking & { cleaner?: { name?: string; rating?: number; reviews_count?: number } };
   const canCancel = ['pending', 'accepted', 'scheduled'].includes(booking.status);
+  const canApproveOrDispute = booking.status === 'awaiting_approval'; // canonical: only from awaiting_approval
+
+  const handleApprove = async () => {
+    if (!bookingId || approving) return;
+    const jobIdForApi = jobDetails?.job?.id ?? bookingId;
+    setApproving(true);
+    try {
+      await approveJob(jobIdForApi, {});
+      queryClient.invalidateQueries({ queryKey: ['booking', bookingId] });
+      queryClient.invalidateQueries({ queryKey: [...JOB_DETAILS_QUERY_KEY, bookingId] });
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      showToast('Job approved. Payment has been released to the cleaner.', 'success');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to approve';
+      showToast(message, 'error');
+    } finally {
+      setApproving(false);
+    }
+  };
 
   const handleCancel = () => {
     if (showCancelConfirm) {
@@ -94,29 +119,7 @@ function BookingDetailsContent() {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      accepted: 'bg-blue-100 text-blue-800',
-      scheduled: 'bg-blue-100 text-blue-800',
-      in_progress: 'bg-purple-100 text-purple-800',
-      completed: 'bg-green-100 text-green-800',
-      cancelled: 'bg-red-100 text-red-800',
-    };
-    return colors[status] || 'bg-gray-100 text-gray-800';
-  };
-
-  const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      pending: 'Finding Cleaner',
-      accepted: 'Confirmed',
-      scheduled: 'Scheduled',
-      in_progress: 'In Progress',
-      completed: 'Completed',
-      cancelled: 'Cancelled',
-    };
-    return labels[status] || status;
-  };
+  const showHeldCredits = booking && isEscrowHeld(booking.status);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -185,10 +188,10 @@ function BookingDetailsContent() {
                         </p>
                       )}
                     </div>
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getJobStatusBadgeClass(
                       liveStatusData?.job?.current_status || booking.status
                     )}`}>
-                      {getStatusLabel(liveStatusData?.job?.current_status || booking.status)}
+                      {getJobStatusLabel(liveStatusData?.job?.current_status || booking.status)}
                     </span>
                   </div>
                 </CardHeader>
@@ -216,7 +219,7 @@ function BookingDetailsContent() {
                           <div className="flex-1 pt-1">
                             <div className="flex items-center gap-2">
                               <p className={`font-medium ${isCurrent ? 'text-blue-600' : isActive ? 'text-gray-900' : 'text-gray-500'}`}>
-                                {getStatusLabel(status)}
+                                {getJobStatusLabel(status)}
                               </p>
                               {isCurrent && (
                                 <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
@@ -347,6 +350,30 @@ function BookingDetailsContent() {
                 </Card>
               )}
 
+              {/* Approval & Dispute (when job is awaiting client approval) */}
+              {canApproveOrDispute && (
+                <Card className="border-amber-200 bg-amber-50/50">
+                  <CardHeader>
+                    <CardTitle>Review & complete</CardTitle>
+                    <p className="text-sm text-gray-600 mt-1">
+                      The cleaning is done. Approve to release payment to your cleaner, or open a dispute if something wasn’t right.
+                    </p>
+                  </CardHeader>
+                  <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <GradientButton onClick={handleApprove} disabled={approving}>
+                      {approving ? 'Approving…' : 'Approve & release payment'}
+                    </GradientButton>
+                    <Button
+                      variant="outline"
+                      className="rounded-full px-6"
+                      onClick={() => router.push(`/client/job/${bookingId}/dispute`)}
+                    >
+                      Open dispute
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Actions */}
               {canCancel && (
                 <Card>
@@ -383,6 +410,25 @@ function BookingDetailsContent() {
                   <CardTitle>Payment Summary</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {showHeldCredits && (
+                    <div className="rounded-lg border border-amber-200 bg-amber-50/80 p-3 space-y-1">
+                      <div className="flex items-center gap-2 text-sm font-medium text-amber-900">
+                        <Lock className="h-4 w-4" />
+                        Credits held for this job
+                      </div>
+                      <p className="text-lg font-bold text-amber-900">{booking.credit_amount} credits</p>
+                      <p className="text-xs text-amber-800">
+                        Released when you approve, or held if you open a dispute.
+                      </p>
+                      <Link
+                        href="/client/credits"
+                        className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline"
+                      >
+                        <Wallet className="h-4 w-4" />
+                        View balance & ledger
+                      </Link>
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Service Cost</span>

@@ -8,6 +8,14 @@ For Trust-Fintech integration details (auth, response contracts, roles, errors, 
 
 ---
 
+## Config (optional)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/config/job-status` | Optional. Returns `{ statuses: string[], terminal?: string[], transitions?: Record<string, string[]>, labels?: Record<string, string> }`. When implemented, frontend can use it for status/transition logic via `useJobStatusConfig`; otherwise uses `src/constants/jobStatus.ts`. |
+
+---
+
 ## Auth
 
 | Method | Path | Description |
@@ -95,7 +103,17 @@ For Trust-Fintech integration details (auth, response contracts, roles, errors, 
 | POST | `/jobs/:id/complete` | Complete job |
 | POST | `/jobs/:id/rate` | Rate job |
 | POST | `/jobs/:id/transition` | State transition (e.g. accept) |
+| GET | `/jobs/:jobId/timeline` | Timeline events for stepper + client receipt (ASC). Event types: job_assigned, en_route_sent, gps_check_in, before_photos_uploaded, …, job_submitted, client_approved, dispute_opened, dispute_resolved. |
 | POST | `/jobs/:jobId/photos` | Add before/after photo (body: `type`: "before"\|"after", `photoUrl`: string). Cleaner only; use after presigned upload. |
+| POST | `/jobs/:jobId/photos/commit` | After presigned upload: body `kind`, `key`, `contentType`, `bytes`. Persist photo + create timeline event (before_photos_uploaded / after_photos_uploaded). |
+
+---
+
+## Uploads (photo flow)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/uploads/sign` | Body: `jobId`, `kind` ("before"\|"after"\|"client_dispute"), `fileName`, `contentType`, `bytes`. Returns `putUrl`, `key`, `publicUrl?`. Frontend: PUT to putUrl then POST /jobs/:jobId/photos/commit. |
 
 ---
 
@@ -106,6 +124,8 @@ For Trust-Fintech integration details (auth, response contracts, roles, errors, 
 | GET | `/tracking/:jobId` | Job tracking state (timeline events + current cleaner location from latest `cleaner.location_updated`). Use for **live presence** (poll every 5–10s or websockets later). |
 | POST | `/tracking/:jobId/check-in` | Check in (body: `location`: { latitude, longitude, accuracy? }, `beforePhotos`: string[], optional `accuracyM`, `source`: "device"\|"manual_override"). Cleaner only. |
 | POST | `/tracking/:jobId/check-out` | Check out (after photos, notes). Cleaner only. |
+| POST | `/tracking/:jobId/approve` | Client approve job (auth + job ownership). Body: `{ rating?, note? }`. Release escrow, create `client_approved` timeline event. |
+| POST | `/tracking/:jobId/dispute` | Client open dispute (auth + job ownership). Body: `{ reason, details }`. Create dispute row, set job disputed, hold earnings. |
 
 ---
 
@@ -433,7 +453,7 @@ For Trust-Fintech integration details (auth, response contracts, roles, errors, 
 | GET | `/admin/settings` | System settings |
 | PATCH | `/admin/settings` | Update setting |
 | GET | `/admin/settings/feature-flags` | Feature flags |
-| GET | `/admin/settings/audit-log` | Audit log (params: limit) |
+| GET | `/admin/settings/audit-log` | Audit log (params: limit). **Required:** log all admin actions — see [ADMIN_AUDIT_LOG.md](./ADMIN_AUDIT_LOG.md) (resolve dispute, overrides, credit changes). |
 | GET | `/admin/communication/templates` | Templates |
 | POST | `/admin/communication/send` | Send message |
 | GET | `/admin/communication/analytics` | Communication analytics |
@@ -496,6 +516,8 @@ The job-details UI (timeline rail, reliability ring, ledger flow, photos, presen
 - **Path conventions**: Some services may expect different shapes; this list reflects current frontend usage.
 - **Gamification**: Full request/response shapes and data model: [GAMIFICATION_BACKEND_SPEC.md](./GAMIFICATION_BACKEND_SPEC.md) (or GAMIFICATION_BACKEND_IMPLEMENTATION_GUIDE.md).
 - **Recently implemented (backend):** `GET /bookings/me` (real client bookings), `GET /cleaners/:id/reviews` (paginated reviews), `POST /admin/jobs/:jobId/resolve-dispute`, `POST /referral/send`, `GET /referral/me`, `POST /jobs/:jobId/photos`, `GET /cleaner/schedule?from=&to=`, and check-in body optional `accuracyM`, `source`. Trust live checklist returns `id`, `completed`, `completedAtISO` (labels on frontend). See DECISIONS.md for data ownership (labels/copy).
+
+**Frontend wiring (this repo):** Optional GET /config/job-status is wired: `src/services/config.service.ts` (`getJobStatusConfig`), `src/hooks/useJobStatusConfig.ts` (status/transition logic with fallback to `src/constants/jobStatus.ts`). Config (optional) is documented above; [FRONTEND_QA_COMPLETE_REFERENCE.md](./FRONTEND_QA_COMPLETE_REFERENCE.md) Product/alignment mentions this and `useJobStatusConfig`.
 
 ---
 

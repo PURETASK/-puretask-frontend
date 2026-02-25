@@ -30,26 +30,25 @@ api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
+    const isLoginRequest = originalRequest?.url?.includes('/auth/login');
 
-    // If 401 (Unauthorized), clear auth and redirect to login
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // If 401 (Unauthorized), clear auth and redirect to login — but not for the login request itself (avoid double handling)
+    if (error.response?.status === 401 && !originalRequest._retry && !isLoginRequest) {
       originalRequest._retry = true;
 
-      // Clear auth data
-      localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
-      localStorage.removeItem(STORAGE_KEYS.USER_DATA);
-      
-      // Only redirect if we're not already on the login page
-      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth/login')) {
-        // Store the current path to redirect back after login
-        const returnTo = window.location.pathname + window.location.search;
-        window.location.href = `/auth/login?returnTo=${encodeURIComponent(returnTo)}`;
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+        if (!window.location.pathname.startsWith('/auth/login')) {
+          const returnTo = window.location.pathname + window.location.search;
+          window.location.href = `/auth/login?returnTo=${encodeURIComponent(returnTo)}`;
+        }
       }
     }
 
-    // Log errors in development
-    if (process.env.NODE_ENV === 'development') {
-      console.error('API Error:', {
+    // Log errors in development — skip login request so the toast is the only feedback (avoids duplicate "API Error" overlay)
+    if (process.env.NODE_ENV === 'development' && !isLoginRequest) {
+      console.warn('API Error:', {
         url: error.config?.url,
         method: error.config?.method,
         status: error.response?.status,

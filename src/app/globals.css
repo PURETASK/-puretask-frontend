@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "mapbox-gl/dist/mapbox-gl.css";
 @import '../styles/animations.css';
 @import '../styles/print.css';
 

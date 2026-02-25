@@ -17,13 +17,14 @@ function LevelDetailContent() {
   const params = useParams();
   const levelNumber = Number(params?.levelNumber) || 1;
 
-  const { data: goals, isLoading } = useQuery({
+  const { data: goalsData, isLoading } = useQuery({
     queryKey: ['cleaner', 'goals'],
     queryFn: () => cleanerGamificationService.getGoals(),
   });
 
-  const coreGoals = goals?.filter((g) => g.type === 'core' || !g.type) ?? [];
-  const stretchGoals = goals?.filter((g) => g.type === 'stretch') ?? [];
+  const goals = Array.isArray(goalsData) ? goalsData : (goalsData as { goals?: unknown[] })?.goals ?? [];
+  const coreGoals = goals.filter((g: { type?: string }) => g.type === 'core' || !g.type);
+  const stretchGoals = goals.filter((g: { type?: string }) => g.type === 'stretch');
   const checklistGoals = coreGoals.map((g) => ({
     id: g.id,
     title: g.title ?? g.type ?? g.id,

@@ -1,11 +1,18 @@
 // API Configuration — same precedence as getApiBaseUrl() in apiClient.ts
 function getApiBaseUrl(): string {
-  const url = (
+  const raw = (
     process.env.NEXT_PUBLIC_API_BASE_URL ||
     process.env.NEXT_PUBLIC_API_URL ||
     'http://localhost:4000'
-  ).replace(/\/$/, '');
-  return url;
+  ).trim().replace(/\/$/, '');
+  // Defensive: use only a valid URL origin (avoid env paste errors like "http://localhost:4000 and NEXT_PUBLIC_API_URL=...")
+  try {
+    const parsed = new URL(raw);
+    return parsed.origin;
+  } catch {
+    const match = raw.match(/^(https?:\/\/[^\s]+?)(?:\s|$)/);
+    return match ? match[1].replace(/\/$/, '') : 'http://localhost:4000';
+  }
 }
 
 export const API_CONFIG = {

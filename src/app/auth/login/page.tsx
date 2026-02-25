@@ -28,22 +28,16 @@ export default function LoginPage() {
 
     try {
       const userData = await login(formData);
-      
-      // Redirect based on user role
-      const role = userData?.role;
-      let path = '/dashboard';
-      if (role === 'admin') path = '/admin';
-      else if (role === 'cleaner') path = '/cleaner/dashboard';
-      else if (role === 'client') path = '/client/dashboard';
-      
+      if (!userData?.role) {
+        router.push('/dashboard');
+        return;
+      }
+      const role = userData.role;
+      const path = role === 'admin' ? '/admin' : role === 'cleaner' ? '/cleaner/dashboard' : '/client/dashboard';
       setShowSuccessAnimation(true);
-      
-      setTimeout(() => {
-        router.push(path);
-      }, SUCCESS_ANIMATION_DURATION_MS);
-    } catch (error) {
-      // Error is already shown via toast
-      console.error('Login error:', error);
+      setTimeout(() => router.push(path), SUCCESS_ANIMATION_DURATION_MS);
+    } catch {
+      // Error already shown via toast in AuthContext
     } finally {
       setIsLoading(false);
     }

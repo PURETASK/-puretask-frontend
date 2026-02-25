@@ -70,18 +70,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (credentials: LoginCredentials): Promise<User> => {
     try {
-      const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
+      const response = await apiClient.post<AuthResponse & { access_token?: string; data?: { token?: string; user?: User } }>('/auth/login', credentials);
       
-      // Save token and user data
-      localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, response.token);
-      localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(response.user));
+      // Support multiple backend shapes: token | access_token, user | data.user
+      const token = response?.token ?? response?.access_token ?? response?.data?.token;
+      const user = response?.user ?? response?.data?.user;
+      if (!token || !user) {
+        const msg = 'Invalid login response. Please try again.';
+        showToast(msg, 'error');
+        throw new Error(msg);
+      }
       
-      setUser(response.user);
+      localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
+      localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
+      
+      setUser(user);
       showToast('Successfully logged in!', 'success');
       
-      return response.user;
+      return user;
     } catch (error: any) {
-      const errorMsg = error.response?.data?.error?.message || 'Login failed';
+      const errorMsg = error.response?.data?.error?.message ?? error.response?.data?.message ?? (error?.message && error.message !== 'Login failed' ? error.message : 'Login failed');
       showToast(errorMsg, 'error');
       throw new Error(errorMsg);
     }
@@ -89,18 +97,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (data: RegisterData): Promise<User> => {
     try {
-      const response = await apiClient.post<AuthResponse>('/auth/register', data);
-      
-      // Save token and user data
-      localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, response.token);
-      localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(response.user));
-      
-      setUser(response.user);
+      const response = await apiClient.post<AuthResponse & { access_token?: string; data?: { token?: string; user?: User } }>('/auth/register', data);
+      const token = response?.token ?? response?.access_token ?? response?.data?.token;
+      const user = response?.user ?? response?.data?.user;
+      if (!token || !user) {
+        const msg = 'Invalid signup response. Please try again.';
+        showToast(msg, 'error');
+        throw new Error(msg);
+      }
+      localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
+      localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
+      setUser(user);
       showToast('Account created successfully!', 'success');
-      
-      return response.user;
+      return user;
     } catch (error: any) {
-      const errorMsg = error.response?.data?.error?.message || 'Registration failed';
+      const errorMsg = error.response?.data?.error?.message ?? error.response?.data?.message ?? (error?.message && error.message !== 'Registration failed' ? error.message : 'Registration failed');
       showToast(errorMsg, 'error');
       throw new Error(errorMsg);
     }

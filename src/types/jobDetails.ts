@@ -6,7 +6,7 @@
 // ─── Job (identity + schedule + location + status) ─────────────────────────
 export type JobDetailsJob = {
   id: string;
-  status: string; // backend: pending | accepted | on_my_way | in_progress | awaiting_approval | completed | cancelled | disputed
+  status: string; // canonical: see docs/CANONICAL_JOB_STATUS.md and JOB_STATUS in @/constants/jobStatus
   scheduled_start_at: string;
   scheduled_end_at: string;
   actual_start_at?: string | null;

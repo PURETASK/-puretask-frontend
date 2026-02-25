@@ -56,3 +56,18 @@ For this Next.js frontend service on Railway:
 **Port:** Railway injects `PORT`; Next.js `start` uses it by default in production. No need to set it unless you’re customizing.
 
 If the backend also runs on Railway, use that service’s public URL for `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_WS_URL`.
+
+---
+
+## Production: photo uploads and DB
+
+### Storage (S3/R2) for photo uploads
+
+Photo upload flow is **POST /uploads/sign → PUT to putUrl → POST /jobs/:jobId/photos/commit**. The **backend** that serves `/uploads/sign` must have storage credentials set in production so signed PUT URLs work.
+
+- Set **STORAGE_*** (or your backend's equivalent, e.g. **S3_***) in production for the service that generates presigned URLs (e.g. bucket, region, access key, secret key; for R2 also endpoint).
+- If the frontend uses a Next.js API route that calls `lib/storage.ts`, set **S3_BUCKET**, **S3_REGION**, **S3_ACCESS_KEY_ID**, **S3_SECRET_ACCESS_KEY** (and **S3_ENDPOINT** for R2) in the host environment.
+
+### Migration 062 and client_dispute photos
+
+- Run **migration 062** on any database that needs **client_dispute** job photos (e.g. staging, production). That migration should add or adjust schema so `kind = 'client_dispute'` is supported. Run it on each DB that serves photo uploads and dispute evidence.
