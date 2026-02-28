@@ -78,7 +78,7 @@ export default function TeamManagementPage() {
               <p className="text-gray-600">Manage your cleaning team or agency</p>
             </div>
             <div className="flex gap-3">
-              <Button variant="outline" onClick={() => (window.location.href = '/cleaner/dashboard')}>
+              <Button variant="outline" onClick={() => (window.location.href = '/cleaner')}>
                 ← Back to Dashboard
               </Button>
               <Button variant="primary">+ Invite Member</Button>

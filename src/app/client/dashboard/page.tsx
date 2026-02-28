@@ -20,8 +20,9 @@ import { LineChart } from '@/components/ui/Charts';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { NextActionCard } from '@/components/trust/NextActionCard';
 import { BookingDetailsDrawer } from '@/components/bookings/BookingDetailsDrawer';
-import { Calendar, TrendingUp, Clock, Sparkles, CreditCard, FileText } from 'lucide-react';
+import { Calendar, TrendingUp, Clock, Sparkles, CreditCard, FileText, CalendarDays, DollarSign, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { usePageTitle } from '@/hooks/usePageTitle';
 
@@ -46,7 +47,7 @@ function ClientDashboardContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-app">
         <Header />
         <main className="flex-1 py-8 px-6">
           <div className="max-w-7xl mx-auto space-y-3">
@@ -62,7 +63,7 @@ function ClientDashboardContent() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-app">
         <Header />
         <main className="flex-1 py-8 px-6">
           <div className="max-w-7xl mx-auto">
@@ -90,10 +91,10 @@ function ClientDashboardContent() {
   );
 
   const stats = [
-    { label: 'Total Bookings', value: bookings.length, icon: '📅', color: 'text-blue-600' },
-    { label: 'Upcoming', value: upcomingBookings.length, icon: '⏰', color: 'text-green-600' },
-    { label: 'Total Spent', value: `$${totalSpent.toFixed(0)}`, icon: '💵', color: 'text-purple-600' },
-    { label: 'Completed', value: completedBookings.length, icon: '✅', color: 'text-yellow-600' },
+    { label: 'Total Bookings', value: bookings.length, icon: <CalendarDays className="h-10 w-10" />, color: '', accent: 'blue' as const, href: '/client/bookings' },
+    { label: 'Upcoming', value: upcomingBookings.length, icon: <Clock className="h-10 w-10" />, color: 'text-[var(--brand-mint)]', accent: 'green' as const, href: '/client/bookings' },
+    { label: 'Total Spent', value: `$${totalSpent.toFixed(0)}`, icon: <DollarSign className="h-10 w-10" />, color: 'text-purple-500', accent: 'purple' as const, href: '/client/billing-trust' },
+    { label: 'Completed', value: completedBookings.length, icon: <CheckCircle2 className="h-10 w-10" />, color: 'text-amber-500', accent: 'amber' as const, href: '/client/bookings' },
   ];
 
   // Chart data for booking trends
@@ -124,35 +125,79 @@ function ClientDashboardContent() {
   }));
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-app">
       <Header />
       <main className="flex-1 py-8 px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">My Dashboard</h1>
-              <p className="text-gray-600 mt-1">Welcome back! Here's your overview.</p>
-            </div>
-            <div className="flex gap-2">
-              <Link
-                href="/client/credits-trust"
-                className="inline-flex h-12 min-h-[44px] items-center justify-center gap-2 rounded-lg border-2 border-blue-600 px-4 text-base font-medium text-blue-600 transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
-              >
-                <CreditCard className="h-4 w-4" />
-                Credits
-              </Link>
-              <Link
-                href="/client/billing-trust"
-                className="inline-flex h-12 min-h-[44px] items-center justify-center gap-2 rounded-lg border-2 border-blue-600 px-4 text-base font-medium text-blue-600 transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
-              >
-                <FileText className="h-4 w-4" />
-                Invoices
-              </Link>
-              <Button variant="primary" onClick={() => (window.location.href = '/search')}>
-                + Book a Cleaner
-              </Button>
+          <div
+            className="mb-8 rounded-2xl px-6 py-5 border border-[var(--brand-blue)]/20 shadow-sm"
+            style={{ background: 'linear-gradient(135deg, rgba(0,120,255,0.08) 0%, rgba(0,212,255,0.05) 100%)' }}
+          >
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 tracking-tight">My Dashboard</h1>
+                <p className="text-gray-600 mt-1">Your command center — bookings, credits, and next steps.</p>
+              </div>
+              <div className="flex gap-2">
+                <Link
+                  href="/client/credits-trust"
+                  className="inline-flex h-12 min-h-[44px] items-center justify-center gap-2 rounded-xl border-2 px-4 text-base font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                  style={{ borderColor: 'var(--brand-blue)', color: 'var(--brand-blue)' }}
+                >
+                  <CreditCard className="h-4 w-4" />
+                  Credits
+                </Link>
+                <Link
+                  href="/client/billing-trust"
+                  className="inline-flex h-12 min-h-[44px] items-center justify-center gap-2 rounded-xl border-2 px-4 text-base font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                  style={{ borderColor: 'var(--brand-blue)', color: 'var(--brand-blue)' }}
+                >
+                  <FileText className="h-4 w-4" />
+                  Invoices
+                </Link>
+                <Button variant="primary" onClick={() => (window.location.href = '/search')}>
+                  + Book a Cleaner
+                </Button>
+              </div>
             </div>
           </div>
+
+          {/* What's next */}
+          {upcomingBookings.length > 0 ? (
+            <Card className="mb-6 border-l-4 border-l-[var(--brand-blue)] card-interactive overflow-hidden">
+              <CardContent className="py-5 flex flex-row flex-wrap items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-[var(--brand-blue)]">What&apos;s next</p>
+                  <p className="font-semibold text-gray-900 mt-1">
+                    {upcomingBookings[0].service_type?.replace('_', ' ') || 'Cleaning'} on{' '}
+                    {format(new Date(upcomingBookings[0].scheduled_start_at), 'EEE, MMM d')}
+                  </p>
+                  <p className="text-sm text-gray-600 truncate">{upcomingBookings[0].address}</p>
+                </div>
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    setDrawerBooking(upcomingBookings[0]);
+                    setDrawerOpen(true);
+                  }}
+                >
+                  View booking
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="mb-6">
+              <NextActionCard
+                title="Ready for a clean?"
+                description="Book a verified cleaner in your area. View reliability scores and reviews before you book."
+                primaryAction={{
+                  label: 'Book a Cleaner',
+                  onClick: () => (window.location.href = '/search'),
+                }}
+                variant="highlight"
+              />
+            </div>
+          )}
 
           {/* Stats Overview */}
           <StatsOverview stats={stats} />
@@ -161,7 +206,7 @@ function ClientDashboardContent() {
           {insights && (
             <div className="mt-6 grid md:grid-cols-2 gap-4">
               {insights.bookingPatterns.length > 0 && (
-                <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+                <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 card-interactive">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Calendar className="h-5 w-5 text-blue-600" />
@@ -179,7 +224,7 @@ function ClientDashboardContent() {
               )}
 
               {insights.favoriteCleaner && (
-                <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+                <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 card-interactive">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Sparkles className="h-5 w-5 text-purple-600" />
@@ -251,7 +296,7 @@ function ClientDashboardContent() {
                   {recommendations.similarToFavorites.slice(0, 2).map((cleaner: any) => (
                     <div
                       key={cleaner.id}
-                      className="p-4 border rounded-lg hover:border-blue-500 cursor-pointer"
+                      className="p-4 border rounded-xl card-interactive cursor-pointer"
                       onClick={() => (window.location.href = `/cleaner/${cleaner.id}`)}
                     >
                       <div className="flex items-center gap-3">

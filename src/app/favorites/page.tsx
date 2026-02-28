@@ -95,23 +95,18 @@ function FavoritesContent() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-app">
       <Header />
-      <main className="flex-1 py-8 px-6">
+      <main className="flex-1 py-8 px-4 md:px-6">
         <div className="max-w-5xl mx-auto">
-          {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              My Favorite Cleaners
-            </h1>
-            <p className="text-gray-600">
-              Quick access to your trusted cleaning professionals
-            </p>
+            <a href="/client" className="text-sm font-medium text-gray-600 hover:text-gray-900 mb-2 inline-block">← Back to home</a>
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Favorite cleaners</h1>
+            <p className="text-gray-600 mt-1">Quick access to your trusted cleaning professionals.</p>
           </div>
 
-          {/* Insights */}
           {insightsData?.insights && Object.keys(insightsData.insights).length > 0 && (
-            <Card className="mb-6 border-blue-200 bg-blue-50">
+            <Card className="mb-6 rounded-2xl border-[var(--brand-blue)]/20" style={{ backgroundColor: 'var(--brand-cloud)' }}>
               <CardContent className="p-6">
                 <div className="flex items-start gap-3">
                   <Sparkles className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
@@ -136,7 +131,7 @@ function FavoritesContent() {
 
           {/* Recommendations */}
           {recommendationsData?.recommendations && recommendationsData.recommendations.length > 0 && (
-            <Card className="mb-6 border-purple-200">
+            <Card className="mb-6 rounded-2xl border-gray-200">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-5 w-5 text-purple-600" />

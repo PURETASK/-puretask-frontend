@@ -18,7 +18,7 @@ import { cleanerEnhancedService } from '@/services/cleanerEnhanced.service';
 import { BarChart, DonutChart, LineChart } from '@/components/ui/Charts';
 import { format } from 'date-fns';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { TrendingUp, Target, Award } from 'lucide-react';
+import { TrendingUp, Target, Award, Star, Calendar } from 'lucide-react';
 
 export default function CleanerDashboardPage() {
   return (
@@ -55,7 +55,7 @@ function CleanerDashboardContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-app">
         <Header />
         <main className="flex-1 py-8 px-6">
           <div className="max-w-7xl mx-auto">
@@ -78,15 +78,10 @@ function CleanerDashboardContent() {
   const avgRating = 4.8; // This would come from API
 
   const stats = [
-    { label: 'Total Bookings', value: bookings.length, icon: '📅', color: 'text-blue-600' },
-    { label: 'Upcoming', value: upcomingBookings.length, icon: '⏰', color: 'text-green-600' },
-    {
-      label: 'Total Earnings',
-      value: `$${totalEarnings.toFixed(0)}`,
-      icon: '💰',
-      color: 'text-purple-600',
-    },
-    { label: 'Avg Rating', value: avgRating.toFixed(1), icon: '⭐', color: 'text-yellow-600' },
+    { label: 'Total Bookings', value: bookings.length, icon: <Calendar className="h-10 w-10" />, color: '', accent: 'blue' as const, href: '/cleaner/calendar' },
+    { label: 'Upcoming', value: upcomingBookings.length, icon: <Target className="h-10 w-10" />, color: 'text-[var(--brand-mint)]', accent: 'green' as const, href: '/cleaner/today' },
+    { label: 'Total Earnings', value: `$${totalEarnings.toFixed(0)}`, icon: <Award className="h-10 w-10" />, color: 'text-purple-500', accent: 'purple' as const, href: '/cleaner/earnings' },
+    { label: 'Avg Rating', value: avgRating.toFixed(1), icon: <Star className="h-10 w-10" />, color: 'text-amber-500', accent: 'amber' as const, href: '/cleaner/reviews' },
   ];
 
   // Service type distribution
@@ -135,22 +130,31 @@ function CleanerDashboardContent() {
   }));
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-app">
       <FiveStarReviewWatcher />
       <Header />
-      <main className="flex-1 py-8 px-6">
+      <main className="flex-1 py-8 px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Cleaner Dashboard</h1>
-              <p className="text-gray-600 mt-1">Manage your bookings and track your earnings.</p>
+          <div
+            className="mb-8 rounded-2xl border border-[var(--brand-mint)]/20 px-6 py-5 shadow-sm"
+            style={{ background: 'linear-gradient(135deg, rgba(40,199,111,0.06) 0%, rgba(0,212,255,0.03) 100%)' }}
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Cleaner dashboard</h1>
+                <p className="text-gray-600 mt-1">Your schedule, earnings, and performance at a glance.</p>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => (window.location.href = '/cleaner/availability')} className="border-[var(--brand-blue)]/40 text-[var(--brand-blue)]">
+                  Set availability
+                </Button>
+                <Button variant="primary" onClick={() => (window.location.href = '/cleaner/calendar')}>
+                  View calendar
+                </Button>
+              </div>
             </div>
-            <Button variant="primary" onClick={() => (window.location.href = '/cleaner/schedule')}>
-              📅 View Schedule
-            </Button>
           </div>
 
-          {/* Stats Overview */}
           <StatsOverview stats={stats} />
 
           {/* Performance Analytics & Goals */}
@@ -158,7 +162,7 @@ function CleanerDashboardContent() {
             <div className="grid md:grid-cols-2 gap-6 mt-6">
               {/* Earnings Trend */}
               {analytics.earningsTrend && analytics.earningsTrend.length > 0 && (
-                <Card>
+                <Card className="rounded-2xl border-gray-200 card-interactive">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <TrendingUp className="h-5 w-5" />
@@ -186,9 +190,8 @@ function CleanerDashboardContent() {
                 </Card>
               )}
 
-              {/* Goals */}
               {goals && Object.keys(goals).length > 0 && (
-                <Card>
+                <Card className="rounded-2xl border-gray-200 card-interactive">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Target className="h-5 w-5" />
@@ -206,7 +209,8 @@ function CleanerDashboardContent() {
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div
-                            className="bg-blue-600 h-2 rounded-full"
+                            className="h-2 rounded-full"
+                            style={{ width: '60%', backgroundColor: 'var(--brand-blue)' }}
                             style={{ width: '60%' }} // Would calculate actual progress
                           />
                         </div>
@@ -225,8 +229,7 @@ function CleanerDashboardContent() {
                 </Card>
               )}
 
-              {/* Quick Insights */}
-              <Card className="md:col-span-2">
+              <Card className="md:col-span-2 rounded-2xl border-gray-200 card-interactive">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Award className="h-5 w-5" />
@@ -270,18 +273,21 @@ function CleanerDashboardContent() {
               {/* Upcoming Bookings */}
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-2xl font-bold text-gray-900">Today's Schedule</h2>
+                  <h2 className="text-xl font-semibold text-gray-900">Today&apos;s schedule</h2>
                   <Button
                     variant="ghost"
-                    onClick={() => (window.location.href = '/cleaner/bookings')}
+                    size="sm"
+                    onClick={() => (window.location.href = '/cleaner/today')}
+                    className="text-[var(--brand-blue)]"
                   >
-                    View All
+                    View all
                   </Button>
                 </div>
                 {upcomingBookings.length > 0 ? (
                   <div className="grid gap-4">
                     {upcomingBookings.slice(0, 3).map((booking: any) => (
-                      <BookingCard
+                      <div key={booking.id} className="rounded-2xl border border-gray-200 overflow-hidden">
+                        <BookingCard
                         key={booking.id}
                         id={booking.id}
                         cleanerName={booking.client?.full_name || 'Client'}
@@ -292,13 +298,17 @@ function CleanerDashboardContent() {
                         status={booking.status}
                         price={booking.total_price}
                       />
+                      </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="bg-white rounded-lg border-2 border-dashed border-gray-300 p-8 text-center">
-                    <div className="text-5xl mb-3">✨</div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">All Clear!</h3>
+                  <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-10 text-center">
+                    <div className="text-4xl mb-3">✨</div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">All clear</h3>
                     <p className="text-gray-600">No upcoming bookings for today.</p>
+                    <Button variant="outline" size="sm" className="mt-4" onClick={() => (window.location.href = '/cleaner/jobs/requests')} style={{ borderColor: 'var(--brand-blue)', color: 'var(--brand-blue)' }}>
+                      View new requests
+                    </Button>
                   </div>
                 )}
               </div>

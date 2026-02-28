@@ -3,6 +3,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiGet, apiPost } from '@/lib/apiClient';
+import { generateIdempotencyKey, IDEMPOTENCY_HEADER } from '@/lib/idempotency';
 import type { CreditLedgerEntry, CreditsBalance } from '@/types/trust';
 
 export type BuyCreditsRequest = {
@@ -19,8 +20,12 @@ export type BuyCreditsResponse = {
 export function useBuyCredits() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: BuyCreditsRequest) =>
-      apiPost<BuyCreditsRequest, BuyCreditsResponse>('/credits/checkout', body),
+    mutationFn: (body: BuyCreditsRequest) => {
+      const idempotencyKey = generateIdempotencyKey();
+      return apiPost<BuyCreditsRequest, BuyCreditsResponse>('/credits/checkout', body, {
+        headers: { [IDEMPOTENCY_HEADER]: idempotencyKey },
+      });
+    },
     onSuccess: (data) => {
       const url = data?.checkoutUrl ?? data?.url;
       if (url && typeof window !== 'undefined') {

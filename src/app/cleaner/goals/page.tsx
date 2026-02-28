@@ -46,13 +46,14 @@ function GoalsListContent() {
         : PLACEHOLDER_GOALS;
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-app">
       <Header />
-      <main className="flex-1 py-8 px-6">
+      <main className="flex-1 py-8 px-4 md:px-6">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Goals</h1>
+          <a href="/cleaner" className="text-sm font-medium text-gray-600 hover:text-gray-900 mb-2 inline-block">← Back to home</a>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">Goals</h1>
           <p className="text-gray-600 mb-6">
-            Core, stretch, and maintenance goals. Filters: Level, Type, Almost complete (see spec).
+            Core, stretch, and maintenance goals. Filters: Level, Type, Almost complete.
           </p>
 
           {isLoading && (
@@ -63,10 +64,10 @@ function GoalsListContent() {
           )}
 
           {list.length === 0 ? (
-            <div className="rounded-lg border border-gray-200 bg-white p-8 text-center">
+            <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center">
               <p className="text-gray-600 mb-2">No goals for your current level yet.</p>
               <p className="text-sm text-gray-500">Complete jobs and level up to see new goals.</p>
-              <Link href="/cleaner/progress" className="mt-4 inline-block text-sm text-blue-600 hover:underline">
+              <Link href="/cleaner/progress" className="mt-4 inline-block text-sm font-medium" style={{ color: 'var(--brand-blue)' }}>
                 View your progress
               </Link>
             </div>

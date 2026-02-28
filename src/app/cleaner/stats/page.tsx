@@ -24,11 +24,12 @@ function StatsContent() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-app">
       <Header />
-      <main className="flex-1 py-8 px-6">
+      <main className="flex-1 py-8 px-4 md:px-6">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Your Stats</h1>
+          <a href="/cleaner" className="text-sm font-medium text-gray-600 hover:text-gray-900 mb-2 inline-block">← Back to home</a>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">Your Stats</h1>
           <p className="text-gray-600 mb-6">
             Trust-building dashboard: on-time rate, acceptance rate, photo compliance, rating, disputes, add-ons.
           </p>
@@ -37,12 +38,12 @@ function StatsContent() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {metrics.map((m) => (
-              <Card key={m.label}>
+              <Card key={m.label} className="rounded-2xl border-gray-200 card-interactive">
                 <CardContent className="p-4">
                   <p className="text-sm font-medium text-gray-700">{m.label}</p>
                   <p className="text-2xl font-bold text-gray-900 mt-1">{m.value}</p>
                   {m.tip && (
-                    <button type="button" className="text-xs text-blue-600 hover:underline mt-1">
+                    <button type="button" className="text-xs font-medium mt-1" style={{ color: 'var(--brand-blue)' }}>
                       {m.tip}
                     </button>
                   )}

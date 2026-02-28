@@ -26,7 +26,7 @@ export function OnboardingComplete() {
         <Button
           variant="primary"
           size="lg"
-          onClick={() => router.push('/cleaner/dashboard')}
+          onClick={() => router.push('/cleaner')}
         >
           Go to Dashboard →
         </Button>

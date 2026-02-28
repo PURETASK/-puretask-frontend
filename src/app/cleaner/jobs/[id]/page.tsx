@@ -17,7 +17,9 @@ import { apiClient } from '@/lib/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/contexts/ToastContext';
 import { cleanerEnhancedService } from '@/services/cleanerEnhanced.service';
+import { cleanerGamificationService } from '@/services/cleanerGamification.service';
 import { jobService } from '@/services/job.service';
+import { getJobStatusLabel, getJobStatusBadgeClass } from '@/constants';
 import { MapPin, Clock, DollarSign, FileText, Navigation, Target, Camera, MessageSquare, AlertTriangle } from 'lucide-react';
 
 export default function CleanerJobDetailsPage() {
@@ -42,6 +44,12 @@ function CleanerJobDetailsContent() {
   const [timeTracking, setTimeTracking] = useState<{ start?: Date; end?: Date; paused?: boolean }>({});
   const [expenses, setExpenses] = useState<Array<{ description: string; amount: number; category: string }>>([]);
   const [showExpenseForm, setShowExpenseForm] = useState(false);
+
+  const { data: goalsList } = useQuery({
+    queryKey: ['cleaner', 'goals'],
+    queryFn: () => cleanerGamificationService.getGoals(),
+    enabled: !!jobId,
+  });
 
   // Get directions
   const { data: directionsData } = useQuery({
@@ -192,22 +200,36 @@ function CleanerJobDetailsContent() {
           ? 'open'
           : null;
 
-  // Placeholder: goals this job helps (replace with API)
-  const jobHelpsGoals = ['Add-on completion', 'On-time completion', 'Before & after photos'];
+  // Goals this job helps: from API or fallback
+  const jobHelpsGoals =
+    Array.isArray(goalsList) && goalsList.length > 0
+      ? goalsList.slice(0, 4).map((g) => g.title ?? g.type ?? g.id).filter(Boolean)
+      : ['Add-on completion', 'On-time completion', 'Before & after photos'];
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-app">
       <Header />
-      <main className="flex-1 py-8 px-6">
+      <main className="flex-1 py-8 px-4 md:px-6">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Job Details</h1>
+              <a href="/cleaner" className="text-sm font-medium text-gray-600 hover:text-gray-900 mb-2 inline-block">← Back to home</a>
+              <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Job Details</h1>
               <p className="text-gray-600 mt-1">Job ID: {job.id}</p>
             </div>
-            <Button variant="ghost" onClick={() => router.push('/cleaner/dashboard')}>
-              ← Back to Dashboard
-            </Button>
+            <div className="flex items-center gap-2">
+              {!isCompleted && job.status !== 'cancelled' && (
+                <Button
+                  variant="primary"
+                  onClick={() => router.push(`/cleaner/job/${jobId}/workflow`)}
+                >
+                  Open workflow
+                </Button>
+              )}
+              <Button variant="ghost" onClick={() => router.push('/cleaner')}>
+                ← Back to Dashboard
+              </Button>
+            </div>
           </div>
 
           {/* Gamification: clock-in banner + "This job helps" tags */}
@@ -232,7 +254,8 @@ function CleanerJobDetailsContent() {
                 {jobHelpsGoals.map((g) => (
                   <span
                     key={g}
-                    className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800"
+                    className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium"
+                    style={{ backgroundColor: 'var(--brand-cloud)', color: 'var(--brand-blue)' }}
                   >
                     <Target className="h-3 w-3" />
                     {g}
@@ -319,16 +342,8 @@ function CleanerJobDetailsContent() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle>Status</CardTitle>
-                    <span
-                      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                        job.status === 'completed'
-                          ? 'bg-green-100 text-green-800'
-                          : job.status === 'in_progress'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}
-                    >
-                      {job.status.replace('_', ' ').toUpperCase()}
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getJobStatusBadgeClass(job.status)}`}>
+                      {getJobStatusLabel(job.status)}
                     </span>
                   </div>
                 </CardHeader>
@@ -357,7 +372,7 @@ function CleanerJobDetailsContent() {
                           </div>
                           <div className="flex-1 pt-1">
                             <p className={`font-medium ${isCurrent ? 'text-blue-600' : isActive ? 'text-gray-900' : 'text-gray-500'}`}>
-                              {status.replace('_', ' ').toUpperCase()}
+                              {getJobStatusLabel(status)}
                             </p>
                             {isCurrent && (
                               <p className="text-sm text-gray-600 mt-1">

@@ -71,13 +71,14 @@ function RecurringBookingsContent() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-app">
       <Header />
-      <main className="flex-1 py-8 px-6">
+      <main className="flex-1 py-8 px-4 md:px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Recurring Bookings</h1>
+              <a href="/client" className="text-sm font-medium text-gray-600 hover:text-gray-900 mb-2 inline-block">← Back to home</a>
+              <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Recurring bookings</h1>
               <p className="text-gray-600 mt-1">Manage your scheduled recurring cleaning services.</p>
             </div>
             <Button variant="primary" onClick={() => setShowCreateForm(true)}>
@@ -88,7 +89,7 @@ function RecurringBookingsContent() {
 
           {/* Insights Card */}
           {insightsData && (
-            <Card className="mb-6 border-green-200 bg-green-50">
+            <Card className="mb-6 rounded-2xl border-[var(--brand-mint)]/30" style={{ backgroundColor: 'rgba(40,199,111,0.06)' }}>
               <CardContent className="p-6">
                 <div className="flex items-start gap-3">
                   <TrendingUp className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />

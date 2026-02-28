@@ -12,8 +12,8 @@ export type UserRole = 'admin' | 'cleaner' | 'client';
  */
 export const ROLE_DASHBOARDS: Record<UserRole, string> = {
   admin: '/admin',
-  cleaner: '/cleaner/dashboard',
-  client: '/client/dashboard',
+  cleaner: '/cleaner',
+  client: '/client',
 };
 
 /**
@@ -21,8 +21,8 @@ export const ROLE_DASHBOARDS: Record<UserRole, string> = {
  */
 export const ROLE_HOME_ROUTES: Record<UserRole, string> = {
   admin: '/admin',
-  cleaner: '/cleaner/dashboard',
-  client: '/client/dashboard',
+  cleaner: '/cleaner',
+  client: '/client',
 };
 
 /**

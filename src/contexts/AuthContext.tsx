@@ -89,7 +89,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       return user;
     } catch (error: any) {
-      const errorMsg = error.response?.data?.error?.message ?? error.response?.data?.message ?? (error?.message && error.message !== 'Login failed' ? error.message : 'Login failed');
+      let errorMsg =
+        error.response?.data?.error?.message ??
+        error.response?.data?.message ??
+        (Array.isArray(error.response?.data?.errors)
+          ? error.response.data.errors.map((e: { message?: string }) => e.message).filter(Boolean).join('. ')
+          : null);
+      if (!errorMsg) {
+        if (!error.response) {
+          errorMsg = 'Unable to reach the server. Check your connection and try again.';
+        } else {
+          errorMsg = error?.message && error.message !== 'Login failed' ? error.message : 'Invalid email or password. Please try again.';
+        }
+      }
       showToast(errorMsg, 'error');
       throw new Error(errorMsg);
     }
@@ -111,7 +123,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       showToast('Account created successfully!', 'success');
       return user;
     } catch (error: any) {
-      const errorMsg = error.response?.data?.error?.message ?? error.response?.data?.message ?? (error?.message && error.message !== 'Registration failed' ? error.message : 'Registration failed');
+      let errorMsg =
+        error.response?.data?.error?.message ??
+        error.response?.data?.message ??
+        (Array.isArray(error.response?.data?.errors)
+          ? error.response.data.errors.map((e: { message?: string }) => e.message).filter(Boolean).join('. ')
+          : null);
+      if (!errorMsg) {
+        if (!error.response) {
+          errorMsg = 'Unable to reach the server. Check your connection and try again.';
+        } else {
+          errorMsg = error?.message && error.message !== 'Registration failed' ? error.message : 'Registration failed. Please try again.';
+        }
+      }
       showToast(errorMsg, 'error');
       throw new Error(errorMsg);
     }

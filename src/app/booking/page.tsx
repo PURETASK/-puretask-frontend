@@ -20,11 +20,12 @@ import { ErrorDisplay } from '@/components/error/ErrorDisplay';
 import { DateTimePicker } from '@/components/features/booking/DateTimePicker';
 import { ServiceSelection } from '@/components/features/booking/ServiceSelection';
 import { BookingStepper, BookingStepContent } from '@/components/features/booking/BookingStepper';
+import { AddressAutocompletePlaceholder } from '@/components/booking/AddressAutocompletePlaceholder';
 import { formatCurrency } from '@/lib/utils';
 import { holidayService, Holiday } from '@/services/holiday.service';
 import { useToast } from '@/contexts/ToastContext';
 import { Save } from 'lucide-react';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'motion/react';
 
 function BookingPageContent() {
   const router = useRouter();
@@ -163,10 +164,10 @@ function BookingPageContent() {
 
   if (loadingCleaner) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-app">
         <Header />
-        <main className="flex-1 py-8 px-6">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 py-8 px-4 md:px-6">
+          <div className="max-w-5xl mx-auto">
             <SkeletonList items={6} />
           </div>
         </main>
@@ -190,11 +191,16 @@ function BookingPageContent() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-app">
       <Header />
-      <main className="flex-1 py-8 px-6">
+      <main className="flex-1 py-8 px-4 md:px-6">
         <div className="max-w-5xl mx-auto">
-          {/* Progress Steps */}
+          <div className="mb-6">
+            <a href={cleanerId ? `/cleaner/${cleanerId}` : '/search'} className="text-sm font-medium text-gray-600 hover:text-gray-900 mb-2 inline-block">← {cleanerId ? 'Back to cleaner' : 'Find a cleaner'}</a>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">Book a cleaner</h1>
+            <p className="text-gray-600 mt-1">Choose service, date, address, and confirm. Payment is held until you approve.</p>
+          </div>
+
           <BookingStepper
             currentStep={step}
             steps={[
@@ -206,9 +212,9 @@ function BookingPageContent() {
           />
 
           <div className="grid lg:grid-cols-3 gap-6">
-            {/* Main Form */}
             <div className="lg:col-span-2">
-              <Card>
+              <Card className="rounded-2xl border-gray-200 overflow-hidden">
+                <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg, var(--brand-blue), var(--brand-aqua))' }} aria-hidden />
                 <CardHeader>
                   <CardTitle>
                     {step === 1 && 'Choose Your Service'}
@@ -265,14 +271,11 @@ function BookingPageContent() {
                     {step === 3 && (
                       <BookingStepContent key={3} step={3} direction={stepDirection.current}>
                     <div className="space-y-4">
-                      <Input
+                      <AddressAutocompletePlaceholder
                         label="Street Address"
-                        type="text"
-                        inputMode="text"
-                        autoComplete="street-address"
                         value={bookingData.address}
-                        onChange={(e) =>
-                          setBookingData({ ...bookingData, address: e.target.value })
+                        onChange={(address) =>
+                          setBookingData({ ...bookingData, address })
                         }
                         placeholder="123 Main St"
                         required
@@ -369,7 +372,7 @@ function BookingPageContent() {
                       )}
                       <div>
                         <h3 className="font-semibold text-gray-900 mb-3">Booking Summary</h3>
-                        <div className="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
+                        <div className="p-4 rounded-xl space-y-2 text-sm" style={{ backgroundColor: 'var(--brand-cloud)' }}>
                           <div className="flex justify-between">
                             <span className="text-gray-600">Service:</span>
                             <span className="font-medium capitalize">
@@ -457,11 +460,11 @@ function BookingPageContent() {
               </Card>
             </div>
 
-            {/* Summary Sidebar */}
             <div className="lg:col-span-1">
-              <Card className="sticky top-24">
+              <Card className="sticky top-24 rounded-2xl border-gray-200 overflow-hidden">
+                <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg, var(--brand-blue), var(--brand-aqua))' }} aria-hidden />
                 <CardHeader>
-                  <CardTitle>Booking Summary</CardTitle>
+                  <CardTitle>Booking summary</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {/* Cleaner Info */}

@@ -44,16 +44,16 @@ export default function AdminChoicesPage() {
 
   return (
     <ProtectedRoute requiredRole="admin">
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-app">
         <Header />
-        <main className="flex-1 py-8 px-6">
+        <main className="flex-1 py-8 px-4 md:px-6">
           <div className="max-w-6xl mx-auto">
-            <Link href="/admin/gamification" className="text-sm text-blue-600 hover:underline mb-4 inline-block">
+            <Link href="/admin/gamification" className="text-sm font-medium text-gray-600 hover:text-gray-900 mb-4 inline-block" style={{ color: 'var(--brand-blue)' }}>
               ← Gamification Overview
             </Link>
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Choice Reward Groups</h1>
+                <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Choice Reward Groups</h1>
                 <p className="text-gray-600 mt-1">Define &quot;choose 1 of these&quot;, eligibility window, expiry.</p>
               </div>
               <Link href="/admin/gamification/choices/new">
@@ -65,7 +65,7 @@ export default function AdminChoicesPage() {
             </div>
 
             {choices.length === 0 ? (
-              <Card>
+              <Card className="rounded-2xl border-gray-200">
                 <CardContent className="p-8 text-center">
                   <p className="text-gray-600">No choice groups yet.</p>
                   <Link href="/admin/gamification/choices/new">

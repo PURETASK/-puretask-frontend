@@ -66,9 +66,9 @@ function CleanerEarningsContent() {
 
   if (earningsLoading || payoutsLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-app">
         <Header />
-        <main className="flex-1 py-8 px-6">
+        <main className="flex-1 py-8 px-4 md:px-6">
           <div className="max-w-7xl mx-auto">
             <SkeletonList items={6} />
           </div>
@@ -82,6 +82,12 @@ function CleanerEarningsContent() {
     paidOut: { credits: 0, usd: 0, jobs: 0, lastPayout: null },
     nextPayout: { date: '', estimatedCredits: 0, estimatedUsd: 0 },
     payoutSchedule: 'weekly',
+  };
+
+  const formatDateSafe = (value: string | null | undefined, fmt: string) => {
+    if (value == null || value === '') return '—';
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? '—' : format(d, fmt);
   };
 
   const payouts = payoutsData?.payouts || [];
@@ -111,12 +117,20 @@ function CleanerEarningsContent() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-app">
       <Header />
-      <main className="flex-1 py-8 px-6">
+      <main className="flex-1 py-8 px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
+          <div
+            className="mb-8 rounded-2xl border border-[var(--brand-mint)]/20 px-6 py-5 shadow-sm"
+            style={{ background: 'linear-gradient(135deg, rgba(40,199,111,0.06) 0%, rgba(0,212,255,0.03) 100%)' }}
+          >
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Earnings & payouts</h1>
+            <p className="text-gray-600 mt-1">Track your earnings and manage payouts.</p>
+          </div>
+
           {earnings.nextPayout?.date && (earnings.pendingEarnings.credits > 0 || earnings.nextPayout.estimatedCredits > 0) && (
-            <Card className="mb-6 border-green-200 bg-green-50/50">
+            <Card className="mb-6 rounded-2xl border-[var(--brand-mint)]/30 card-interactive" style={{ backgroundColor: 'rgba(40,199,111,0.06)' }}>
               <CardContent className="py-4 flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <DollarSign className="h-8 w-8 text-green-600" />
@@ -124,7 +138,7 @@ function CleanerEarningsContent() {
                     <h3 className="font-semibold text-gray-900">Next payout</h3>
                     <p className="text-sm text-gray-600">
                       {formatCurrency(earnings.nextPayout.estimatedUsd || 0)} estimated on{' '}
-                      {earnings.nextPayout.date ? format(new Date(earnings.nextPayout.date), 'MMM d, yyyy') : '—'}
+                      {formatDateSafe(earnings.nextPayout.date, 'MMM d, yyyy')}
                     </p>
                   </div>
                 </div>
@@ -135,12 +149,7 @@ function CleanerEarningsContent() {
             </Card>
           )}
 
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Earnings & Payouts</h1>
-              <p className="text-gray-600 mt-1">Track your earnings and manage payouts.</p>
-            </div>
-            <div className="flex gap-2">
+          <div className="mb-6 flex flex-wrap items-center justify-end gap-2">
               <Button
                 variant="outline"
                 onClick={handleExportEarnings}
@@ -163,14 +172,13 @@ function CleanerEarningsContent() {
             </div>
           </div>
 
-          {/* Earnings Summary Cards */}
           <div className="grid md:grid-cols-3 gap-6 mb-8">
-            <Card>
+            <Card className="rounded-2xl border-gray-200 card-interactive">
               <CardHeader>
-                <CardTitle className="text-base">Pending Earnings</CardTitle>
+                <CardTitle className="text-base">Pending earnings</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-blue-600 mb-1">
+                <div className="text-3xl font-bold mb-1" style={{ color: 'var(--brand-blue)' }}>
                   {formatCurrency(earnings.pendingEarnings.usd)}
                 </div>
                 <p className="text-sm text-gray-600">
@@ -179,12 +187,12 @@ function CleanerEarningsContent() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="rounded-2xl border-gray-200 card-interactive">
               <CardHeader>
-                <CardTitle className="text-base">Total Paid Out</CardTitle>
+                <CardTitle className="text-base">Total paid out</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-green-600 mb-1">
+                <div className="text-3xl font-bold mb-1" style={{ color: 'var(--brand-mint)' }}>
                   {formatCurrency(earnings.paidOut.usd)}
                 </div>
                 <p className="text-sm text-gray-600">
@@ -192,22 +200,22 @@ function CleanerEarningsContent() {
                 </p>
                 {earnings.paidOut.lastPayout && (
                   <p className="text-xs text-gray-500 mt-1">
-                    Last: {format(new Date(earnings.paidOut.lastPayout), 'MMM d, yyyy')}
+                    Last: {formatDateSafe(earnings.paidOut.lastPayout as string | null, 'MMM d, yyyy')}
                   </p>
                 )}
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="rounded-2xl border-gray-200 card-interactive">
               <CardHeader>
-                <CardTitle className="text-base">Next Payout</CardTitle>
+                <CardTitle className="text-base">Next payout</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-purple-600 mb-1">
+                <div className="text-3xl font-bold text-purple-500 mb-1">
                   {formatCurrency(earnings.nextPayout.estimatedUsd)}
                 </div>
                 <p className="text-sm text-gray-600">
-                  {format(new Date(earnings.nextPayout.date), 'MMM d, yyyy')}
+                  {formatDateSafe(earnings.nextPayout.date, 'MMM d, yyyy')}
                 </p>
                 <p className="text-xs text-gray-500 mt-1 capitalize">
                   {earnings.payoutSchedule} schedule
@@ -431,7 +439,6 @@ function CleanerEarningsContent() {
               </Card>
             </div>
           </div>
-        </div>
       </main>
       <Footer />
     </div>

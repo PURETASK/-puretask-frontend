@@ -98,22 +98,27 @@ function CleanerJobRequestsContent() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-app">
       <Header />
-      <main className="flex-1 py-8 px-6">
+      <main className="flex-1 py-8 px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Available Jobs</h1>
-              <p className="text-gray-600 mt-1">Accept jobs that match your schedule and preferences.</p>
+          <div
+            className="mb-8 rounded-2xl border border-[var(--brand-mint)]/20 px-6 py-5 shadow-sm"
+            style={{ background: 'linear-gradient(135deg, rgba(40,199,111,0.06) 0%, rgba(0,212,255,0.03) 100%)' }}
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 tracking-tight">New requests</h1>
+                <p className="text-gray-600 mt-1">Accept jobs that match your schedule and preferences.</p>
+              </div>
+              <Button variant="outline" onClick={() => router.push('/cleaner')} className="border-[var(--brand-blue)]/40 text-[var(--brand-blue)]">
+                ← Back to home
+              </Button>
             </div>
-            <Button variant="outline" onClick={() => router.push('/cleaner/dashboard')}>
-              ← Back to Dashboard
-            </Button>
           </div>
 
-          {/* Filters */}
-          <Card className="mb-6">
+          <Card className="mb-6 rounded-2xl border-gray-200 overflow-hidden">
+            <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg, var(--brand-blue), var(--brand-aqua))' }} aria-hidden />
             <CardContent className="p-4">
               <div className="grid md:grid-cols-3 gap-4">
                 <div>
@@ -167,11 +172,14 @@ function CleanerJobRequestsContent() {
               ))}
             </div>
           ) : (
-            <Card>
+            <Card className="rounded-2xl border-gray-200">
               <CardContent className="p-12 text-center">
                 <div className="text-5xl mb-4">🔍</div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No Jobs Available</h3>
-                <p className="text-gray-600">There are no available jobs matching your filters right now.</p>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No jobs available</h3>
+                <p className="text-gray-600 mb-4">There are no available jobs matching your filters right now.</p>
+                <Button variant="outline" onClick={() => router.push('/cleaner/today')} style={{ borderColor: 'var(--brand-blue)', color: 'var(--brand-blue)' }}>
+                  View today&apos;s jobs
+                </Button>
               </CardContent>
             </Card>
           )}
@@ -219,7 +227,7 @@ function JobRequestCard({
         : matchingScore?.factors?.map((f) => `${f.name}: ${Math.round(f.score)}%`) ?? [];
 
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card className="card-interactive rounded-2xl border-gray-200">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -249,9 +257,9 @@ function JobRequestCard({
       <CardContent className="space-y-4">
         {/* Matching explanation: built from breakdown (reliability, distance, repeatClient, flexibility, riskAlignment) or fallback to explanation array / factors */}
         {matchingScore && explanationBullets.length > 0 && (
-          <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-            <p className="text-xs font-medium text-blue-900 mb-2">Why this match:</p>
-            <ul className="space-y-1 list-disc list-inside text-xs text-blue-800">
+          <div className="p-3 rounded-xl border border-[var(--brand-blue)]/20" style={{ backgroundColor: 'var(--brand-cloud)' }}>
+            <p className="text-xs font-medium text-gray-900 mb-2">Why this match</p>
+            <ul className="space-y-1 list-disc list-inside text-xs text-gray-700">
               {explanationBullets.map((bullet, idx) => (
                 <li key={idx}>{bullet}</li>
               ))}

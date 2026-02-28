@@ -90,7 +90,7 @@ function AdminDashboardContent() {
 
   if (loadingStats) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-app">
         <Header />
         <main className="flex-1 py-8 px-6">
           <div className="max-w-7xl mx-auto">
@@ -215,41 +215,61 @@ function AdminDashboardContent() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-app">
       <Header />
       <main className="flex-1 py-8 px-6">
         <div className="max-w-7xl mx-auto">
+          {/* Back to Admin */}
+          <div className="mb-4">
+            <a href="/admin" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+              ← Back to Admin
+            </a>
+          </div>
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
               <p className="text-gray-600 mt-1">
                 System overview and management controls
               </p>
             </div>
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                onClick={() => (window.location.href = '/admin/users')}
-              >
-                <Users className="h-4 w-4 mr-2" />
-                Manage Users
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => (window.location.href = '/admin/tools')}
-              >
-                🧪 Legacy Tools
-              </Button>
-              <Button
-                variant="primary"
-                onClick={() => (window.location.href = '/admin/bookings')}
-              >
-                <Calendar className="h-4 w-4 mr-2" />
-                View Bookings
-              </Button>
-            </div>
           </div>
+
+          {/* Admin hub — flowchart: Users, Bookings, Disputes, Finance, Gamification, Analytics, Settings, Tools */}
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Admin hub</CardTitle>
+              <p className="text-sm text-gray-600 mt-1">Quick navigation to all admin areas</p>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-3">
+                <Button variant="primary" onClick={() => (window.location.href = '/admin/users')}>
+                  <Users className="h-4 w-4 mr-2" />Users
+                </Button>
+                <Button variant="outline" onClick={() => (window.location.href = '/admin/bookings')}>
+                  <Calendar className="h-4 w-4 mr-2" />Bookings
+                </Button>
+                <Button variant="outline" onClick={() => (window.location.href = '/admin/disputes')}>
+                  <AlertCircle className="h-4 w-4 mr-2" />Disputes
+                </Button>
+                <Button variant="outline" onClick={() => (window.location.href = '/admin/finance')}>
+                  <DollarSign className="h-4 w-4 mr-2" />Finance
+                </Button>
+                <Button variant="outline" onClick={() => (window.location.href = '/admin/gamification')}>
+                  <TrendingUp className="h-4 w-4 mr-2" />Gamification
+                </Button>
+                <Button variant="outline" onClick={() => (window.location.href = '/admin/analytics')}>
+                  <Activity className="h-4 w-4 mr-2" />Analytics
+                </Button>
+                <Button variant="outline" onClick={() => (window.location.href = '/admin/settings')}>
+                  <Bell className="h-4 w-4 mr-2" />Settings
+                </Button>
+                <Button variant="outline" onClick={() => (window.location.href = '/admin/tools')}>
+                  🧪 Tools
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Real-Time Alerts */}
           {alertsData && ((alertsData.alerts?.critical?.length ?? 0) > 0 || (alertsData.alerts?.warning?.length ?? 0) > 0) && (

@@ -173,14 +173,15 @@ function CalendarPageContent() {
     );
   };
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-app">
       <Header />
-      <main className="flex-1 py-8 px-6">
+      <main className="flex-1 py-8 px-4 md:px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">My Calendar</h1>
-              <p className="text-gray-600 mt-1">Manage your availability and schedule</p>
+              <a href="/cleaner" className="text-sm font-medium text-gray-600 hover:text-gray-900 mb-2 inline-block">← Back to home</a>
+              <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Calendar</h1>
+              <p className="text-gray-600 mt-1">Manage your availability and schedule.</p>
             </div>
             <div className="flex gap-2">
               <Button
@@ -210,7 +211,7 @@ function CalendarPageContent() {
 
           {/* Conflict Alerts */}
           {conflictsData?.conflicts && conflictsData.conflicts.length > 0 && (
-            <Card className="mb-6 border-amber-200 bg-amber-50">
+            <Card className="mb-6 rounded-2xl border-amber-200 bg-amber-50">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
@@ -240,16 +241,16 @@ function CalendarPageContent() {
 
           {/* Optimization Suggestions */}
           {optimizationData?.suggestions && (
-            <Card className="mb-6 border-blue-200 bg-blue-50">
+            <Card className="mb-6 rounded-2xl border-[var(--brand-blue)]/20" style={{ backgroundColor: 'var(--brand-cloud)' }}>
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
-                  <TrendingUp className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <TrendingUp className="h-5 w-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--brand-blue)' }} />
                   <div className="flex-1">
-                    <h3 className="font-semibold text-blue-900 mb-2">Schedule Optimization Suggestions</h3>
-                    <p className="text-sm text-blue-800 mb-3">{optimizationData.suggestions?.recommendation}</p>
+                    <h3 className="font-semibold mb-2" style={{ color: 'var(--brand-blue)' }}>Schedule optimization</h3>
+                    <p className="text-sm text-gray-700 mb-3">{optimizationData.suggestions?.recommendation}</p>
                     <div className="space-y-2">
                       {(optimizationData.suggestions?.optimalTimes ?? []).slice(0, 3).map((time: any, idx: number) => (
-                        <div key={idx} className="text-sm text-blue-700">
+                        <div key={idx} className="text-sm text-gray-700">
                           <span className="font-medium">
                             {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][time.dayOfWeek]} at {time.hour}:00
                           </span>
@@ -263,12 +264,12 @@ function CalendarPageContent() {
               </CardContent>
             </Card>
           )}
-          <Card className="mb-6">
+          <Card className="mb-6 rounded-2xl border-gray-200">
             <CardHeader>
-              <CardTitle>Holiday Availability</CardTitle>
+              <CardTitle>Holiday availability</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
+              <div className="rounded-lg border border-[var(--brand-blue)]/20 p-4 text-sm text-gray-800" style={{ backgroundColor: 'var(--brand-cloud)' }}>
                 <div className="font-semibold">Federal holidays are optional</div>
                 <div>Cleaners are independent contractors and are never required to work federal holidays.</div>
                 <div className="mt-2">You control your availability and holiday pricing.</div>
@@ -426,7 +427,7 @@ function CalendarPageContent() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="rounded-2xl border-gray-200">
             <CardHeader>
               <CardTitle>January 2026</CardTitle>
             </CardHeader>
@@ -444,8 +445,9 @@ function CalendarPageContent() {
                     <div
                       key={day}
                       className={`min-h-24 p-2 border rounded-lg ${
-                        booking ? 'bg-blue-50 border-blue-300' : 'border-gray-200'
+                        booking ? 'border-[var(--brand-blue)]/30' : 'border-gray-200'
                       }`}
+                      style={booking ? { backgroundColor: 'var(--brand-cloud)' } : undefined}
                     >
                       <div className="flex items-center justify-between">
                         <div className="font-semibold text-gray-900">{day}</div>
@@ -460,7 +462,7 @@ function CalendarPageContent() {
                       )}
                       {booking && (
                         <div className="mt-1 text-xs">
-                          <div className="font-medium text-blue-600">{booking.time}</div>
+                          <div className="font-medium" style={{ color: 'var(--brand-blue)' }}>{booking.time}</div>
                           <div className="text-gray-700">{booking.client}</div>
                         </div>
                       )}

@@ -38,9 +38,11 @@ export default function CleanerWorkflowPage() {
   const hasBefore = types.has('before_photos_uploaded');
   const hasAfter = types.has('after_photos_uploaded');
   const canSubmit = hasBefore && hasAfter;
+  const beforeCount = hasBefore ? 1 : 0;
+  const afterCount = hasAfter ? 1 : 0;
   const submitGuardrail =
     active === 'submit' && !canSubmit
-      ? 'Upload before and after photos first, then you can submit to the client.'
+      ? `Add at least 1 before and 1 after photo. You have ${beforeCount} before, ${afterCount} after. Then you can submit to the client.`
       : null;
 
   async function primaryAction() {
@@ -102,7 +104,10 @@ export default function CleanerWorkflowPage() {
 
       <Card className="rounded-3xl border-0 shadow-sm">
         <CardHeader>
-          <CardTitle>Fast actions</CardTitle>
+          <CardTitle>Photos required</CardTitle>
+          <p className="text-sm text-gray-600 mt-1">
+            Before: {beforeCount} of 1 • After: {afterCount} of 1
+          </p>
         </CardHeader>
         <CardContent className="space-y-3">
           {submitGuardrail && (

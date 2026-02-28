@@ -1,10 +1,12 @@
 'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
+import { getJobStatusLabel, getJobStatusBadgeClass } from '@/constants';
+import { Calendar, MapPin, DollarSign } from 'lucide-react';
 interface BookingCardProps {
   id: string;
   cleanerName: string;
@@ -34,13 +36,8 @@ export function BookingCard({
     : status === 'completed'
     ? 'completed'
     : 'cancelled';
-  const statusColors = {
-    upcoming: 'primary',
-    completed: 'success',
-    cancelled: 'error',
-  };
   return (
-    <Card>
+    <Card className="card-interactive rounded-2xl border-gray-200">
       <CardContent className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
@@ -50,22 +47,22 @@ export function BookingCard({
               <p className="text-sm text-gray-600">{service}</p>
             </div>
           </div>
-          <Badge variant={statusColors[statusKey] as any}>
-            {status.charAt(0).toUpperCase() + status.slice(1)}
-          </Badge>
+          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getJobStatusBadgeClass(status)}`}>
+            {getJobStatusLabel(status)}
+          </span>
         </div>
         <div className="space-y-2 text-sm text-gray-700 mb-4">
           <div className="flex items-center gap-2">
-            <span>????</span>
+            <Calendar className="h-4 w-4 text-gray-400 flex-shrink-0" aria-hidden />
             <span>{date} at {time}</span>
           </div>
           <div className="flex items-center gap-2">
-            <span>????</span>
+            <MapPin className="h-4 w-4 text-gray-400 flex-shrink-0" aria-hidden />
             <span>{address}</span>
           </div>
           <div className="flex items-center gap-2">
-            <span>????</span>
-            <span className="font-semibold"></span>
+            <DollarSign className="h-4 w-4 text-gray-400 flex-shrink-0" aria-hidden />
+            <span className="font-semibold">{price ? `$${price}` : '—'}</span>
           </div>
         </div>
         <div className="flex gap-2">

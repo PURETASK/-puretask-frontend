@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { cn } from '@/lib/utils';
 import { LazyImage } from '@/components/ui/LazyImage';
 import { BRAND } from '@/lib/brand';

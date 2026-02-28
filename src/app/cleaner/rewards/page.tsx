@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { RewardCard, ChoiceRewardModal } from '@/components/gamification';
@@ -53,13 +54,14 @@ function RewardsCenterContent() {
       ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-app">
       <Header />
-      <main className="flex-1 py-8 px-6">
+      <main className="flex-1 py-8 px-4 md:px-6">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Rewards Center</h1>
+          <a href="/cleaner" className="text-sm font-medium text-gray-600 hover:text-gray-900 mb-2 inline-block">← Back to home</a>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">Rewards Center</h1>
           <p className="text-gray-600 mb-6">
-            Active rewards, earned history, locked (coming soon), and choice rewards.
+            Active rewards, earned history, locked, and choice rewards.
           </p>
 
           <div className="flex gap-2 border-b border-gray-200 mb-6">
@@ -67,8 +69,8 @@ function RewardsCenterContent() {
               <button
                 key={t}
                 onClick={() => setTab(t)}
-                className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${
-                  tab === t ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-900'
+                className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
+                  tab === t ? 'border-[var(--brand-blue)] text-[var(--brand-blue)]' : 'border-transparent text-gray-600 hover:text-gray-900'
                 }`}
               >
                 {t}
@@ -82,9 +84,10 @@ function RewardsCenterContent() {
           {tab === 'Active' && (
             <>
               {activeCards.length === 0 ? (
-                <div className="rounded-lg border border-gray-200 bg-white p-6 text-center">
+                <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center">
                   <p className="text-gray-600">No active rewards right now.</p>
                   <p className="text-sm text-gray-500 mt-1">Complete goals to unlock rewards.</p>
+                  <Link href="/cleaner/goals" className="mt-4 inline-block text-sm font-medium" style={{ color: 'var(--brand-blue)' }}>View goals</Link>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -144,7 +147,8 @@ function RewardsCenterContent() {
                           setSelectedRewardId(null);
                           setChoiceModalOpen(true);
                         }}
-                        className="mt-3 text-sm font-medium text-blue-600 hover:text-blue-800"
+                        className="mt-3 text-sm font-medium"
+                        style={{ color: 'var(--brand-blue)' }}
                       >
                         Select reward
                       </button>

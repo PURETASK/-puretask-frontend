@@ -29,13 +29,14 @@ export default function BookingConfirmationPage() {
 
   if (error || !data?.booking) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="max-w-md">
+      <div className="min-h-screen flex flex-col bg-app items-center justify-center px-4">
+        <Header />
+        <Card className="max-w-md rounded-2xl border-gray-200">
           <CardContent className="p-8 text-center">
             <div className="text-5xl mb-4">⚠️</div>
-            <h2 className="text-xl font-bold mb-2">Booking Not Found</h2>
-            <p className="text-gray-600 mb-4">We couldn't find this booking.</p>
-            <Button onClick={() => router.push('/client/dashboard')}>Go to Dashboard</Button>
+            <h2 className="text-xl font-bold mb-2">Booking not found</h2>
+            <p className="text-gray-600 mb-4">We couldn&apos;t find this booking.</p>
+            <Button variant="primary" onClick={() => router.push('/client')}>Go to home</Button>
           </CardContent>
         </Card>
       </div>
@@ -45,37 +46,35 @@ export default function BookingConfirmationPage() {
   const booking = data.booking;
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-app">
       <Header />
-      <main className="flex-1 py-8 px-6">
+      <main className="flex-1 py-8 px-4 md:px-6">
         <div className="max-w-3xl mx-auto">
-          {/* Enhanced Success Message with Animation */}
-          <div className="text-center mb-8">
+          <div
+            className="text-center mb-8 rounded-2xl border border-[var(--brand-mint)]/20 px-6 py-8"
+            style={{ background: 'linear-gradient(135deg, rgba(40,199,111,0.08) 0%, rgba(0,212,255,0.04) 100%)' }}
+          >
             <div className="flex justify-center mb-4">
               <LottieSuccess
                 src={LOTTIE_URLS.booking}
-                width={300}
-                height={300}
+                width={280}
+                height={280}
                 autoplay
                 loop
               />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Booking Confirmed! 🎉</h1>
-            <p className="text-gray-600">Your cleaning service has been scheduled successfully.</p>
-            
-            {/* Quick Actions */}
-            <div className="flex items-center justify-center gap-3 mt-4">
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">Booking confirmed</h1>
+            <p className="text-gray-600">Your cleaning service has been scheduled. Payment is held until you approve the job.</p>
+            <div className="flex flex-wrap items-center justify-center gap-3 mt-4">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  addToCalendar(bookingId);
-                }}
+                onClick={() => addToCalendar(bookingId)}
                 isLoading={isAddingToCalendar}
-                className="flex items-center gap-2"
+                className="gap-2 border-[var(--brand-blue)]/40 text-[var(--brand-blue)]"
               >
                 <Calendar className="h-4 w-4" />
-                Add to Calendar
+                Add to calendar
               </Button>
               <Button
                 variant="outline"
@@ -84,7 +83,7 @@ export default function BookingConfirmationPage() {
                   navigator.clipboard.writeText(window.location.href);
                   showToast('Link copied to clipboard', 'success');
                 }}
-                className="flex items-center gap-2"
+                className="gap-2 border-[var(--brand-blue)]/40 text-[var(--brand-blue)]"
               >
                 <Share2 className="h-4 w-4" />
                 Share
@@ -92,10 +91,10 @@ export default function BookingConfirmationPage() {
             </div>
           </div>
 
-          {/* Booking Details Card */}
-          <Card className="mb-6">
+          <Card className="mb-6 rounded-2xl border-gray-200 overflow-hidden">
+            <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg, var(--brand-blue), var(--brand-aqua))' }} aria-hidden />
             <CardHeader>
-              <CardTitle>Booking Details</CardTitle>
+              <CardTitle>Booking details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
@@ -106,8 +105,8 @@ export default function BookingConfirmationPage() {
                 <div>
                   <label className="text-sm font-medium text-gray-500">Status</label>
                   <p className="text-gray-900">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      {booking.status === 'pending' ? 'Finding Cleaner' : booking.status}
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style={{ backgroundColor: 'var(--brand-cloud)', color: 'var(--brand-blue)' }}>
+                      {booking.status === 'pending' ? 'Finding cleaner' : booking.status}
                     </span>
                   </p>
                 </div>
@@ -158,8 +157,8 @@ export default function BookingConfirmationPage() {
               <div className="space-y-4">
                 {booking.status === 'pending' ? (
                   <>
-                    <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <div className="flex items-start gap-3 p-3 rounded-xl border" style={{ backgroundColor: 'var(--brand-cloud)', borderColor: 'rgba(0,120,255,0.2)' }}>
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style={{ backgroundColor: 'var(--brand-blue)' }}>
                         <Clock className="w-5 h-5 text-white" />
                       </div>
                       <div className="flex-1">
@@ -167,7 +166,7 @@ export default function BookingConfirmationPage() {
                         <p className="text-gray-600 text-sm mt-1">
                           Our system is matching you with qualified cleaners in your area. This usually takes a few minutes.
                         </p>
-                        <p className="text-xs text-blue-600 mt-2 font-medium">
+                        <p className="text-xs mt-2 font-medium" style={{ color: 'var(--brand-blue)' }}>
                           Estimated assignment time: 5-15 minutes
                         </p>
                       </div>
@@ -197,8 +196,8 @@ export default function BookingConfirmationPage() {
                   </>
                 ) : booking.cleaner_id ? (
                   <>
-                    <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
-                      <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <div className="flex items-start gap-3 p-3 rounded-xl border border-[var(--brand-mint)]/30" style={{ backgroundColor: 'rgba(40,199,111,0.08)' }}>
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 bg-[var(--brand-mint)]">
                         <CheckCircle className="w-5 h-5 text-white" />
                       </div>
                       <div className="flex-1">
@@ -258,21 +257,21 @@ export default function BookingConfirmationPage() {
               onClick={() => router.push(`/client/bookings/${booking.id}`)}
               className="flex-1"
             >
-              View Booking Details
+              View booking details
             </Button>
             <Button
               variant="outline"
-              onClick={() => router.push('/client/dashboard')}
-              className="flex-1"
+              onClick={() => router.push('/client')}
+              className="flex-1 border-[var(--brand-blue)]/40 text-[var(--brand-blue)]"
             >
-              Go to Dashboard
+              Go to home
             </Button>
             <Button
               variant="ghost"
-              onClick={() => router.push('/search')}
+              onClick={() => router.push('/client/book')}
               className="flex-1"
             >
-              Book Another Service
+              Book another
             </Button>
           </div>
         </div>

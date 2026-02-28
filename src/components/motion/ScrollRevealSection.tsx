@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
+import { motion, useInView } from 'motion/react';
 import { motionTokens } from '@/components/motion/tokens';
 import { cn } from '@/lib/utils';
 

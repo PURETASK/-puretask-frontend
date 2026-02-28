@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Menu, X, Home, Calendar, MessageSquare, User, Settings, LogOut, Trophy, Target, Award, Medal } from 'lucide-react';
+import { Menu, X, Home, Calendar, CalendarPlus, MessageSquare, User, Settings, LogOut, Trophy, Target, Award, Medal, CreditCard, Inbox, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,20 +16,24 @@ export function MobileNav({ className }: MobileNavProps) {
   const { user, logout } = useAuth();
 
   const navItems = [
-    { href: '/', label: 'Home', icon: Home },
-    { href: '/client/bookings', label: 'Bookings', icon: Calendar },
+    { href: '/client', label: 'Home', icon: Home },
+    { href: '/client/book', label: 'Book a clean', icon: CalendarPlus },
+    { href: '/client/bookings', label: 'My bookings', icon: Calendar },
+    { href: '/client/credits-trust', label: 'Credits & payment', icon: CreditCard },
+    { href: '/client/dashboard', label: 'Full dashboard', icon: Trophy },
     { href: '/messages', label: 'Messages', icon: MessageSquare },
     { href: '/client/settings', label: 'Settings', icon: Settings },
   ];
 
   const cleanerNavItems = [
-    { href: '/cleaner/dashboard', label: 'Dashboard', icon: Home },
+    { href: '/cleaner', label: 'Home', icon: Home },
+    { href: '/cleaner/today', label: "Today's jobs", icon: Calendar },
+    { href: '/cleaner/jobs/requests', label: 'New requests', icon: Inbox },
+    { href: '/cleaner/dashboard', label: 'Dashboard', icon: Trophy },
+    { href: '/cleaner/earnings', label: 'Earnings', icon: Wallet },
     { href: '/cleaner/progress', label: 'Progress', icon: Trophy },
-    { href: '/cleaner/goals', label: 'Goals', icon: Target },
-    { href: '/cleaner/rewards', label: 'Rewards', icon: Award },
-    { href: '/cleaner/badges', label: 'Badges', icon: Medal },
     { href: '/cleaner/calendar', label: 'Calendar', icon: Calendar },
-    { href: '/cleaner/jobs/requests', label: 'Jobs', icon: Calendar },
+    { href: '/cleaner/availability', label: 'Availability', icon: Settings },
     { href: '/messages', label: 'Messages', icon: MessageSquare },
     { href: '/cleaner/profile', label: 'Profile', icon: User },
   ];

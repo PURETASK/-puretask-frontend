@@ -87,7 +87,7 @@ export function CleanerCard({
   const finalBio = bio || description || '';
   const finalImage = imageUrl || image;
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card className="card-interactive rounded-2xl border-gray-200 overflow-hidden">
       <CardContent className="p-6">
         <div className="flex gap-4">
           {/* Avatar */}
@@ -155,7 +155,7 @@ export function CleanerCard({
               </button>
             </div>
             <div className="flex items-center gap-4 mb-3 text-sm text-gray-600 flex-wrap">
-              <span className="font-semibold text-blue-600 text-lg">
+              <span className="font-semibold text-lg" style={{ color: 'var(--brand-blue)' }}>
                 ${finalHourlyRate}/hr
               </span>
               {finalExperience > 0 && (

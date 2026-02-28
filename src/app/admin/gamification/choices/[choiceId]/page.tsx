@@ -90,11 +90,11 @@ export default function AdminChoiceEditPage() {
 
   return (
     <ProtectedRoute requiredRole="admin">
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-app">
         <Header />
-        <main className="flex-1 py-8 px-6">
+        <main className="flex-1 py-8 px-4 md:px-6">
           <div className="max-w-2xl mx-auto">
-            <Link href="/admin/gamification/choices" className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline mb-4">
+            <Link href="/admin/gamification/choices" className="inline-flex items-center gap-1 text-sm font-medium mb-4" style={{ color: 'var(--brand-blue)' }}>
               <ArrowLeft className="h-4 w-4" /> Back to Choice Groups
             </Link>
             <h1 className="text-2xl font-bold text-gray-900 mb-6">Edit Choice Group</h1>

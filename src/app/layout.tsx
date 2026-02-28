@@ -15,6 +15,7 @@ import { AnalyticsInitializer } from "@/components/analytics/AnalyticsInitialize
 import { initErrorTracking } from "@/lib/errorTracking";
 import { ClientAnalyticsProvider } from "@/components/analytics/ClientAnalyticsProvider";
 import { SkipNav } from "@/components/layout/SkipNav";
+import { ClientPageTransition } from "@/components/layout/ClientPageTransition";
 import { initSentry } from "@/lib/monitoring/sentry";
 import { initPerformanceMonitoring } from "@/lib/monitoring/performance";
 
@@ -71,7 +72,7 @@ export default function RootLayout({
         <StructuredData data={organizationData} />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
       >
         <SkipNav />
         <ErrorBoundary>
@@ -82,7 +83,7 @@ export default function RootLayout({
                   <NotificationProvider>
                     <ClientAnalyticsProvider>
                       <main id="main-content">
-                        {children}
+                        <ClientPageTransition>{children}</ClientPageTransition>
                       </main>
                       <ToastContainer />
                       <BottomNav />

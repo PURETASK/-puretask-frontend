@@ -6,6 +6,23 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* PureTask brand (from src/lib/brand.ts) */
+  --brand-blue: #0078FF;
+  --brand-aqua: #00D4FF;
+  --brand-graphite: #1D2533;
+  --brand-cloud: #F7F9FC;
+  --brand-mint: #28C76F;
+  --gradient-primary: linear-gradient(90deg, var(--brand-blue), var(--brand-aqua));
+  /* Semantic */
+  --color-success: var(--brand-mint);
+  --color-warning: #f59e0b;
+  --color-risk: #dc2626;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f8fafc;
+  /* Radius */
+  --radius-card: 0.75rem;
+  --radius-button: 0.5rem;
+  --radius-pill: 9999px;
 }
 
 @theme inline {
@@ -25,7 +42,56 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+}
+
+/* Subtle page background for app pages (not pure white) */
+.bg-app {
+  background: linear-gradient(180deg, var(--brand-cloud) 0%, #ffffff 14rem);
+}
+
+/* Consistent section container for landing and app */
+.section-wrap {
+  max-width: 80rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@media (min-width: 768px) {
+  .section-wrap { padding-left: 1.5rem; padding-right: 1.5rem; }
+}
+
+/* Interactive elements: smooth hover/active */
+.interactive {
+  transition: transform 0.2s var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)),
+              box-shadow 0.2s var(--ease-out),
+              border-color 0.2s ease;
+}
+.interactive:hover {
+  transform: translateY(-2px);
+}
+.interactive:active {
+  transform: translateY(0);
+}
+
+/* Card hover lift for clickable surfaces */
+.card-interactive {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.card-interactive:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -8px rgba(0, 120, 255, 0.15), 0 4px 12px -4px rgba(0, 0, 0, 0.08);
+}
+.card-interactive:active {
+  transform: translateY(-2px);
+}
+
+/* Focus ring for accessibility */
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 120, 255, 0.35);
 }
 
 /* Toast animation */

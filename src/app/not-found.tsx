@@ -63,7 +63,7 @@ export default function NotFound() {
                 Help Center
               </a>
               <span className="text-gray-300">•</span>
-              <a href="/client/dashboard" className="text-blue-600 hover:underline">
+              <a href="/client" className="text-blue-600 hover:underline">
                 My Dashboard
               </a>
               <span className="text-gray-300">•</span>

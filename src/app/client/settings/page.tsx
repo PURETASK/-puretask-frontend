@@ -35,23 +35,26 @@ function UserSettingsContent() {
     { id: 'security', label: 'Security' },
   ];
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-app">
       <Header />
-      <main className="flex-1 py-8 px-6">
+      <main className="flex-1 py-8 px-4 md:px-6">
         <div className="max-w-5xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">Settings</h1>
+          <div className="mb-6">
+            <a href="/client" className="text-sm font-medium text-gray-600 hover:text-gray-900 mb-2 inline-block">← Back to home</a>
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Settings</h1>
+          </div>
           <div className="grid lg:grid-cols-4 gap-6">
             <div className="lg:col-span-1">
-              <Card>
+              <Card className="rounded-2xl border-gray-200">
                 <CardContent className="p-4">
                   <div className="space-y-1">
                     {tabs.map((tab) => (
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                        className={`w-full text-left px-4 py-2.5 rounded-xl transition-colors font-medium ${
                           activeTab === tab.id
-                            ? 'bg-blue-50 text-blue-600 font-medium'
+                            ? 'bg-[var(--brand-cloud)] text-[var(--brand-blue)]'
                             : 'text-gray-700 hover:bg-gray-50'
                         }`}
                       >

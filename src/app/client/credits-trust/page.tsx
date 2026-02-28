@@ -13,14 +13,18 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { PageShell } from '@/components/layout/PageShell';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { TrustBanner } from '@/components/trust/TrustBanner';
+import { EvidenceLink } from '@/components/trust/EvidenceLink';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { useToast } from '@/contexts/ToastContext';
 import { EmptyLedger } from '@/components/ui/EmptyState';
 import { LedgerSkeleton } from '@/components/ui/skeleton/LedgerSkeleton';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { Wallet } from 'lucide-react';
+import { Wallet, CheckCircle2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 const CREDIT_PACKAGES = [
   { packageId: 'starter', label: '100 credits', amount: '$10' },
@@ -41,6 +45,8 @@ function CreditsTrustContent() {
 
   const { showToast } = useToast();
 
+  const [showCreditsAdded, setShowCreditsAdded] = React.useState(false);
+
   // Handle success/cancel redirect from checkout
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -48,10 +54,13 @@ function CreditsTrustContent() {
     const success = params.get('success');
     const cancel = params.get('cancel');
     if (success === '1') {
+      setShowCreditsAdded(true);
       showToast('Credits purchased successfully. Balance updated.', 'success');
       queryClient.invalidateQueries({ queryKey: ['credits', 'balance'] });
       queryClient.invalidateQueries({ queryKey: ['credits', 'ledger'] });
       window.history.replaceState({}, '', '/client/credits-trust');
+      const t = setTimeout(() => setShowCreditsAdded(false), 3000);
+      return () => clearTimeout(t);
     } else if (cancel === '1') {
       showToast('Checkout was cancelled.', 'info');
       window.history.replaceState({}, '', '/client/credits-trust');
@@ -79,12 +88,27 @@ function CreditsTrustContent() {
   const hasLedgerData = ledgerQ.data && !ledgerQ.isLoading && !ledgerQ.isError;
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-app">
       <Header />
-      <main className="flex-1 py-8 px-6 max-w-5xl mx-auto w-full">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Credits</h1>
-        <p className="text-gray-600 mb-6">Manage your balance and transaction history.</p>
-
+      <main className="flex-1">
+        <PageShell title="Credits" subtitle="Manage your balance and transaction history." back={{ href: '/client', label: 'Back to home' }} maxWidth="content">
+        <AnimatePresence>
+          {showCreditsAdded && (
+            <motion.div
+              initial={{ opacity: 0, y: -10, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.25 }}
+              className="mb-6 flex items-center gap-3 rounded-xl border border-[var(--brand-mint)]/40 bg-[rgba(40,199,111,0.12)] px-4 py-3"
+            >
+              <CheckCircle2 className="h-8 w-8 text-[var(--brand-mint)] flex-shrink-0" aria-hidden />
+              <div>
+                <p className="font-semibold text-gray-900">Credits added!</p>
+                <p className="text-sm text-gray-600">Your balance has been updated.</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
         {/* Balance card (prominent) */}
         <section className="mb-8">
           {balanceQ.isLoading ? (
@@ -105,9 +129,9 @@ function CreditsTrustContent() {
               </CardContent>
             </Card>
           ) : balanceQ.data ? (
-            <Card className="border border-gray-200 shadow-sm overflow-hidden">
+            <Card className="rounded-2xl border border-gray-200 shadow-sm overflow-hidden card-interactive">
               <CardContent className="p-0">
-                <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-5 text-white">
+                <div className="px-6 py-5 text-white" style={{ background: 'linear-gradient(135deg, var(--brand-blue), var(--brand-aqua))' }}>
                   <div className="flex items-center gap-2 mb-1">
                     <Wallet className="h-5 w-5" />
                     <span className="text-sm font-medium opacity-90">Available balance</span>
@@ -142,11 +166,20 @@ function CreditsTrustContent() {
               </CardContent>
             </Card>
           ) : null}
+          {balanceQ.data && (
+            <TrustBanner
+              variant="verified"
+              label="Balance updates in real time"
+              sub="See transaction history below for full ledger"
+              className="mt-4"
+            />
+          )}
         </section>
 
         {/* Ledger */}
         <section>
           <h2 className="text-xl font-semibold text-gray-900 mb-3">Transaction history</h2>
+          <p className="text-sm text-gray-500 mb-4">Every transaction has an ID and timestamp. Use filters to search.</p>
           <div className="flex flex-wrap gap-3 mb-4">
             <input
               placeholder="Search (booking/invoice/keyword)"
@@ -248,9 +281,13 @@ function CreditsTrustContent() {
                       <td className="px-4 py-3 text-sm text-gray-700">{e.status}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{e.description ?? '—'}</td>
                       <td className="px-4 py-3 text-sm text-gray-500">
-                        {e.relatedBookingId || e.invoiceId ? (
-                          <span>{e.relatedBookingId ?? ''} {e.invoiceId ?? ''}</span>
-                        ) : '—'}
+                        {e.relatedBookingId ? (
+                          <EvidenceLink href={`/client/bookings/${e.relatedBookingId}`} label="View booking" kind="booking" />
+                        ) : e.invoiceId ? (
+                          <EvidenceLink href={`/client/billing-trust/${e.invoiceId}`} label="View invoice" kind="invoice" />
+                        ) : (
+                          '—'
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -259,6 +296,7 @@ function CreditsTrustContent() {
             </div>
           ) : null}
         </section>
+        </PageShell>
       </main>
       <Footer />
     </div>

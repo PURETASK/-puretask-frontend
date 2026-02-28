@@ -4,11 +4,12 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
 import { useInvoices, usePayInvoice } from '@/hooks/useBillingTrust';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { PageShell } from '@/components/layout/PageShell';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { EvidenceLink } from '@/components/trust/EvidenceLink';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/contexts/ToastContext';
 import { EmptyInvoices } from '@/components/ui/EmptyState';
@@ -40,12 +41,10 @@ function BillingTrustContent() {
   const hasData = invoicesQ.data && !invoicesQ.isLoading && !invoicesQ.isError;
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-app">
       <Header />
-      <main className="flex-1 py-8 px-6 max-w-5xl mx-auto w-full">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Invoices</h1>
-        <p className="text-gray-600 mb-6">View and pay your invoices.</p>
-
+      <main className="flex-1">
+        <PageShell title="Invoices" subtitle="View and pay your invoices." back={{ href: '/client', label: 'Back to home' }} maxWidth="content">
         {invoicesQ.isLoading ? (
           <div className="space-y-3">
             <CardSkeleton />
@@ -59,7 +58,7 @@ function BillingTrustContent() {
         ) : hasData && invoices.length === 0 ? (
           <EmptyInvoices />
         ) : hasData ? (
-          <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+          <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -83,12 +82,7 @@ function BillingTrustContent() {
                     <td className="px-4 py-3 text-sm text-gray-500">{inv.bookingId ?? '—'}</td>
                     <td className="px-4 py-3 text-sm">
                       <span className="flex flex-wrap items-center gap-2">
-                        <Link
-                          href={`/client/billing-trust/${inv.id}`}
-                          className="text-blue-600 hover:underline font-medium"
-                        >
-                          View
-                        </Link>
+                        <EvidenceLink href={`/client/billing-trust/${inv.id}`} label="View invoice" kind="invoice" />
                         {UNPAID_STATUSES.includes(inv.status) && (
                           <>
                             <Button
@@ -117,6 +111,7 @@ function BillingTrustContent() {
             </table>
           </div>
         ) : null}
+        </PageShell>
       </main>
       <Footer />
     </div>

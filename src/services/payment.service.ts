@@ -1,15 +1,28 @@
 import { apiClient } from '@/lib/api';
+import { generateIdempotencyKey, IDEMPOTENCY_HEADER } from '@/lib/idempotency';
 import type { PaymentIntent, PaymentMethod } from '@/types/api';
 
 export const paymentService = {
-  // Create payment intent
-  createPaymentIntent: async (amount: number): Promise<PaymentIntent> => {
-    return apiClient.post('/payments/create-intent', { amount });
+  // Create payment intent (idempotency key prevents double charge on retry)
+  createPaymentIntent: async (
+    amount: number,
+    idempotencyKey?: string
+  ): Promise<PaymentIntent> => {
+    const key = idempotencyKey ?? generateIdempotencyKey();
+    return apiClient.post('/payments/create-intent', { amount }, {
+      headers: { [IDEMPOTENCY_HEADER]: key },
+    });
   },
 
-  // Confirm payment
-  confirmPayment: async (paymentIntentId: string): Promise<{ message: string }> => {
-    return apiClient.post('/payments/confirm', { payment_intent_id: paymentIntentId });
+  // Confirm payment (idempotency key prevents double charge on retry)
+  confirmPayment: async (
+    paymentIntentId: string,
+    idempotencyKey?: string
+  ): Promise<{ message: string }> => {
+    const key = idempotencyKey ?? generateIdempotencyKey();
+    return apiClient.post('/payments/confirm', { payment_intent_id: paymentIntentId }, {
+      headers: { [IDEMPOTENCY_HEADER]: key },
+    });
   },
 
   // Get payment methods
@@ -17,9 +30,15 @@ export const paymentService = {
     return apiClient.get('/payments/methods');
   },
 
-  // Add payment method
-  addPaymentMethod: async (paymentMethodId: string): Promise<{ message: string }> => {
-    return apiClient.post('/payments/methods', { payment_method_id: paymentMethodId });
+  // Add payment method (idempotency key prevents duplicate attach on retry)
+  addPaymentMethod: async (
+    paymentMethodId: string,
+    idempotencyKey?: string
+  ): Promise<{ message: string }> => {
+    const key = idempotencyKey ?? generateIdempotencyKey();
+    return apiClient.post('/payments/methods', { payment_method_id: paymentMethodId }, {
+      headers: { [IDEMPOTENCY_HEADER]: key },
+    });
   },
 
   // Remove payment method

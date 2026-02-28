@@ -100,7 +100,7 @@ function LiveAppointmentContent() {
 
           <SupportActionCard />
 
-          <Button variant="outline" onClick={() => router.push('/client/dashboard')}>
+          <Button variant="outline" onClick={() => router.push('/client')}>
             Back to dashboard
           </Button>
         </div>

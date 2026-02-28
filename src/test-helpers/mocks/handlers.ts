@@ -88,4 +88,40 @@ export const handlers = [
       conversations: [],
     });
   }),
+
+  // Credits balance (Trust API shape)
+  http.get(`${BASE_URL}/api/credits/balance`, () => {
+    return HttpResponse.json({
+      balance: 500,
+      currency: 'USD',
+      lastUpdatedISO: new Date().toISOString(),
+    });
+  }),
+
+  // Credits ledger (Trust API shape) — used for ledger lifecycle tests
+  http.get(`${BASE_URL}/api/credits/ledger`, () => {Draw the true system architecture diagram
+    return HttpResponse.json({
+      entries: [
+        {
+          id: 'ledger-1',
+          createdAtISO: new Date(Date.now() - 86400000).toISOString(),
+          type: 'deposit',
+          amount: 1000,
+          currency: 'USD',
+          description: 'Purchased credits',
+          status: 'posted',
+        },
+        {
+          id: 'ledger-2',
+          createdAtISO: new Date().toISOString(),
+          type: 'spend',
+          amount: -500,
+          currency: 'USD',
+          description: 'Job booking (escrow)',
+          status: 'posted',
+          relatedBookingId: 'booking-1',
+        },
+      ],
+    });
+  }),
 ];

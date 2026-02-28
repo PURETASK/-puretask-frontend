@@ -32,11 +32,11 @@ function GoalDetailContent() {
 
   if (!goalId) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-app">
         <Header />
-        <main className="flex-1 py-8 px-6">
+        <main className="flex-1 py-8 px-4 md:px-6">
           <div className="max-w-2xl mx-auto">
-            <Link href="/cleaner/goals" className="text-sm text-blue-600 hover:underline mb-4 inline-block">← Back to Goals</Link>
+            <Link href="/cleaner/goals" className="text-sm font-medium text-gray-600 hover:text-gray-900 mb-4 inline-block">← Back to Goals</Link>
             <p className="text-gray-600">Invalid goal.</p>
           </div>
         </main>
@@ -47,11 +47,11 @@ function GoalDetailContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-app">
         <Header />
-        <main className="flex-1 py-8 px-6">
+        <main className="flex-1 py-8 px-4 md:px-6">
           <div className="max-w-2xl mx-auto">
-            <Link href="/cleaner/goals" className="text-sm text-blue-600 hover:underline mb-4 inline-block">← Back to Goals</Link>
+            <Link href="/cleaner/goals" className="text-sm font-medium text-gray-600 hover:text-gray-900 mb-4 inline-block">← Back to Goals</Link>
             <p className="text-gray-500">Loading goal…</p>
           </div>
         </main>
@@ -62,11 +62,11 @@ function GoalDetailContent() {
 
   if ((isError || goals.length === 0) && !goal) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-app">
         <Header />
-        <main className="flex-1 py-8 px-6">
+        <main className="flex-1 py-8 px-4 md:px-6">
           <div className="max-w-2xl mx-auto">
-            <Link href="/cleaner/goals" className="text-sm text-blue-600 hover:underline mb-4 inline-block">← Back to Goals</Link>
+            <Link href="/cleaner/goals" className="text-sm font-medium text-gray-600 hover:text-gray-900 mb-4 inline-block">← Back to Goals</Link>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Goal not found</h1>
             <p className="text-gray-600">This goal may not exist or may not apply to your level.</p>
             <Link href="/cleaner/goals"><Button variant="outline" className="mt-4">Back to Goals</Button></Link>
@@ -78,17 +78,15 @@ function GoalDetailContent() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-app">
       <Header />
-      <main className="flex-1 py-8 px-6">
+      <main className="flex-1 py-8 px-4 md:px-6">
         <div className="max-w-2xl mx-auto">
-          <Link href="/cleaner/goals" className="text-sm text-blue-600 hover:underline mb-4 inline-block">
-            ← Back to Goals
-          </Link>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Goal Detail</h1>
+          <Link href="/cleaner/goals" className="text-sm font-medium text-gray-600 hover:text-gray-900 mb-4 inline-block">← Back to Goals</Link>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">Goal Detail</h1>
           <p className="text-gray-600 mb-6">{title}</p>
 
-          <Card>
+          <Card className="rounded-2xl border-gray-200">
             <CardHeader>
               <CardTitle>Requirement</CardTitle>
             </CardHeader>
@@ -96,7 +94,7 @@ function GoalDetailContent() {
               <p>{title}</p>
               <Progress value={current} max={target} showLabel size="md" className="mt-2" />
               <p className="text-xs text-gray-500 mt-2">{countsWhen}</p>
-              <p className="text-sm text-blue-600 mt-2">Reward: {rewardPreview}</p>
+              <p className="text-sm font-medium mt-2" style={{ color: 'var(--brand-blue)' }}>Reward: {rewardPreview}</p>
             </CardContent>
           </Card>
 

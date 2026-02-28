@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useSpring } from 'framer-motion';
-import { motion } from 'framer-motion';
+import { useSpring, motion } from 'motion/react';
 import { motionTokens } from '@/components/motion/tokens';
 import { cn } from '@/lib/utils';
 

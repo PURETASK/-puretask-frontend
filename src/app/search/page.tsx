@@ -67,82 +67,78 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-app">
       <Header />
-      <main className="flex-1 py-8 px-6">
-        <div className="max-w-7xl mx-auto">
-          {/* Header with Global Search */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-4">
+      <main className="flex-1 py-8 px-4 md:px-6">
+        <div className="max-w-7xl mx-auto section-wrap">
+          {/* Page header with accent */}
+          <div
+            className="mb-8 rounded-2xl border border-[var(--brand-blue)]/20 px-6 py-5 shadow-sm"
+            style={{ background: 'linear-gradient(135deg, rgba(0,120,255,0.06) 0%, rgba(0,212,255,0.03) 100%)' }}
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  Find Your Perfect Cleaner
+                <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
+                  Find your cleaner
                 </h1>
-                <p className="text-gray-600">
-                  {data?.pagination?.total ?? 0} professional cleaners available in your area
+                <p className="text-gray-600 mt-1">
+                  {data?.pagination?.total ?? 0} verified cleaners in your area · Book with protected payment
                 </p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-shrink-0">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setShowSaveSearch(true)}
-                  className="flex items-center gap-2"
+                  className="gap-2 border-[var(--brand-blue)]/40 text-[var(--brand-blue)] hover:bg-[var(--brand-cloud)]"
                   aria-label="Save current search"
                 >
                   <Save className="h-4 w-4" />
-                  Save Search
+                  Save search
                 </Button>
-                <div className="flex border rounded-lg">
-                  <Button
-                    variant={viewMode === 'list' ? 'primary' : 'ghost'}
-                    size="sm"
+                <div className="flex rounded-xl border border-gray-200 overflow-hidden bg-white">
+                  <button
+                    type="button"
                     onClick={() => setViewMode('list')}
-                    className="rounded-r-none"
+                    className={`p-2.5 transition-colors ${viewMode === 'list' ? 'bg-[var(--brand-blue)] text-white' : 'text-gray-600 hover:bg-gray-100'}`}
                     aria-label="List view"
                   >
                     <List className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={viewMode === 'map' ? 'primary' : 'ghost'}
-                    size="sm"
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setViewMode('map')}
-                    className="rounded-l-none"
+                    className={`p-2.5 transition-colors ${viewMode === 'map' ? 'bg-[var(--brand-blue)] text-white' : 'text-gray-600 hover:bg-gray-100'}`}
                     aria-label="Map view"
                   >
                     <Map className="h-4 w-4" />
-                  </Button>
+                  </button>
                 </div>
               </div>
             </div>
 
-            {/* Global Search */}
             <div className="mb-4">
               <GlobalSearch />
             </div>
 
-            {/* Saved Searches */}
             {savedSearchesData?.savedSearches && savedSearchesData.savedSearches.length > 0 && (
-              <div className="flex gap-2 mb-4 overflow-x-auto">
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                <span className="text-sm text-gray-500 flex-shrink-0 self-center">Saved:</span>
                 {savedSearchesData.savedSearches.map((search: any) => (
-                  <Button
+                  <button
                     key={search.id}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setFilters(search.filters);
-                    }}
-                    className="flex-shrink-0"
+                    type="button"
+                    onClick={() => setFilters(search.filters)}
+                    className="flex-shrink-0 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:border-[var(--brand-blue)]/40 hover:text-[var(--brand-blue)] transition-colors"
                   >
                     {search.name}
-                  </Button>
+                  </button>
                 ))}
               </div>
             )}
           </div>
 
           <div className="grid lg:grid-cols-4 gap-6">
-            {/* Filters Sidebar */}
             <div className="lg:col-span-1">
               <SearchFilters
                 currentFilters={filters}
@@ -150,16 +146,13 @@ export default function SearchPage() {
               />
             </div>
 
-            {/* Results */}
             <div className="lg:col-span-3">
-              {/* Loading State */}
               {isLoading && (
                 <div className="grid gap-4">
                   <SkeletonList items={6} />
                 </div>
               )}
 
-              {/* Error State */}
               {error && (
                 <ErrorDisplay
                   error={error}
@@ -169,13 +162,12 @@ export default function SearchPage() {
                 />
               )}
 
-              {/* Results */}
               {!isLoading && !error && data && (
                 <>
                   {Array.isArray(data?.data) && data.data.length > 0 ? (
                     <div className="grid gap-4">
                       {data.data.map((cleaner: any) => (
-                        <LazyComponent key={cleaner.id} fallback={<div className="h-32 bg-gray-100 animate-pulse rounded" />}>
+                        <LazyComponent key={cleaner.id} fallback={<div className="h-36 bg-gray-100 animate-pulse rounded-2xl" />}>
                           <CleanerCard
                             id={cleaner.id}
                             name={cleaner.full_name || cleaner.name}
@@ -200,27 +192,30 @@ export default function SearchPage() {
                     <EmptyCleaners />
                   )}
 
-                  {/* Pagination */}
                   {(() => {
                     const pagination = data?.pagination;
                     return pagination && pagination.total_pages > 1 ? (
-                      <div className="flex items-center justify-center gap-2 mt-6">
+                      <div className="flex items-center justify-center gap-3 mt-8">
                         <Button
                           variant="outline"
+                          size="sm"
                           onClick={() => handlePageChange(pagination.page - 1)}
                           disabled={pagination.page === 1}
                           aria-label="Previous page"
+                          className="border-gray-200 hover:border-[var(--brand-blue)]/40"
                         >
                           Previous
                         </Button>
-                        <span className="text-sm text-gray-600">
+                        <span className="text-sm text-gray-600 tabular-nums">
                           Page {pagination.page} of {pagination.total_pages}
                         </span>
                         <Button
                           variant="outline"
+                          size="sm"
                           onClick={() => handlePageChange(pagination.page + 1)}
                           disabled={pagination.page === pagination.total_pages}
                           aria-label="Next page"
+                          className="border-gray-200 hover:border-[var(--brand-blue)]/40"
                         >
                           Next
                         </Button>

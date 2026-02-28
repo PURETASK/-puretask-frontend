@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { MapPlaceholderSkeleton } from '@/components/ui/skeleton/MapPlaceholderSkeleton';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { motionTokens } from '@/components/motion/tokens';
 import { MapPin, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';

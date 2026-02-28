@@ -57,11 +57,12 @@ function BadgesContent() {
   }));
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-app">
       <Header />
-      <main className="flex-1 py-8 px-6">
+      <main className="flex-1 py-8 px-4 md:px-6">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Badges & Achievements</h1>
+          <a href="/cleaner" className="text-sm font-medium text-gray-600 hover:text-gray-900 mb-2 inline-block">← Back to home</a>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">Badges & Achievements</h1>
           <p className="text-gray-600 mb-6">
             Core badges (profile-visible), fun/personality badges, recently earned.
           </p>
@@ -72,7 +73,7 @@ function BadgesContent() {
                 key={t}
                 type="button"
                 onClick={() => setTab(t)}
-                className={`px-4 py-2 text-sm font-medium rounded-t ${tab === t ? 'text-blue-600 border-b-2 border-blue-600 bg-white' : 'text-gray-600 hover:text-gray-900'}`}
+                className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${tab === t ? 'border-[var(--brand-blue)] text-[var(--brand-blue)]' : 'border-transparent text-gray-600 hover:text-gray-900'}`}
               >
                 {t}
               </button>

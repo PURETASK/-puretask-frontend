@@ -3,15 +3,22 @@
 import React from 'react';
 import { Header } from '@/components/layout/Header';
 import { Card, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import Link from 'next/link';
+import { HelpCircle } from 'lucide-react';
 
 function GamificationOverviewContent() {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-app">
       <Header />
       <main className="flex-1 py-8 px-6">
         <div className="max-w-6xl mx-auto">
+          <div className="mb-4">
+            <Link href="/admin" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+              ← Back to Admin
+            </Link>
+          </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Gamification Overview</h1>
           <p className="text-gray-600 mb-6">
             Level distribution, time-to-level, reward burn, disputes by level, governor status, flags.
@@ -40,34 +47,28 @@ function GamificationOverviewContent() {
 
           <div className="flex flex-wrap gap-2">
             <Link href="/admin/gamification/goals">
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
-                Goals Library
-              </button>
+              <Button variant="primary">Goals Library</Button>
             </Link>
             <Link href="/admin/gamification/rewards">
-              <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50">
-                Rewards Manager
-              </button>
+              <Button variant="outline">Rewards Manager</Button>
             </Link>
             <Link href="/admin/gamification/choices">
-              <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50">
-                Choice Groups
-              </button>
+              <Button variant="outline">Choice Groups</Button>
             </Link>
             <Link href="/admin/gamification/flags">
-              <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50">
-                Feature Flags
-              </button>
+              <Button variant="outline">Feature Flags</Button>
             </Link>
             <Link href="/admin/gamification/governor">
-              <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50">
-                Governor Console
-              </button>
+              <Button variant="outline">Governor Console</Button>
             </Link>
             <Link href="/admin/gamification/abuse">
-              <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50">
-                Abuse Monitor
-              </button>
+              <Button variant="outline">Abuse Monitor</Button>
+            </Link>
+            <Link href="/admin/support" className="inline-flex">
+              <Button variant="outline" className="inline-flex items-center gap-2">
+                <HelpCircle className="h-4 w-4" />
+                Support (cleaner gamification)
+              </Button>
             </Link>
           </div>
         </div>

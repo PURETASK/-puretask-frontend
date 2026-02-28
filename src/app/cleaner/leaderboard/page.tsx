@@ -100,7 +100,7 @@ export default function LeaderboardPage() {
               <h1 className="text-3xl font-bold text-gray-900 mb-2">🏆 Leaderboard</h1>
               <p className="text-gray-600">See how you rank among top cleaners</p>
             </div>
-            <Button variant="outline" onClick={() => (window.location.href = '/cleaner/dashboard')}>
+            <Button variant="outline" onClick={() => (window.location.href = '/cleaner')}>
               ← Back to Dashboard
             </Button>
           </div>

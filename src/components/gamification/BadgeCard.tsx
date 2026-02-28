@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { motionTokens } from '@/components/motion/tokens';
 import { StaggerItem } from '@/components/motion/Stagger';

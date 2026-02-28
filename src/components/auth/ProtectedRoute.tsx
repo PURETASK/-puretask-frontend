@@ -31,9 +31,9 @@ export function ProtectedRoute({
       if (requiredRole && !roleOk) {
         // Redirect to appropriate dashboard based on actual role
         const dashboardMap = {
-          client: '/client/dashboard',
-          cleaner: '/cleaner/dashboard',
-          admin: '/admin/dashboard',
+          client: '/client',
+          cleaner: '/cleaner',
+          admin: '/admin',
         };
         router.push(dashboardMap[user?.role as keyof typeof dashboardMap] || '/');
       }

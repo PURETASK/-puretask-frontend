@@ -11,21 +11,22 @@ import { HelpCircle, MessageSquare, FileText, Mail } from 'lucide-react';
 
 function SupportContent() {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-app">
       <Header />
-      <main className="flex-1 py-8 px-6">
+      <main className="flex-1 py-8 px-4 md:px-6">
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Help & Support</h1>
-          <p className="text-gray-600 mb-8">
-            Get help with bookings, payments, or open a dispute.
-          </p>
+          <div className="mb-8">
+            <a href="/client" className="text-sm font-medium text-gray-600 hover:text-gray-900 mb-2 inline-block">← Back to home</a>
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Help & support</h1>
+            <p className="text-gray-600 mt-1">Get help with bookings, payments, or open a dispute.</p>
+          </div>
 
           <div className="grid gap-4 mb-8">
-            <Card className="hover:shadow-md transition-shadow">
+            <Card className="rounded-2xl border-gray-200 card-interactive">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-                    <HelpCircle className="h-6 w-6 text-blue-600" />
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'var(--brand-cloud)', color: 'var(--brand-blue)' }}>
+                    <HelpCircle className="h-6 w-6" />
                   </div>
                   <div>
                     <h2 className="text-lg font-semibold text-gray-900 mb-1">Help Center</h2>
@@ -40,11 +41,11 @@ function SupportContent() {
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-md transition-shadow">
+            <Card className="rounded-2xl border-gray-200 card-interactive">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
-                    <MessageSquare className="h-6 w-6 text-green-600" />
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-[var(--brand-mint)]/20 text-[var(--brand-mint)]">
+                    <MessageSquare className="h-6 w-6" />
                   </div>
                   <div>
                     <h2 className="text-lg font-semibold text-gray-900 mb-1">Message your cleaner</h2>
@@ -59,11 +60,11 @@ function SupportContent() {
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-md transition-shadow">
+            <Card className="rounded-2xl border-gray-200 card-interactive">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
-                    <FileText className="h-6 w-6 text-amber-600" />
+                  <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0 text-amber-600">
+                    <FileText className="h-6 w-6" />
                   </div>
                   <div>
                     <h2 className="text-lg font-semibold text-gray-900 mb-1">Disputes</h2>
@@ -78,7 +79,7 @@ function SupportContent() {
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-md transition-shadow">
+            <Card className="rounded-2xl border-gray-200 card-interactive">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">

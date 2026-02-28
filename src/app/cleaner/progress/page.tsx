@@ -102,9 +102,9 @@ export default function ProgressPage() {
 
   if (progressLoading && !progressData) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-app">
         <Header />
-        <main className="flex-1 py-8 px-6 flex items-center justify-center">
+        <main className="flex-1 py-8 px-4 md:px-6 flex items-center justify-center">
           <p className="text-gray-500">Loading your progress…</p>
         </main>
         <Footer />
@@ -113,9 +113,9 @@ export default function ProgressPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-app">
       <Header />
-      <main className="flex-1 py-8 px-6">
+      <main className="flex-1 py-8 px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
           {/* Paused banner when maintenance fails */}
           {progressPausedReason && (
@@ -130,14 +130,18 @@ export default function ProgressPage() {
 
           {/* Header: Your Progress + LevelBadge + How visibility works */}
           <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
-            <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-3xl font-bold text-gray-900">Your Progress</h1>
-              <LevelBadge level={currentLevel} label={levelLabel} size="lg" />
+            <div>
+              <a href="/cleaner" className="text-sm font-medium text-gray-600 hover:text-gray-900 mb-2 inline-block">← Back to home</a>
+              <div className="flex flex-wrap items-center gap-3">
+                <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Your Progress</h1>
+                <LevelBadge level={currentLevel} label={levelLabel} size="lg" />
+              </div>
             </div>
             <button
               type="button"
               onClick={() => setVisibilityModalOpen(true)}
-              className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
+              className="inline-flex items-center gap-2 text-sm font-medium"
+              style={{ color: 'var(--brand-blue)' }}
             >
               <HelpCircle className="h-4 w-4" />
               How visibility works
@@ -146,7 +150,7 @@ export default function ProgressPage() {
 
           {/* Main top: Progress ring + Core / Stretch / Maintenance */}
           <div className="grid md:grid-cols-3 gap-6 mb-8">
-            <Card>
+            <Card className="rounded-2xl border-gray-200">
               <CardContent className="p-6 flex flex-col items-center">
                 <LevelProgressRing
                   percentage={coreCompletionPercent}
@@ -156,7 +160,7 @@ export default function ProgressPage() {
                 />
               </CardContent>
             </Card>
-            <Card>
+            <Card className="rounded-2xl border-gray-200">
               <CardContent className="p-6 space-y-4">
                 <div>
                   <p className="text-sm font-medium text-gray-500 mb-1">Core completion</p>
@@ -186,13 +190,13 @@ export default function ProgressPage() {
                 </div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="rounded-2xl border-gray-200 card-interactive">
               <CardContent className="p-6">
                 <h3 className="font-semibold text-gray-900 mb-3">Quick actions</h3>
                 <div className="flex flex-col gap-2">
                   <Link
                     href={`/cleaner/progress/level/${currentLevel}`}
-                    className="inline-flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    className="inline-flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                   >
                     View Level Details
                     <ChevronRight className="h-4 w-4" />
@@ -277,7 +281,7 @@ export default function ProgressPage() {
                   <p className="text-gray-500 text-sm">No active rewards. Complete goals to unlock.</p>
                 )}
               </div>
-              <Link href="/cleaner/rewards" className="mt-3 inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800">
+              <Link href="/cleaner/rewards" className="mt-3 inline-flex items-center gap-1 text-sm font-medium" style={{ color: 'var(--brand-blue)' }}>
                 View all rewards
                 <ChevronRight className="h-4 w-4" />
               </Link>
@@ -301,7 +305,7 @@ export default function ProgressPage() {
                   </div>
                 ))}
               </div>
-              <Link href="/cleaner/badges" className="mt-3 inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800">
+              <Link href="/cleaner/badges" className="mt-3 inline-flex items-center gap-1 text-sm font-medium" style={{ color: 'var(--brand-blue)' }}>
                 View all badges
                 <ChevronRight className="h-4 w-4" />
               </Link>
@@ -310,9 +314,9 @@ export default function ProgressPage() {
 
           {/* Legacy goals from API (if any) — keep for backward compatibility */}
           {goalsData?.goals && goalsData.goals.length > 0 && (
-            <Card className="mt-8 border-green-200 bg-green-50">
+            <Card className="mt-8 rounded-2xl border-[var(--brand-mint)]/20" style={{ backgroundColor: 'var(--brand-cloud)' }}>
               <CardContent className="p-6">
-                <h3 className="font-semibold text-green-900 mb-3">Active goals (from API)</h3>
+                <h3 className="font-semibold text-gray-900 mb-3">Active goals (from API)</h3>
                 <div className="space-y-3">
                   {goalsData.goals.map((goal: { id: string; type?: string; current?: number; target?: number }) => (
                     <div key={goal.id} className="bg-white p-3 rounded-lg">

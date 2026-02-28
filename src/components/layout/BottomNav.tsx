@@ -33,25 +33,25 @@ export function BottomNav() {
   }
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 z-50 safe-area-pb">
       <div className="flex items-center justify-around h-16">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
-          
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                'flex flex-col items-center justify-center gap-1 flex-1 h-full min-h-[44px] transition-colors',
+                'flex flex-col items-center justify-center gap-1 flex-1 h-full min-h-[44px] transition-all duration-200 rounded-lg mx-1',
                 isActive
-                  ? 'text-blue-600'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'text-blue-600 bg-blue-50'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               )}
               aria-label={item.label}
+              aria-current={isActive ? 'page' : undefined}
             >
-              <Icon className={cn('h-5 w-5', isActive && 'text-blue-600')} />
+              <Icon className={cn('h-5 w-5 transition-transform duration-200', isActive && 'text-blue-600 scale-110')} />
               <span className="text-xs font-medium">{item.label}</span>
             </Link>
           );

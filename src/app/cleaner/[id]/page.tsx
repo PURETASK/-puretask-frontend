@@ -29,7 +29,7 @@ export default function CleanerProfilePage() {
   const cleanerId = params.id as string;
   const [reviewPage, setReviewPage] = useState(1);
   
-  const { data: cleanerData, isLoading: loadingCleaner } = useCleaner(cleanerId);
+  const { data: cleanerData, isLoading: loadingCleaner, isError: cleanerError } = useCleaner(cleanerId);
   const { data: reviewsData, isLoading: loadingReviews } = useCleanerReviews(cleanerId, reviewPage);
   const { data: reliabilityData } = useQuery({
     queryKey: ['reliability', cleanerId],
@@ -37,26 +37,39 @@ export default function CleanerProfilePage() {
     enabled: !!cleanerId,
   });
 
+  // Support both { cleaner } and { data } response shapes from API
+  const cleaner = cleanerData?.cleaner ?? (cleanerData as { data?: typeof cleanerData.cleaner })?.data;
+
   if (loadingCleaner) {
     return <Loading size="lg" text="Loading cleaner profile..." fullScreen />;
   }
 
-  if (!cleanerData?.cleaner) {
+  if (!cleaner) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="max-w-md">
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-app">
+        <Card className="max-w-md w-full">
           <CardContent className="p-8 text-center">
             <div className="text-5xl mb-4">⚠️</div>
-            <h2 className="text-xl font-bold mb-2">Cleaner Not Found</h2>
-            <p className="text-gray-600 mb-4">This cleaner profile doesn't exist.</p>
-            <Button onClick={() => router.push('/search')}>Back to Search</Button>
+            <h2 className="text-xl font-bold mb-2">Cleaner profile unavailable</h2>
+            <p className="text-gray-600 mb-4">
+              We couldn’t load this profile. The cleaner may not exist, the link might be wrong or outdated, or there was a connection problem.
+            </p>
+            {process.env.NODE_ENV === 'development' && cleanerId && (
+              <p className="text-xs text-gray-500 mb-4 font-mono">ID requested: {cleanerId}</p>
+            )}
+            {cleanerError && (
+              <p className="text-sm text-amber-700 mb-4">The server didn’t return this profile. Check that the backend is running and the cleaner ID exists.</p>
+            )}
+            <div className="flex flex-col sm:flex-row gap-2 justify-center">
+              <Button onClick={() => router.push('/search')}>Back to Search</Button>
+              <Button variant="outline" onClick={() => router.push('/')}>Go to Home</Button>
+            </div>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  const cleaner = cleanerData.cleaner;
   const reviews = reviewsData?.reviews || [];
   // Trust signals for clients (level + top badges). Use API when available.
   const cleanerLevel = (cleaner as { level?: number }).level ?? null;

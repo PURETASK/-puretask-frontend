@@ -43,18 +43,16 @@ function LevelDetailContent() {
   }));
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-app">
       <Header />
-      <main className="flex-1 py-8 px-6">
+      <main className="flex-1 py-8 px-4 md:px-6">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Level {levelNumber}</h1>
-              <p className="text-gray-600 mt-1">What you can unlock here</p>
+              <Link href="/cleaner/progress" className="text-sm font-medium text-gray-600 hover:text-gray-900 mb-2 inline-block">← Back to Progress</Link>
+              <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Level {levelNumber}</h1>
+              <p className="text-gray-600 mt-1">What you can unlock here.</p>
             </div>
-            <Link href="/cleaner/progress">
-              <Button variant="outline">← Back to Progress</Button>
-            </Link>
           </div>
 
           <LevelBadge level={levelNumber} label="Detail" size="lg" className="mb-6" />
@@ -63,7 +61,7 @@ function LevelDetailContent() {
 
           <div className="grid md:grid-cols-3 gap-6">
             <div className="md:col-span-2 space-y-6">
-              <Card>
+              <Card className="rounded-2xl border-gray-200">
                 <CardHeader>
                   <CardTitle>Core Goals (required)</CardTitle>
                 </CardHeader>
@@ -75,7 +73,7 @@ function LevelDetailContent() {
                   )}
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="rounded-2xl border-gray-200">
                 <CardHeader>
                   <CardTitle>Stretch Goals (choose at least one)</CardTitle>
                 </CardHeader>
@@ -97,7 +95,7 @@ function LevelDetailContent() {
                   )}
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="rounded-2xl border-gray-200">
                 <CardHeader>
                   <CardTitle>Maintenance rules</CardTitle>
                 </CardHeader>
@@ -109,7 +107,7 @@ function LevelDetailContent() {
               </Card>
             </div>
             <div>
-              <Card>
+              <Card className="rounded-2xl border-gray-200">
                 <CardHeader>
                   <CardTitle>Reward Preview</CardTitle>
                 </CardHeader>

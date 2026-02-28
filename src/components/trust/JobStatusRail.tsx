@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { getStatusIndex, getStatusLabel, getStatusOrder, type JobStatus } from './jobStatus';
 
 type Props = {

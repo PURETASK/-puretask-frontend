@@ -43,8 +43,8 @@ export function RoleGuard({
     if (!allowedRoles.includes(user.role)) {
       const userDashboard = 
         user.role === 'admin' ? '/admin' :
-        user.role === 'cleaner' ? '/cleaner/dashboard' :
-        user.role === 'client' ? '/client/dashboard' :
+        user.role === 'cleaner' ? '/cleaner' :
+        user.role === 'client' ? '/client' :
         '/';
       
       router.push(redirectTo || userDashboard);

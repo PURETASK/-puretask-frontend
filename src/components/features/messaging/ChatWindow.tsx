@@ -8,7 +8,10 @@ import { Avatar } from '@/components/ui/Avatar';
 import { Input } from '@/components/ui/Input';
 import { Loading } from '@/components/ui/Loading';
 import { QuickTemplatePicker } from '@/components/gamification';
+import { useQueryClient } from '@tanstack/react-query';
 import { useMessages, useSendMessage, useRealtimeMessages } from '@/hooks/useMessages';
+import { useWebSocket } from '@/contexts/WebSocketContext';
+import { messageService } from '@/services/message.service';
 import { formatDistanceToNow } from 'date-fns';
 
 interface ChatWindowProps {
@@ -30,11 +33,34 @@ export function ChatWindow({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatId = jobId || conversationId;
 
+  const queryClient = useQueryClient();
   const { data: messagesData, isLoading } = useMessages(chatId);
   const { mutate: sendMessage, isPending: isSending } = useSendMessage();
-  
+  const { emit } = useWebSocket();
+
   // Enable real-time updates
   useRealtimeMessages(chatId);
+
+  // Join job/booking room for real-time messages when viewing a job thread
+  useEffect(() => {
+    if (jobId && emit) {
+      emit('join_booking', { bookingId: jobId });
+      return () => {
+        emit('leave_booking', { bookingId: jobId });
+      };
+    }
+  }, [jobId, emit]);
+
+  // Mark thread as read when user opens it (server source-of-truth for unread counts)
+  useEffect(() => {
+    if (!chatId || !recipientId) return;
+    messageService
+      .markAllAsRead(recipientId)
+      .then(() => {
+        queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      })
+      .catch(() => {});
+  }, [chatId, recipientId, queryClient]);
 
   const messages = messagesData?.messages || [];
 
@@ -47,7 +73,7 @@ export function ChatWindow({
     if (!message.trim() || !recipientId) return;
 
     sendMessage(
-      { recipientId, content: message },
+      { recipientId, content: message, jobId },
       {
         onSuccess: () => {
           setMessage('');

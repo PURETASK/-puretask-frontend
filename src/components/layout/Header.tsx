@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search, Menu, Home, Users, Briefcase, Shield, LayoutDashboard, Trophy } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { Search, Menu, Home, Users, Briefcase, Shield, LayoutDashboard, Trophy, CalendarPlus, CalendarCheck, Inbox, Wallet } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
@@ -20,15 +21,41 @@ interface HeaderProps {
 export function Header({ onMenuClick, className }: HeaderProps) {
   const [showSearch, setShowSearch] = useState(false);
   const { user } = useAuth();
+  const pathname = usePathname();
+
+  const navLink = (href: string, label: string, Icon: React.ComponentType<{ className?: string }>) => {
+    const active = pathname === href || (href !== '/' && pathname?.startsWith(href));
+    return (
+      <Link href={href}>
+        <span
+          className={cn(
+            'inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
+            active
+              ? 'bg-[var(--brand-blue)]/10 text-[var(--brand-blue)]'
+              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+          )}
+        >
+          <Icon className="h-4 w-4" />
+          {label}
+        </span>
+      </Link>
+    );
+  };
 
   return (
-    <header className={cn('bg-white border-b border-gray-200 sticky top-0 z-50', className)}>
+    <header className={cn('sticky top-0 z-50 border-b border-gray-200/80 bg-white/80 backdrop-blur-md', className)}>
       <div className="flex items-center justify-between px-4 py-3">
         {/* Left side - Back Button & Logo */}
         <div className="flex items-center gap-3">
           <BackButton />
-          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+          <Link
+            href="/"
+            className="flex items-center gap-2 rounded-lg transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center shadow-md"
+              style={{ background: 'linear-gradient(135deg, var(--brand-blue), var(--brand-aqua))' }}
+            >
               <span className="text-white font-bold text-lg">PT</span>
             </div>
             <h1 className="text-xl font-bold text-gray-900 hidden sm:block">PureTask</h1>
@@ -36,75 +63,37 @@ export function Header({ onMenuClick, className }: HeaderProps) {
         </div>
 
         {/* Center - Main Navigation */}
-        <nav className="hidden md:flex items-center gap-2">
-          <Link href="/">
-            <Button variant="ghost" size="md" className="gap-2">
-              <Home className="h-4 w-4" />
-              Home
-            </Button>
-          </Link>
-          
-          {/* Admin-specific navigation */}
+        <nav className="hidden md:flex items-center gap-1">
+          {navLink('/', 'Home', Home)}
           {user?.role === 'admin' && (
             <>
-              <Link href="/admin">
-                <Button variant="ghost" size="md" className="gap-2">
-                  <Shield className="h-4 w-4" />
-                  Admin Panel
-                </Button>
-              </Link>
-              <Link href="/admin/gamification">
-                <Button variant="ghost" size="md" className="gap-2">
-                  <Trophy className="h-4 w-4" />
-                  Gamification
-                </Button>
-              </Link>
+              {navLink('/admin', 'Admin', Shield)}
+              {navLink('/admin/gamification', 'Gamification', Trophy)}
             </>
           )}
-          
-          {/* Cleaner-specific navigation */}
           {user?.role === 'cleaner' && (
             <>
-              <Link href="/cleaner/dashboard">
-                <Button variant="ghost" size="md" className="gap-2">
-                  <LayoutDashboard className="h-4 w-4" />
-                  My Dashboard
-                </Button>
-              </Link>
-              <Link href="/cleaner/progress">
-                <Button variant="ghost" size="md" className="gap-2">
-                  <Trophy className="h-4 w-4" />
-                  Progress
-                </Button>
-              </Link>
+              {navLink('/cleaner', 'Home', Home)}
+              {navLink('/cleaner/today', 'Today', CalendarCheck)}
+              {navLink('/cleaner/jobs/requests', 'Requests', Inbox)}
+              {navLink('/cleaner/earnings', 'Earnings', Wallet)}
+              {navLink('/cleaner/progress', 'Progress', Trophy)}
             </>
           )}
-          
-          {/* Client-specific navigation */}
           {user?.role === 'client' && (
             <>
-              <Link href="/search">
-                <Button variant="ghost" size="md" className="gap-2">
-                  <Users className="h-4 w-4" />
-                  Find a Cleaner
-                </Button>
-              </Link>
-              <Link href="/client/dashboard">
-                <Button variant="ghost" size="md" className="gap-2">
-                  <LayoutDashboard className="h-4 w-4" />
-                  My Bookings
-                </Button>
-              </Link>
+              {navLink('/client', 'Home', Home)}
+              {navLink('/client/book', 'Book', CalendarPlus)}
+              {navLink('/client/bookings', 'Bookings', CalendarCheck)}
+              {navLink('/client/credits-trust', 'Credits', Wallet)}
             </>
           )}
-          
-          {/* Show cleaner onboarding for non-logged-in users or clients */}
           {(!user || user.role === 'client') && (
             <Link href="/cleaner/onboarding">
-              <Button variant="ghost" size="md" className="gap-2">
+              <span className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200">
                 <Briefcase className="h-4 w-4" />
                 I'm a Cleaner
-              </Button>
+              </span>
             </Link>
           )}
         </nav>
@@ -126,10 +115,10 @@ export function Header({ onMenuClick, className }: HeaderProps) {
           {user ? (
             <Link href={
               user.role === 'admin' ? '/admin' :
-              user.role === 'cleaner' ? '/cleaner/dashboard' :
-              '/client/dashboard'
+              user.role === 'cleaner' ? '/cleaner' :
+              '/client'
             }>
-              <div className="flex items-center gap-2 ml-2 pl-2 border-l border-gray-200 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors">
+              <div className="flex items-center gap-2 ml-2 pl-2 border-l border-gray-200 cursor-pointer hover:bg-gray-100 p-2 rounded-xl transition-all duration-200">
                 <Avatar size="sm" fallback={user?.full_name?.[0] || user?.email?.[0] || 'U'} />
                 <div className="hidden sm:block">
                   <p className="text-sm font-medium text-gray-900">
@@ -157,7 +146,7 @@ export function Header({ onMenuClick, className }: HeaderProps) {
         </div>
       </div>
 
-      {/* Legacy Mobile Navigation - Can be removed if MobileNav works well */}
+      {/* Mobile nav strip */}
       <div className="md:hidden border-t border-gray-200 px-4 py-2 flex gap-2 overflow-x-auto">
         <Link href="/">
           <Button variant="ghost" size="sm" className="gap-2 flex-shrink-0">
@@ -165,19 +154,37 @@ export function Header({ onMenuClick, className }: HeaderProps) {
             Home
           </Button>
         </Link>
-        <Link href="/search">
-          <Button variant="ghost" size="sm" className="gap-2 flex-shrink-0">
-            <Users className="h-4 w-4" />
-            Find Cleaner
-          </Button>
-        </Link>
+        {user?.role === 'client' && (
+          <>
+            <Link href="/client/book">
+              <Button variant="ghost" size="sm" className="gap-2 flex-shrink-0">
+                <CalendarPlus className="h-4 w-4" />
+                Book
+              </Button>
+            </Link>
+            <Link href="/client/bookings">
+              <Button variant="ghost" size="sm" className="gap-2 flex-shrink-0">
+                <CalendarCheck className="h-4 w-4" />
+                Bookings
+              </Button>
+            </Link>
+          </>
+        )}
         {user?.role === 'cleaner' && (
-          <Link href="/cleaner/progress">
-            <Button variant="ghost" size="sm" className="gap-2 flex-shrink-0">
-              <Trophy className="h-4 w-4" />
-              Progress
-            </Button>
-          </Link>
+          <>
+            <Link href="/cleaner/today">
+              <Button variant="ghost" size="sm" className="gap-2 flex-shrink-0">
+                <CalendarCheck className="h-4 w-4" />
+                Today
+              </Button>
+            </Link>
+            <Link href="/cleaner/jobs/requests">
+              <Button variant="ghost" size="sm" className="gap-2 flex-shrink-0">
+                <Inbox className="h-4 w-4" />
+                Requests
+              </Button>
+            </Link>
+          </>
         )}
         {user?.role === 'admin' && (
           <Link href="/admin/gamification">
@@ -187,12 +194,14 @@ export function Header({ onMenuClick, className }: HeaderProps) {
             </Button>
           </Link>
         )}
-        <Link href="/cleaner/onboarding">
-          <Button variant="ghost" size="sm" className="gap-2 flex-shrink-0">
-            <Briefcase className="h-4 w-4" />
-            I'm a Cleaner
-          </Button>
-        </Link>
+        {(!user || user.role === 'client') && (
+          <Link href="/cleaner/onboarding">
+            <Button variant="ghost" size="sm" className="gap-2 flex-shrink-0">
+              <Briefcase className="h-4 w-4" />
+              I'm a Cleaner
+            </Button>
+          </Link>
+        )}
       </div>
 
       {/* Search Bar (when expanded) */}

@@ -25,11 +25,12 @@ function MaintenanceContent() {
   const recoverySteps = maintenanceData?.recovery_steps ?? ['Do 3 dispute-free jobs', 'Improve on-time over next 10 jobs'];
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-app">
       <Header />
-      <main className="flex-1 py-8 px-6">
+      <main className="flex-1 py-8 px-4 md:px-6">
         <div className="max-w-2xl mx-auto">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Maintenance</h1>
+          <a href="/cleaner" className="text-sm font-medium text-gray-600 hover:text-gray-900 mb-2 inline-block">← Back to home</a>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">Maintenance</h1>
           <p className="text-gray-600 mb-6">
             On-time %, disputes, acceptance fairness. If paused: reason + recovery steps.
           </p>
@@ -52,11 +53,9 @@ function MaintenanceContent() {
             </Card>
           )}
 
-          <div className="flex gap-2 mt-4">
-            <Link href="/cleaner/stats" className="text-sm text-blue-600 hover:underline">
-              View my stats
-            </Link>
-            <a href="/support" className="text-sm text-blue-600 hover:underline">Contact support</a>
+          <div className="flex gap-4 mt-4">
+            <Link href="/cleaner/stats" className="text-sm font-medium" style={{ color: 'var(--brand-blue)' }}>View my stats</Link>
+            <a href="/support" className="text-sm font-medium" style={{ color: 'var(--brand-blue)' }}>Contact support</a>
           </div>
         </div>
       </main>

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { PageShell } from '@/components/layout/PageShell';
 import { BookingCard } from '@/components/features/dashboard/BookingCard';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -38,14 +39,16 @@ function MyBookingsContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-app">
         <Header />
-        <main className="flex-1 py-8 px-6">
-          <div className="max-w-7xl mx-auto space-y-3">
-            <JobRowSkeleton />
-            <JobRowSkeleton />
-            <JobRowSkeleton />
-          </div>
+        <main className="flex-1">
+          <PageShell title="My Bookings" maxWidth="wide">
+            <div className="space-y-3">
+              <JobRowSkeleton />
+              <JobRowSkeleton />
+              <JobRowSkeleton />
+            </div>
+          </PageShell>
         </main>
       </div>
     );
@@ -53,17 +56,17 @@ function MyBookingsContent() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-app">
         <Header />
-        <main className="flex-1 py-8 px-6">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1">
+          <PageShell title="My Bookings" maxWidth="wide">
             <ErrorDisplay
               error={error}
               onRetry={() => refetch()}
               variant="card"
               title="Failed to load bookings"
             />
-          </div>
+          </PageShell>
         </main>
       </div>
     );
@@ -82,34 +85,40 @@ function MyBookingsContent() {
   };
 
   const content = (
-    <div className="max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">My Bookings</h1>
-        <Button variant="primary" onClick={() => router.push('/search')}>
-          + Book a Cleaner
+    <PageShell
+        title="My bookings"
+        subtitle="View and manage your upcoming and past cleans."
+        back={{ href: '/client', label: 'Back to home' }}
+        maxWidth="wide"
+      >
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <Button variant="primary" onClick={() => router.push('/client/book')}>
+          Book a cleaner
         </Button>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex gap-2 mb-6">
-        {(['all', 'upcoming', 'completed', 'cancelled'] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setFilter(tab)}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filter === tab
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)} {tab !== 'all' && `(${bookings.filter((b: any) => {
-              if (tab === 'upcoming') {
-                return ['pending', 'accepted', 'scheduled', 'confirmed'].includes(b.status);
-              }
-              return b.status === tab;
-            }).length})`}
-          </button>
-        ))}
+      {/* Filter tabs */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        {(['all', 'upcoming', 'completed', 'cancelled'] as const).map((tab) => {
+          const count = tab === 'all' ? bookings.length : bookings.filter((b: any) => {
+            if (tab === 'upcoming') return ['pending', 'accepted', 'scheduled', 'confirmed'].includes(b.status);
+            return b.status === tab;
+          }).length;
+          return (
+            <button
+              key={tab}
+              onClick={() => setFilter(tab)}
+              className={`px-4 py-2.5 rounded-xl font-medium transition-all duration-200 ${
+                filter === tab
+                  ? 'bg-[var(--brand-blue)] text-white shadow-sm'
+                  : 'bg-white border border-gray-200 text-gray-600 hover:border-[var(--brand-blue)]/40 hover:text-[var(--brand-blue)]'
+              }`}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              {tab !== 'all' && ` (${count})`}
+            </button>
+          );
+        })}
       </div>
 
       {/* Bookings Grid */}
@@ -134,31 +143,23 @@ function MyBookingsContent() {
             </StaggerItem>
           ))}
         </Stagger>
+      ) : filter === 'all' ? (
+        <EmptyBookings />
       ) : (
-        <div className="bg-white rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
-          <div className="text-5xl mb-4">📅</div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            {filter === 'all' ? 'No Bookings Yet' : `No ${filter.charAt(0).toUpperCase() + filter.slice(1)} Bookings`}
-          </h3>
-          <p className="text-gray-600 mb-6">
-            {filter === 'all' 
-              ? 'Ready to book your first cleaning service?'
-              : `You don't have any ${filter} bookings at the moment.`}
-          </p>
-          {filter === 'all' && (
-            <Button variant="primary" onClick={() => router.push('/search')}>
-              Book Now
-            </Button>
-          )}
+        <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-12 text-center">
+          <p className="text-gray-600">No {filter} bookings right now.</p>
+          <Button variant="outline" className="mt-4" onClick={() => setFilter('all')} style={{ borderColor: 'var(--brand-blue)', color: 'var(--brand-blue)' }}>
+            View all bookings
+          </Button>
         </div>
       )}
-    </div>
+    </PageShell>
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-app">
       <Header />
-      <main className="flex-1 py-8 px-6">
+      <main className="flex-1">
         {mobile ? (
           <PullToRefresh onRefresh={handleRefresh}>
             {content}
@@ -171,3 +172,4 @@ function MyBookingsContent() {
     </div>
   );
 }
+

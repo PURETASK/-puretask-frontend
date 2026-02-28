@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { PageShell } from '@/components/layout/PageShell';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -17,10 +18,12 @@ import { useLiveJobStatus, useAddToCalendar } from '@/hooks/useClientEnhanced';
 import { useJobDetails, JOB_DETAILS_QUERY_KEY } from '@/hooks/useJobDetails';
 import { useJobTrackingPoll } from '@/hooks/useJobTrackingPoll';
 import JobDetailsTracking from '@/components/trust/JobDetailsTracking';
-import { GradientButton } from '@/components/brand/GradientButton';
+import { NextActionCard } from '@/components/trust/NextActionCard';
+import { TrustBanner } from '@/components/trust/TrustBanner';
 import { approveJob } from '@/services/jobs';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
+import { getJobStatusLabel, getJobStatusBadgeClass, isEscrowHeld, shouldPollTracking } from '@/constants';
 import { Calendar, Share2, MapPin, Clock, CheckCircle, XCircle, AlertCircle, Lock, Wallet } from 'lucide-react';
 import { useToast } from '@/contexts/ToastContext';
 
@@ -58,7 +61,7 @@ function BookingDetailsContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-app">
         <Header />
         <main className="flex-1 py-8 px-6">
           <div className="max-w-7xl mx-auto space-y-3">
@@ -73,7 +76,7 @@ function BookingDetailsContent() {
 
   if (error || !data?.booking) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-app">
         <Header />
         <main className="flex-1 py-8 px-6">
           <div className="max-w-7xl mx-auto">
@@ -114,44 +117,54 @@ function BookingDetailsContent() {
   const showHeldCredits = booking && isEscrowHeld(booking.status);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-app">
       <Header />
-      <main className="flex-1 py-8 px-6">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Booking Details</h1>
-              <p className="text-gray-600 mt-1">Booking ID: {booking.id}</p>
+      <main className="flex-1">
+        <PageShell
+          title="Booking Details"
+          subtitle={`Booking ID: ${booking.id}`}
+          back={{ href: '/client/bookings', label: 'Back to Bookings' }}
+          maxWidth="content"
+        >
+          {/* Awaiting approval: primary action first */}
+          {canApproveOrDispute && (
+            <div className="mb-6">
+              <NextActionCard
+                title="Review & complete"
+                description="The cleaning is done. Approve to release payment to your cleaner, or open a dispute if something wasn’t right."
+                primaryAction={{
+                  label: approving ? 'Approving…' : 'Approve & release payment',
+                  onClick: handleApprove,
+                  isLoading: approving,
+                }}
+                secondaryAction={{
+                  label: 'Open dispute',
+                  onClick: () => router.push(`/client/job/${bookingId}/dispute`),
+                }}
+                variant="highlight"
+              />
             </div>
-            <Button variant="ghost" onClick={() => router.push('/client/bookings')}>
-              ← Back to Bookings
-            </Button>
-          </div>
+          )}
 
-          {/* In progress: timer + held credits */}
+          {/* In progress: timer + held credits (trust banner) */}
           {booking && (booking.status === 'in_progress' || booking.status === 'on_my_way') && showHeldCredits && (
-            <Card className="mb-6 border-blue-200 bg-blue-50/50">
-              <CardContent className="py-4">
-                <div className="flex flex-wrap items-center gap-6">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-blue-600" />
-                    <span className="text-sm font-medium text-gray-700">Job in progress</span>
-                    {jobDetails?.job?.actual_start_at && (
-                      <span className="text-xs text-gray-500">
-                        Started {format(new Date(jobDetails.job.actual_start_at), 'h:mm a')}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Lock className="h-5 w-5 text-amber-600" />
-                    <span className="text-sm font-medium text-gray-700">
-                      {booking.credit_amount ?? 0} credits held for this job
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="mb-6 flex flex-col sm:flex-row gap-3">
+              <TrustBanner
+                variant="credits-held"
+                label={`${booking.credit_amount ?? 0} credits held for this job`}
+                sub="Released when you approve, or held if you open a dispute."
+                href="/client/credits-trust"
+              />
+              <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50/80 px-4 py-3">
+                <Clock className="h-4 w-4 text-gray-500" />
+                <span className="text-sm font-medium text-gray-700">Job in progress</span>
+                {jobDetails?.job?.actual_start_at && (
+                  <span className="text-xs text-gray-500">
+                    Started {format(new Date(jobDetails.job.actual_start_at), 'h:mm a')}
+                  </span>
+                )}
+              </div>
+            </div>
           )}
 
           <div className="grid lg:grid-cols-3 gap-6">
@@ -164,6 +177,24 @@ function BookingDetailsContent() {
                   <Card>
                     <CardContent className="pt-6">
                       <div className="flex flex-wrap gap-2">
+                        {(booking.status === 'in_progress' || booking.status === 'scheduled' || booking.status === 'on_my_way' || booking.status === 'accepted') && (
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={() => router.push(`/client/appointments/${bookingId}/live-trust`)}
+                            className="flex items-center gap-2"
+                          >
+                            Live view
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => router.push(`/client/job/${bookingId}`)}
+                          className="flex items-center gap-2"
+                        >
+                          View job
+                        </Button>
                         <Button
                           variant="outline"
                           size="sm"
@@ -264,13 +295,29 @@ function BookingDetailsContent() {
                   </div>
 
                   {/* Quick Actions */}
-                  <div className="flex gap-2 mt-6 pt-4 border-t">
+                  <div className="flex flex-wrap gap-2 mt-6 pt-4 border-t">
+                    {(booking.status === 'in_progress' || booking.status === 'scheduled' || booking.status === 'on_my_way' || booking.status === 'accepted') && (
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => router.push(`/client/appointments/${bookingId}/live-trust`)}
+                        className="flex items-center gap-2"
+                      >
+                        Live view
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => {
-                        addToCalendar(bookingId);
-                      }}
+                      onClick={() => router.push(`/client/job/${bookingId}`)}
+                      className="flex items-center gap-2"
+                    >
+                      View job
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addToCalendar(bookingId)}
                       isLoading={isAddingToCalendar}
                       className="flex items-center gap-2"
                     >
@@ -363,30 +410,6 @@ function BookingDetailsContent() {
                         Message
                       </Button>
                     </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Approval & Dispute (when job is awaiting client approval) */}
-              {canApproveOrDispute && (
-                <Card className="border-amber-200 bg-amber-50/50">
-                  <CardHeader>
-                    <CardTitle>Review & complete</CardTitle>
-                    <p className="text-sm text-gray-600 mt-1">
-                      The cleaning is done. Approve to release payment to your cleaner, or open a dispute if something wasn’t right.
-                    </p>
-                  </CardHeader>
-                  <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                    <GradientButton onClick={handleApprove} disabled={approving}>
-                      {approving ? 'Approving…' : 'Approve & release payment'}
-                    </GradientButton>
-                    <Button
-                      variant="outline"
-                      className="rounded-full px-6"
-                      onClick={() => router.push(`/client/job/${bookingId}/dispute`)}
-                    >
-                      Open dispute
-                    </Button>
                   </CardContent>
                 </Card>
               )}

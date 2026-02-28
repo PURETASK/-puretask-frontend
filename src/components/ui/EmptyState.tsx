@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { Calendar, Search, MessageCircle, Star, FileText, ListOrdered, User, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
 import { cn } from '@/lib/utils';
@@ -15,6 +16,8 @@ interface EmptyStateProps {
     variant?: 'primary' | 'outline';
   };
   className?: string;
+  /** Optional gradient accent on icon container */
+  accent?: boolean;
 }
 
 export function EmptyState({
@@ -23,18 +26,25 @@ export function EmptyState({
   description,
   action,
   className,
+  accent = false,
 }: EmptyStateProps) {
   return (
-    <Card className={cn('border-dashed', className)}>
-      <CardContent className="p-12 text-center">
+    <Card className={cn('border border-dashed border-gray-200', className)}>
+      <CardContent className="p-10 md:p-12 text-center">
         {icon && (
-          <div className="flex justify-center mb-4">
-            <div className="text-6xl">{icon}</div>
+          <div
+            className={cn(
+              'inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-5',
+              accent && 'text-white'
+            )}
+            style={accent ? { background: 'linear-gradient(135deg, var(--brand-blue), var(--brand-aqua))' } : undefined}
+          >
+            <div className={cn(!accent && 'text-gray-400')}>{icon}</div>
           </div>
         )}
         <h3 className="text-xl font-semibold text-gray-900 mb-2">{title}</h3>
         {description && (
-          <p className="text-gray-600 mb-6 max-w-md mx-auto">{description}</p>
+          <p className="text-gray-600 mb-6 max-w-sm mx-auto text-sm">{description}</p>
         )}
         {action && (
           <Button variant={action.variant || 'primary'} onClick={action.onClick}>
@@ -46,17 +56,18 @@ export function EmptyState({
   );
 }
 
-// Pre-built empty states for common use cases
+// Pre-built empty states for common use cases (Lucide icons, helpful copy)
 export function EmptyBookings() {
   return (
     <EmptyState
-      icon="📅"
+      icon={<Calendar className="h-8 w-8" />}
       title="No bookings yet"
-      description="Start by booking your first cleaning service"
+      description="Book your first cleaning and see your appointments here."
       action={{
-        label: 'Book a Service',
+        label: 'Book a service',
         onClick: () => (window.location.href = '/booking'),
       }}
+      accent
     />
   );
 }
@@ -64,11 +75,11 @@ export function EmptyBookings() {
 export function EmptyCleaners() {
   return (
     <EmptyState
-      icon="🧹"
+      icon={<Search className="h-8 w-8" />}
       title="No cleaners found"
-      description="Try adjusting your search filters or check back later"
+      description="Try different filters or a wider search area."
       action={{
-        label: 'Clear Filters',
+        label: 'Clear filters',
         onClick: () => window.location.reload(),
         variant: 'outline',
       }}
@@ -79,9 +90,9 @@ export function EmptyCleaners() {
 export function EmptyMessages() {
   return (
     <EmptyState
-      icon="💬"
+      icon={<MessageCircle className="h-8 w-8" />}
       title="No messages yet"
-      description="Start a conversation with your cleaner or client"
+      description="Conversations with your cleaner or client will appear here."
     />
   );
 }
@@ -89,13 +100,14 @@ export function EmptyMessages() {
 export function EmptyFavorites() {
   return (
     <EmptyState
-      icon="⭐"
+      icon={<Star className="h-8 w-8" />}
       title="No favorite cleaners yet"
-      description="Add cleaners to your favorites for quick booking"
+      description="Save cleaners you like to book them again quickly."
       action={{
-        label: 'Browse Cleaners',
+        label: 'Find cleaners',
         onClick: () => (window.location.href = '/search'),
       }}
+      accent
     />
   );
 }
@@ -103,9 +115,9 @@ export function EmptyFavorites() {
 export function EmptyReviews() {
   return (
     <EmptyState
-      icon="⭐"
+      icon={<Star className="h-8 w-8" />}
       title="No reviews yet"
-      description="Reviews will appear here after you complete bookings"
+      description="After you complete a booking, you can leave a review here."
     />
   );
 }
@@ -113,9 +125,9 @@ export function EmptyReviews() {
 export function EmptyInvoices() {
   return (
     <EmptyState
-      icon="📄"
+      icon={<FileText className="h-8 w-8" />}
       title="No invoices yet"
-      description="Invoices will appear here when you have bookings or purchases"
+      description="Invoices will appear when you have bookings or credit purchases."
     />
   );
 }
@@ -123,13 +135,14 @@ export function EmptyInvoices() {
 export function EmptyLedger() {
   return (
     <EmptyState
-      icon="📋"
+      icon={<ListOrdered className="h-8 w-8" />}
       title="No transactions yet"
-      description="Your credit transactions will show here"
+      description="Your credit balance and transaction history will show here."
       action={{
         label: 'Buy credits',
         onClick: () => (window.location.href = '/client/credits-trust'),
       }}
+      accent
     />
   );
 }
@@ -137,9 +150,9 @@ export function EmptyLedger() {
 export function EmptyAdminBookings() {
   return (
     <EmptyState
-      icon="📅"
+      icon={<Calendar className="h-8 w-8" />}
       title="No bookings match"
-      description="Try adjusting filters or check back later."
+      description="Adjust filters or check back later."
     />
   );
 }
@@ -147,9 +160,9 @@ export function EmptyAdminBookings() {
 export function EmptyAdminUsers() {
   return (
     <EmptyState
-      icon="👤"
+      icon={<User className="h-8 w-8" />}
       title="No users match"
-      description="Try adjusting search or filters."
+      description="Try a different search or filters."
     />
   );
 }
@@ -157,9 +170,9 @@ export function EmptyAdminUsers() {
 export function EmptyNotifications() {
   return (
     <EmptyState
-      icon="🔔"
+      icon={<Bell className="h-8 w-8" />}
       title="No notifications"
-      description="When you get booking updates or messages, they'll show here."
+      description="Booking updates and messages will show here when they arrive."
     />
   );
 }

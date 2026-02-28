@@ -69,11 +69,12 @@ export function SearchFilters({ onFilterChange, currentFilters }: SearchFiltersP
   };
 
   return (
-    <Card className="h-fit sticky top-4">
+    <Card className="h-fit sticky top-4 rounded-2xl border-gray-200 shadow-sm overflow-hidden">
+      <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg, var(--brand-blue), var(--brand-aqua))' }} aria-hidden />
       <CardContent className="p-6 space-y-6">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-lg text-gray-900">Filters</h3>
-          <Button variant="ghost" size="sm" onClick={handleReset}>
+          <Button variant="ghost" size="sm" onClick={handleReset} className="text-gray-600 hover:text-[var(--brand-blue)]">
             Reset
           </Button>
         </div>
